@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/noxaoc/party/issues"
   },
-  "homepage": "https://github.com/noxaoc/party#readme"
+  "homepage": "https://github.com/noxaoc/party#readme",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
 }

@@ -1,0 +1,27 @@
+{
+  "name": "party",
+  "version": "1.0.0",
+  "description": "приложение для организации и проведения танцевальных вечеринок,мастер-классов, соревнований",
+  "main": "party.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noxaoc/party.git"
+  },
+  "keywords": [
+    "party",
+    "dance",
+    "swing",
+    "boogie",
+    "lindy-hop",
+    "mix&match"
+  ],
+  "author": "Al Ter",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/noxaoc/party/issues"
+  },
+  "homepage": "https://github.com/noxaoc/party#readme"
+}

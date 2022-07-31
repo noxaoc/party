@@ -1,5 +1,5 @@
 
-const memoDB = require("./memodb")
+const g_cfg_params = require("./g_cfg_params")
 const MemUser = require("./memuser").MemUser
 /* Структура данных для описания пользователя
 { 
@@ -19,7 +19,7 @@ class User {
 
    static _getDriver(){
         if( !User._modelDb ){
-            if( memoDB.memoDB() === true ){
+            if( g_cfg_params.in_memory() === true ){
                 User._modelDb = new MemUser()
             }else{
                 User._modelDb = new PostgreSQLUser() 
@@ -76,16 +76,4 @@ class User {
 
 module.exports = { User: User }
 
-/* Тест User
-let dbUser = new User();
-let usr_id = dbUser.create({email:"ups@gmail.com", firstName:"Василий", secondName: "Петрович", familyName: "Пупкин"}, null );
-console.log(usr_id);
-usr_id = dbUser.create({email:"ups1@gmail.com", firstName:"Алексей", secondName: "Петрович", familyName: "Пупкин"}, null );
-console.log(usr_id);
-usr_id = dbUser.create({email:"ups3@gmail.com", firstName:"Алексей", secondName: "Петрович", familyName: "Пупкин"}, null );
-console.log( dbUser.read(1, null) )
-dbUser.delete(1)
-console.log( dbUser.id_by_email("ups3@gmail.com") )
-console.log( dbUser.id_by_email("ups@gmail.com") )
-console.log( dbUser.id_by_email("") )
-*/
+

@@ -4,7 +4,7 @@
   "description": "приложение для организации и проведения танцевальных вечеринок,мастер-классов, соревнований",
   "main": "party.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",

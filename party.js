@@ -27,6 +27,9 @@ app.use(express.static(__dirname + '/public'))
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({ extended: true }))
 
+const cookieParser = require('cookie-parser')
+app.use( cookieParser() )
+
 //app.use(weatherMiddlware) 
 
 app.get('/', handlers.home)

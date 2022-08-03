@@ -7,9 +7,8 @@
 Валидная сессия - сессия из хранилища срок действия которой не истек 
 */
 
-const memoDB = require("./g_cfg_params")
 const crypto = require('crypto')
-const g_cfg_params = require("./g_cfg_params")
+const g_cfg_params = require('../g_cfg_params')
 
 
 

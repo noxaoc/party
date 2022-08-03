@@ -1,6 +1,6 @@
 
-const g_cfg_params = require("./g_cfg_params")
-const MemUser = require("./memuser").MemUser
+const g_cfg_params = require('../g_cfg_params')
+const MemUser = require('./memuser').MemUser
 /* Структура данных для описания пользователя
 { 
     id,         // ид  пользователя

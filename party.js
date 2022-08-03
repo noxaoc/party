@@ -28,9 +28,18 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({ extended: true }))
 
 const cookieParser = require('cookie-parser')
-app.use( cookieParser() )
+const { credentials } = require('./g_cfg_params')
+app.use( cookieParser( credentials.cookieSecret) )
 
-//app.use(weatherMiddlware) 
+const session = require('express-session')
+
+app.use( 
+  session( {
+    resave: false,
+    saveUninitialized: false ,
+    secret: credentials.cookieSecret,
+  })
+)
 
 app.get('/', handlers.home)
 app.get('/section-test', handlers.sectionTest)

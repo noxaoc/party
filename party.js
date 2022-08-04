@@ -2,7 +2,7 @@ const express = require('express')
 const expressHandlebars = require('express-handlebars')
 
 const handlers = require('./lib/handlers')
-const weatherMiddlware = require('./lib/middleware/weather')
+//const weatherMiddlware = require('./lib/middleware/weather')
 
 const app = express()
 
@@ -41,15 +41,60 @@ app.use(
   })
 )
 
-app.get('/', handlers.home)
+const passport = require('passport')
+const localStrategy = require('passport-local').Strategy
+
+passport.serializeUser((user, done) => done(null, user))
+passport.deserializeUser((user, done) => done(null, user))
+
+// если сессия невалидная  то редирект на страницу логина
+/*
+function check_auth() {
+  return app.use((req, res, next) => {
+    if(req.user 
+      || req.route === '/register'
+      || req.url === '/favicon.ico' ) 
+      next()
+    else 
+      res.redirect('/login')
+  })
+}
+*/
+
+const check_auth = (req, res, next) => {
+  if(req.user 
+    || req.route === '/register'
+    || req.url === '/favicon.ico' ) 
+    next()
+  else 
+    res.redirect('/login')
+}
+
+app.use(passport.initialize())
+app.use(passport.session())
+
+const basic_auth_strategy = require('./services/basic_auth')
+
+passport.use( basic_auth_strategy.create() )
+
 app.get('/section-test', handlers.sectionTest)
 
 app.get('/register', handlers.register )
 app.post('/register', handlers.doUserRegister )
 
 app.get('/login', handlers.login )
-app.post('/login', handlers.doUserLogin )
+//app.post('/login', handlers.doUserLogin )
 
+app.post(
+  '/login',
+  passport.authenticate('local', {
+    successRedirect: '/',            // после удачной аутентфикации идем на корень, хотя
+    failureRedirect: '/login',       // неудачная аутентификация отправляет на логин
+    failureFlash: true,
+  })
+)
+
+app.get('/', check_auth, handlers.home)
 
 // 404 ошибка
 app.use(handlers.notFound)

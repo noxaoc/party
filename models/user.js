@@ -47,13 +47,13 @@ class User {
         User._getDriver().delete( id, cb )
     }
 
-    // удалить пользователя по id
-    id_by_email (id ) {
-        return User._getDriver().id_by_email(id)
+    // найти пользователя по email
+    id_by_email (email ) {
+        return User._getDriver().id_by_email(email)
     }
 
     // проверить логин и пароль, вернуть id пользователя если все в порядке, иначе undefined
-    checkPassword( email, password ){
+    check_password( email, password ){
         if( !email )
             return undefined
         let drv = User._getDriver()
@@ -70,7 +70,6 @@ class User {
     delete_all(){
         User._getDriver().delete_all()
     }
-
 
 }
 

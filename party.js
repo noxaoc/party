@@ -61,14 +61,7 @@ function check_auth() {
 }
 */
 
-const check_auth = (req, res, next) => {
-  if(req.user 
-    || req.route === '/register'
-    || req.url === '/favicon.ico' ) 
-    next()
-  else 
-    res.redirect('/login')
-}
+
 
 app.use(passport.initialize())
 app.use(passport.session())
@@ -76,6 +69,8 @@ app.use(passport.session())
 const basic_auth_strategy = require('./services/basic_auth')
 
 passport.use( basic_auth_strategy.create() )
+
+
 
 app.get('/section-test', handlers.sectionTest)
 
@@ -94,8 +89,24 @@ app.post(
   })
 )
 
-app.get('/', check_auth, handlers.home)
+// чтобы все get - заапросы без сессии редиректят на /login
+// остальные отдавают 401
+const check_auth = (req, res, next) => {
+  if( req.user || req.url === '/favicon.ico' ) 
+    next()
+  else  if( req.method === 'GET' )
+    res.redirect('/login')
+  else
+    res.status(401)
+}
 
+// нужноы чтобы все get без сессии редиректили на login
+// все остальные отдавали 401
+app.use( '/', check_auth )
+
+//app.get('/', check_auth, handlers.home)
+
+app.get('/', handlers.home)
 // 404 ошибка
 app.use(handlers.notFound)
 // 500 ошибка

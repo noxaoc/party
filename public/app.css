@@ -1,0 +1,123 @@
+body{
+  margin: 0;
+}
+/* Grid Layout  верстка */
+.App{
+  --App-instrumental-width: 40px;  /* ширина инструментальной панели */
+  --App-instrumental-height: 40px; /* высота инструментальной панели */
+  --App-accordion-width: 200px;    /* ширина аккордеона */
+  display: grid;
+  grid-template-columns: var(--App-accordion-width) auto var(--App-instrumental-width);
+  grid-template-rows: var(--App-instrumental-height)  1fr auto;
+  grid-template-areas:  "accordion header aside"
+                        "accordion main aside"
+                        "footer footer aside";
+  height: 100vh; 
+  grid-gap: 1px;
+}
+
+.App-header{
+  background-color: aquamarine;
+  grid-area: header;
+  display: flex;            /* это у нас flex контейнер */
+  flex-direction: row;   /* элементы контейнера располагаем слева направо */
+  align-content: center;  /* все его элементы центрируются по горизонтали */
+
+
+}
+.App-header-item{
+  margin: 1px;
+  content: center;
+}
+
+/****************************** Настройки аккордеона ************************************/
+.App-accordion{ 
+  background-color: gray;
+  grid-area: accordion;
+  display: flex;
+  flex-direction: column;       /* элементы контейнера располагаем сверху вниз */
+  justify-content: flex-start;  /* все его элементы  идут сверху вниз*/
+
+}
+
+.App-accordion-header{
+  --margin: 1px;
+  margin: var(--margin);
+  display: flex;
+  flex-direction: row;
+  align-items: center;  /* все его элементы центрируются по вертикали внутри контейнера */
+  height: calc( var(--App-instrumental-height) - var(--margin) );
+}
+
+.App-accordion-nav{
+  display: flex;
+  flex-direction: column;
+}
+
+/***************************** Настройки основного контента ********************************/
+.App-main{
+  background-color: burlywood;
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-main-filter{
+  --margin: 1px;
+  margin: var(--margin);
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  height: calc( var(--App-instrumental-height) - var(--margin) );
+}
+
+/* строка для поиска в содержимом в основной панели */
+.App-main-filter-search-input{
+
+}
+
+/* кнопка фильтрации */
+.App-main-filter-search-btn{
+
+}
+
+/* информационная панель фильтрации, сюда помещаюется текстовые значения фильтра */
+.App-main-filter-filter-info{
+  flex-grow: 1;               /* чтобы информационая панель фильтрации заняла все свободное место */
+  display: flex;
+  align-items: center;        /* все его элементы центрируются по вертикали внутри контейнера */
+  justify-content: flex-end;  /* прижимаем текст влево */
+}
+
+.App-main-filter-filter-info-text{
+}
+
+/* кнопка запуска фильтрации содержимого в основной панели */
+.App-main-filter-filter-btn{
+
+}
+
+/**************************** Правая панель инструментов ***********************************/
+.App-instrumental{
+  background-color: gray;
+  grid-area: aside;
+  display: flex;                /* это у нас flex контейнер */
+  flex-direction: column;       /* элементы контейнера располагаем сверху вниз */
+  justify-content: flex-start;  /* все его элементы центрируются по горизонтали */
+}
+
+/* Кнопка на правой панели инструментов */
+.App-instrumental-btn{
+  --margin: 1px;
+  margin: var(--margin);
+  flex-basis: calc( var(--App-instrumental-width) - var(--margin) );
+}
+
+.App-footer{
+  background-color: aquamarine;
+  grid-area: footer;
+}
+
+
+
+

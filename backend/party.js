@@ -1,11 +1,10 @@
 const express = require('express')
-const expressHandlebars = require('express-handlebars')
+//const expressHandlebars = require('express-handlebars')
 
 const handlers = require('./lib/handlers')
-//const weatherMiddlware = require('./lib/middleware/weather')
 
 const app = express()
-
+/*
 // configure Handlebars view engine
 const hbs = expressHandlebars.create({
     defaultLayout: 'main',
@@ -19,16 +18,17 @@ const hbs = expressHandlebars.create({
 })
 app.engine('handlebars', hbs.engine )
 app.set('view engine', 'handlebars')
-
-const port = process.env.PORT || 3000
+*/
+const port = process.env.PORT || 3333
 // папка расположения статических файлов
 app.use(express.static(__dirname + '/public'))
 
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({ extended: true }))
 
-const cookieParser = require('cookie-parser')
+//const cookieParser = require('cookie-parser')
 const { credentials } = require('./g_cfg_params')
+/*
 app.use( cookieParser( credentials.cookieSecret) )
 
 const session = require('express-session')
@@ -46,7 +46,7 @@ const localStrategy = require('passport-local').Strategy
 
 passport.serializeUser((user, done) => done(null, user))
 passport.deserializeUser((user, done) => done(null, user))
-
+*/
 // если сессия невалидная  то редирект на страницу логина
 /*
 function check_auth() {
@@ -60,7 +60,7 @@ function check_auth() {
   })
 }
 */
-
+/*
 
 
 app.use(passport.initialize())
@@ -88,7 +88,11 @@ app.post(
     failureFlash: true,
   })
 )
-
+*/
+/* запросы на междусобойчик
+*/
+app.post( '/party', handlers.doPartyRequest)
+/*
 // чтобы все get - заапросы без сессии редиректят на /login
 // остальные отдавают 401
 const check_auth = (req, res, next) => {
@@ -100,22 +104,25 @@ const check_auth = (req, res, next) => {
     res.status(401)
 }
 
-// нужноы чтобы все get без сессии редиректили на login
+// нужно чтобы все get без сессии редиректили на login
 // все остальные отдавали 401
 app.use( '/', check_auth )
 
 //app.get('/', check_auth, handlers.home)
-
+*/
 app.get('/', handlers.home)
+
+
 // 404 ошибка
 app.use(handlers.notFound)
 // 500 ошибка
 app.use(handlers.serverError)
 
+
+
 if(require.main === module) {
   app.listen(port, () => {
-    console.log( `Express started on http://localhost:${port}` +
-      '; press Ctrl-C to terminate.' )
+    console.log( `Express started on http://localhost:${port}; press Ctrl-C to terminate.` )
   })
 } else {
   module.exports = app

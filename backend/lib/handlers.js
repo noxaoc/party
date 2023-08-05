@@ -84,7 +84,14 @@ exports.doUserLogin = (req, res) => {
     }
 }
 
+exports.doPartyRequest = (req, res) => {
+   console.log(req)
+}
+
+
 exports.home = (req, res) => { 
+
+    console.log("process home")
     // если нет сессии, идем на страницу аутентификации
   /*
     const sid = req.signedCookies.sid_token
@@ -95,7 +102,11 @@ exports.home = (req, res) => {
         return
     }
 */
-    res.render('home')
+const home = `<h2>State of backend node application "Party"</h2>
+<div style="margin-top: 30px">
+    <a class="btn btn-primary btn-lg active" href="/party">Test</a>
+</div>`
+    res.send(home)
 }
 exports.sectionTest = (req, res) => res.render('section-test')
 

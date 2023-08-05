@@ -10,6 +10,8 @@ const global_config_params = {
 
 const env = process.env.N0DE_ENV || 'development'
 const credentials = require (`./.credentials.${env}`)
+if( credentials.cookieSecret === undefined )
+  console.log('Отсутствует в файле ".credentials.development.json" свойство "cookieSecret"!')
 
 module.exports = { in_memory: () => { return global_config_params.in_memory }, 
                    sid_life_time: () => { return global_config_params.sid_life_time },

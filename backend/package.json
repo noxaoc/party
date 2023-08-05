@@ -4,7 +4,8 @@
   "description": "приложение для организации и проведения танцевальных вечеринок,мастер-классов, соревнований",
   "main": "party.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "party.js"
   },
   "repository": {
     "type": "git",
@@ -16,6 +17,8 @@
     "swing",
     "boogie",
     "lindy-hop",
+     "balboa",
+     "solo-jazz",
     "mix&match"
   ],
   "author": "Al Ter",

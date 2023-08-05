@@ -2,8 +2,8 @@
   "name": "party",
   "version": "0.0.0",
   "private": true,
-  "jest": { 
-  "testEnvironment": "node"
+  "jest": {
+    "testEnvironment": "node"
   },
   "babel": {
     "presets": [
@@ -31,7 +31,7 @@
     "dev": "NODE_ENV=development npm-run-all build server",
     "prod": "NODE_ENV=production npm-run-all build server",
     "watch:dev": "nodemon",
-    "test":"jest"
+    "test": "jest"
   },
   "dependencies": {
     "@babel/cli": "^7.22.9",
@@ -44,6 +44,7 @@
     "morgan": "~1.9.1",
     "nodemon": "^3.0.1",
     "npm-run-all": "^4.1.5",
-    "rimraf": "^5.0.1"
+    "rimraf": "^5.0.1",
+    "sqlite3": "^5.1.6"
   }
 }

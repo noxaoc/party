@@ -1,0 +1,35 @@
+руководство по настройке ES модулей в express
+https://www.freecodecamp.org/news/how-to-enable-es6-and-beyond-syntax-with-node-and-express-68d3e11fe1ab/
+Here are the simplified steps for how to enable ES6 in Node.js. I’ll also include the repo so you can copy and inspect the whole code.
+
+Make a new project using express your-project-name terminal command.
+Move the bin/, routes/ and app into a new folder called src/ , and convert the code into ES6. Also don’t forget to rename bin/www to www.js
+Install all the dependencies and devDependencies
+npm i npm-run-all @babel/cli @babel/core @babel/preset-env nodemon rimraf --save
+npm i -D jest
+Add these scripts to your package.json
+"scripts": { 
+  "start": "npm run prod", 
+  "build": "npm-run-all clean transpile", 
+  "server": "node ./dist-server/bin/www", 
+  "dev": "NODE_ENV=development npm-run-all build server", 
+  "prod": "NODE_ENV=production npm-run-all build server", 
+  "transpile": "babel ./server --out-dir dist-server", 
+  "clean": "rimraf dist-server", 
+  "watch:dev": "nodemon", 
+  "test": "jest" 
+}
+Put configurations for babel, nodemon, and jest in your package.json
+"nodemonConfig": {
+  "exec": "npm run dev",
+  "watch": [ "server/*", "public/*" ],
+  "ignore": [ "**/__tests__/**", "*.test.js", "*.spec.js" ] 
+}, 
+"babel": { 
+  "presets": [ "@babel/preset-env" ]
+},
+"jest": {
+  "testEnvironment": "node"
+},
+Test your scripts by running npm run your-script-here
+You’ll see the complete repo at my github

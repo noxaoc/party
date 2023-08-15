@@ -722,7 +722,7 @@ Cобытия  междусобойчика
              {name:"name", required: false, type: "string"},
              {name:"typeEvent",required: true,  type: "number"},
              {name:"startDate", required: true, type: "object"},
-             {name:"comment",required: false,  type: "string"},
+             {name:"description",required: false,  type: "string"},
             ]
         }
     }

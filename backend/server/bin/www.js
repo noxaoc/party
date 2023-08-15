@@ -3,11 +3,6 @@
 /**
  * Module dependencies.
  */
-/*
-var app = require('../app');
-var debug = require('debug')('backend:server');
-var http = require('http');
-*/
 import app from '../app';
 import debugLib from 'debug';
 import http from 'http';
@@ -18,14 +13,14 @@ const debug = debugLib('party:server');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3333');
+const port = normalizePort(process.env.PORT || '3333');
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+const server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -64,7 +59,7 @@ function onError(error) {
     throw error;
   }
 
-  var bind = typeof port === 'string'
+  const bind = typeof port === 'string'
     ? 'Pipe ' + port
     : 'Port ' + port;
 

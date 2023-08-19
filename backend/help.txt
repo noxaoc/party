@@ -1,9 +1,11 @@
 Использование curl
 curl -i -H 'Content-Type: application/json' -d '{"filter":{"pid":1},"ord":null,"nav":null}' http://localhost:3333/party/eventparty/list
 curl -i -H 'Content-Type: application/json' -d '{"filter":{"pid":1,"id":1}}' http://localhost:3333/party/eventparty/read
+curl -i -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: Content-Type' -H 'Origin: http://localhost:3000' -X OPTIONS http://localhost:3333/party/eventparty/read
 
 
-"Content-Type: application/json"
+
+
 руководство по настройке ES модулей в express
 https://www.freecodecamp.org/news/how-to-enable-es6-and-beyond-syntax-with-node-and-express-68d3e11fe1ab/
 Here are the simplified steps for how to enable ES6 in Node.js. I’ll also include the repo so you can copy and inspect the whole code.

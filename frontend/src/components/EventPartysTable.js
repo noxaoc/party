@@ -1,12 +1,12 @@
 
-import React, { useState } from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import React, { useState, useEffect } from "react"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import {  Col, Row, Card,  Button, Table, Dropdown, 
-          Modal, ButtonGroup, Container, Form } from '@themesberg/react-bootstrap';
-
-import { Event, TypeEvent, parseDateTimeStr } from "../data/participants";
-
+          Modal, ButtonGroup, Container, Form } from '@themesberg/react-bootstrap'
+import { makePlainObj, mapRSet } from "../lib/record"
+import { Event, TypeEvent, parseDateTimeStr } from "../data/participants"
+import { EventParty } from "../data/eventParty"
 const R = require('ramda');
 
 // получить идентификатор текущего междусобойчика
@@ -387,10 +387,20 @@ export const EventsPartyTable = ( props ) => {
   const [showDlg, setShowDlg] = useState({showDlg:false,currID:null});
   // перевод в режим редактирования диалог просмотра события
   const [editMode, setEditMode] = useState(false);
+  // список событий
+  const [events, setEvents] = useState([])
+
   // получить список событий в соответствии с фильтрацией
-  const filter = { searchStr : props.searchStr }
-  const events = Event.listAll(getCurrentGID(), filter)
-  const totalEvents = events.length
+  const filter = { searchStr : props.searchStr, pid: getCurrentGID() }
+  //const events = Event.listAll(getCurrentGID(), filter)
+  //const totalEvents = events.length
+
+  // Note: the empty deps array [] means
+  // this useEffect will run once
+  // similar to componentDidMount()
+  useEffect(() => {
+    EventParty.list( filter, null, null, ( result )=>setEvents(result), (error)=>console.log("Какая то ошибка!") )
+  }, [filter])
 
   //удалить событие по id и вызвать обновление списка  событий
   const doRemoveEvent = (id)=>{
@@ -400,10 +410,17 @@ export const EventsPartyTable = ( props ) => {
     }
   }
 
+  const recHdl = ( rec, frmt  )=>{
+    const pobj = makePlainObj(rec,frmt)
+    return <TableRow key={`event-${pobj.id}`} {...pobj} />
+  }
+
   const TableRow = (props) => {
-    const { id, name, typeEvent, typeEventName, startDate, dateStartStr, description } = props;
-    let dt_arr = R.split(' ', dateStartStr )
-  
+   // const { id, name, typeEvent, typeEventName, startDate, dateStartStr, description } = props;
+   const { id, name, evTypeName, description, dtStart,  } = props;
+
+    let dt_arr = R.split(' ', dtStart )
+
     return (
       <tr>
         <td className="p-1">
@@ -413,7 +430,7 @@ export const EventsPartyTable = ( props ) => {
         </td>
         <td className="p-1">
             <span className="fw-normal">
-              { typeEventName }
+              { evTypeName }
             </span>
         </td>
         <td className="p-1">
@@ -473,12 +490,13 @@ export const EventsPartyTable = ( props ) => {
             </tr>
           </thead>
           <tbody>
-            {events.map(t => <TableRow key={`event-${t.id}`} {...t} />)}
+            {/*events.map(t => <TableRow key={`event-${t.id}`} {...t} />)*/}
+            {mapRSet(recHdl,events)}
           </tbody>
         </Table>
         <Card.Footer className="px-1 py-2 border-0 d-flex justify-content-start">
           <small className="fw-bold">
-            Всего событий <b>{totalEvents}</b>
+            Всего событий <b>{ R.empty(events) ? 0 : (R.length(events) - 1) }</b>
           </small>
         </Card.Footer>
       </Card.Body>

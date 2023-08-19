@@ -1,9 +1,9 @@
 /*
 Утилиты для формирования маршрутов
 */
-import * as fs from 'node:fs';
-import path from 'path';
-
+import * as fs from 'node:fs'
+import path from 'path'
+import cors from 'cors'
 
 /*
 В папку webfuncs кладутся модули с экспортируемыми функциями связываемыми с маршрутами
@@ -15,14 +15,20 @@ url_path - общий url - путь, например, "/party"
 fpath - путь до папки где лежат модули с экспортируемыми web - функциями
 */
 export const makeRoutes = ( express, app, url_path, fpath )=>{
-
+    // разрешаем CORS
+    const corsOptions = {
+        origin: 'http://localhost:3000',
+        methods: ['POST', 'OPTIONS'],
+        allowedHeaders: ['Content-Type']
+    }
+   
     let fnames = fs.readdirSync( fpath )
     // obj - экспортируемый  по умолчанию объект модуля к объекту привязаны функции
     const createRoute  = ( obj, module_name )=>{
         let router = express.Router();
         for ( let func_name in obj) {
-            router.post('/' + func_name, obj[func_name] )
-            router.get('/' + func_name, obj[func_name] )
+            router.post( '/' + func_name, cors(corsOptions), obj[func_name] )
+            router.options( '/' + func_name, cors(corsOptions ) )
         }
         console.log( url_path + '/' + module_name )
         app.use( url_path + '/' + module_name, router  )

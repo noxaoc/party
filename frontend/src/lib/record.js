@@ -62,7 +62,7 @@ export function addRecord( rSet, db_rec ){
 }
 
 export function emptyRSet( rSet ){
-   return lengthDataRSet(rSet) === 0
+   return lengthRSet(rSet) === 0
 }
 
 export function lengthRSet( rSet ){

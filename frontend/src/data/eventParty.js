@@ -27,11 +27,13 @@ filter = {
     ids: [<идентификаторы событий>]
 }
 curl -i -H 'Content-Type: application/json;charset=utf-8' -d '{"filter":{"pid":1},"ord":null,"nav":null}' http://localhost:3333/party/eventparty/list
+    let rs = makeRecordSet( [ ['id','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'] ] )  
+
 */    
-function  list( filter, ord, nav ){
+function  list( filter, ord, nav, setResult, setError ){
 const partyURL = "http://localhost:3333/party"
             
-let promise = fetch( partyURL +"/event_party/list", 
+fetch( partyURL +"/eventparty/list", 
 {
     method: 'POST',
     headers: {
@@ -39,11 +41,8 @@ let promise = fetch( partyURL +"/event_party/list",
     },
     body: JSON.stringify({"filter":{"pid":1},"ord":null,"nav":null})
 })
-.then(response => response.json())
-.then(result => console.log(result))
-
-
-
+.then(response => response.r.json())
+.then(setResult, setError)
 }
 
 function read(){
@@ -57,4 +56,4 @@ return Object.freeze({
 
 }
 
-export const EventPart = makeEventParty()
+export const EventParty = makeEventParty()

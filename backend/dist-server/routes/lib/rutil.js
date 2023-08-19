@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.makeRoutes = void 0;
 var fs = _interopRequireWildcard(require("node:fs"));
 var _path = _interopRequireDefault(require("path"));
+var _cors = _interopRequireDefault(require("cors"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -22,13 +23,30 @@ url_path - общий url - путь, например, "/party"
 fpath - путь до папки где лежат модули с экспортируемыми web - функциями
 */
 var makeRoutes = function makeRoutes(express, app, url_path, fpath) {
+  var corsOptions = {
+    origin: 'http://localhost:3000',
+    methods: ['POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+  };
+
+  //app.options('/party/event_party/list',cors(corsOptions),(req,res,next)=>{
+  //app.all(url_path + '/*', cors(corsOptions))
+  /*
+  ,(req,res,next)=>{
+       console.log(res.headers)
+      console.log(req.method + ' ' + req.originalUrl + ' ' + req.hostname )
+      next()
+  })
+  */
+  //app.options(url_path ,cors(corsOptions), (req,res)=>{res.status(200);console.log(req.originalUrl);res.end()})
+
   var fnames = fs.readdirSync(fpath);
   // obj - экспортируемый  по умолчанию объект модуля к объекту привязаны функции
   var createRoute = function createRoute(obj, module_name) {
     var router = express.Router();
     for (var func_name in obj) {
-      router.post('/' + func_name, obj[func_name]);
-      router.get('/' + func_name, obj[func_name]);
+      router.post('/' + func_name, (0, _cors["default"])(corsOptions), obj[func_name]);
+      router.options('/' + func_name, (0, _cors["default"])(corsOptions));
     }
     console.log(url_path + '/' + module_name);
     app.use(url_path + '/' + module_name, router);

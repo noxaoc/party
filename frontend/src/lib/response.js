@@ -9,20 +9,8 @@ function makePostResponseOK( result ){
 function makePostResponseError( msg, error_uuid ){
     return { r: null, e: { msg: msg, uuid: error_uuid } }
 }
-/*
-export function setCORSHeader( response, method ){
-    response.set({
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'  ,
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Origin': 'http://localhost:3000',
-    })
-    if( method === 'OPTIONS')
-        response.status(200)
-}
-*/
+
 export function  getResult( func, arg, response ){
-    // разрешаем CORS для POST c http://localhost:3000
-   // setCORSHeader(response,'POST')
     const setResponse = ( err, result )=>{
         if( err )
             response.status(500).json(makePostResponseError(err,null))

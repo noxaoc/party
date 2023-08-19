@@ -49,4 +49,4 @@ function read( rec, respHdl) {
             update
         });
     }
-    export const EventParty = makeEventParty()
+export const EventParty = makeEventParty()

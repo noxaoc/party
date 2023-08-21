@@ -4,6 +4,32 @@
 
 
 function  makeEventParty(){
+
+const  partyURL = ()=> "http://localhost:3333/party"     
+
+function remoteCall( method,  rec, setResult, setError ){
+    const getResult = ( { r, e } )=>{
+        if( r === undefined || e === undefined ){
+            setResult("Сервер вернул, то чего не ждали")
+        }
+        else if( r === null && e !== null ){
+            setResult(e)
+        }else
+            setResult(r)
+    } 
+    fetch( partyURL() + method, 
+    {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(rec)
+    })
+    .then( response => response.json(), err=>console.log(err.message) )
+    .then( getResult, setError)    
+}
+    
+    
 /*
     getSchema(){
         // required - true обязательное поле, not null. Если отсутствует null допустим
@@ -30,23 +56,12 @@ curl -i -H 'Content-Type: application/json;charset=utf-8' -d '{"filter":{"pid":1
     let rs = makeRecordSet( [ ['id','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'] ] )  
 
 */    
-function  list( filter, ord, nav, setResult, setError ){
-const partyURL = "http://localhost:3333/party"
-            
-fetch( partyURL +"/eventparty/list", 
-{
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json;charset=utf-8'
-    },
-    body: JSON.stringify({"filter":{"pid":1},"ord":null,"nav":null})
-})
-.then(response => response.r.json())
-.then(setResult, setError)
+function  list( filter, ord, nav, setResult, setError ){     
+remoteCall( "/eventparty/list",{ "filter": filter, "ord":ord,"nav":nav}, setResult, setError)
 }
 
-function read(){
-
+function read( filter, setResult, setError ){
+    remoteCall( "/eventparty/read",{ "filter": filter}, setResult, setError)
 }
 
 return Object.freeze({

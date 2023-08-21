@@ -44,7 +44,7 @@ export function getFldType( frmt ){
 export function makeRecordSet( frmt ){
     const checkFrmtFld = ( frmt_fld )=>{
         if( R.length(frmt_fld) < 2 )
-            throw "Неверно сконструированный формат!"
+            throw 'Неверно сконструированный формат!'
         // проверить допустимый тип еще надо
         return false
     }

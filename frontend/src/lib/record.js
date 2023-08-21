@@ -44,7 +44,7 @@ export function getFldType( frmt ){
 export function makeRecordSet( frmt ){
     const checkFrmtFld = ( frmt_fld )=>{
         if( R.length(frmt_fld) < 2 )
-            throw "Неверно сконструированный формат!"
+            throw new SyntaxError('Неверно сконструированный формат RecordSet!')
         // проверить допустимый тип еще надо
         return false
     }
@@ -110,4 +110,9 @@ export function makePlainObj( rec, frmt ){
     }
     frmt.forEach( fldHdl  )
     return pobj
+}
+
+export function makePlainObjByIdx( rSet, idx = 0 ){
+    return makePlainObj( rSet[idx + 1], getFrmtRSet(rSet))
+
 }

@@ -23,23 +23,12 @@ url_path - общий url - путь, например, "/party"
 fpath - путь до папки где лежат модули с экспортируемыми web - функциями
 */
 var makeRoutes = function makeRoutes(express, app, url_path, fpath) {
+  // разрешаем CORS
   var corsOptions = {
     origin: 'http://localhost:3000',
     methods: ['POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type']
   };
-
-  //app.options('/party/event_party/list',cors(corsOptions),(req,res,next)=>{
-  //app.all(url_path + '/*', cors(corsOptions))
-  /*
-  ,(req,res,next)=>{
-       console.log(res.headers)
-      console.log(req.method + ' ' + req.originalUrl + ' ' + req.hostname )
-      next()
-  })
-  */
-  //app.options(url_path ,cors(corsOptions), (req,res)=>{res.status(200);console.log(req.originalUrl);res.end()})
-
   var fnames = fs.readdirSync(fpath);
   // obj - экспортируемый  по умолчанию объект модуля к объекту привязаны функции
   var createRoute = function createRoute(obj, module_name) {

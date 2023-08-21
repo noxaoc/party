@@ -577,6 +577,7 @@ eventID - ссылка на событие
 price - цена события
 comment - описание цены
 */
+/*
 class   Prices{
 #prices = [
     { id: 1,
@@ -603,7 +604,7 @@ static getSchema(){
 }
 
 }
-
+*/
 
 let typeEvents = [
     {   id: 1,

@@ -58,7 +58,7 @@ function getFldType(frmt) {
 }
 function makeRecordSet(frmt) {
   var checkFrmtFld = function checkFrmtFld(frmt_fld) {
-    if (R.length(frmt_fld) < 2) throw "Неверно сконструированный формат!";
+    if (R.length(frmt_fld) < 2) throw 'Неверно сконструированный формат!';
     // проверить допустимый тип еще надо
     return false;
   };

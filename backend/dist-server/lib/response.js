@@ -9,6 +9,7 @@ exports.getResult = getResult;
 msg и uuid необязательны
 */
 function makePostResponseOK(result) {
+  console.log(result);
   return {
     r: result,
     e: null
@@ -23,20 +24,7 @@ function makePostResponseError(msg, error_uuid) {
     }
   };
 }
-/*
-export function setCORSHeader( response, method ){
-    response.set({
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'  ,
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Origin': 'http://localhost:3000',
-    })
-    if( method === 'OPTIONS')
-        response.status(200)
-}
-*/
 function getResult(func, arg, response) {
-  // разрешаем CORS для POST c http://localhost:3000
-  // setCORSHeader(response,'POST')
   var setResponse = function setResponse(err, result) {
     if (err) response.status(500).json(makePostResponseError(err, null));else response.status(200).json(makePostResponseOK(result));
   };

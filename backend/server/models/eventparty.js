@@ -37,7 +37,15 @@ function read( rec, respHdl) {
     let rs = makeRecordSet( [ ['id','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'] ] )  
     DBEventParty.read( rs, rec.filter, respHdl )
 }
-        function remove(){ console.log("call remove") }
+
+function remove( rec, respHdl ) { 
+if( R.isNil(rec.filter.pid ) )
+    throw 'Работа невозможна, так как не удалось определить идентификатор междусобойчика!'
+if( R.isNil(rec.filter.ids) || R.isEmpty(rec.filter.ids) )
+    respHdl(null,true)
+DBEventParty.remove( rec.filter, respHdl )
+
+}
         function insert() { console.log("call insrty") }
         function update(){console.log("call upadte") }
         

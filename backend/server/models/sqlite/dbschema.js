@@ -1,7 +1,7 @@
 /*
 Создание схемы базы "Междусобойчика" в sqlite
 */
-import { where } from 'ramda';
+import * as R from 'ramda';
 import { PartyDate }  from '../../lib/partyday'
 import { addRecord } from '../../lib/record'
 
@@ -146,6 +146,18 @@ function makeEventParty(){
      *  Конструирование строки запроса для получения списка событий междусобойчика
      */
     function listQueryStr( filter, ord, nav ){
+        let eventIdsFilter = '' 
+        let filterSearchStr = ''
+        if( R.isNotNil(filter.ids) && !R.isEmpty(filter.ids) ){   
+            if( R.length(filter.ids) === 1 ){
+                eventIdsFilter = `and event_party.pkID = ${filter.ids[0]}`
+            }else{
+                eventIdsFilter = `and event_party.pkID in ( ${filter.ids.join(',')} )`
+            }
+        }
+        if( R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr) )       
+            filterSearchStr = `and event_party.name like '%${filter.searchStr}%'`
+        
         return (
                `select event_party.pkID as id, 
                     event_party.name as name, 
@@ -155,7 +167,7 @@ function makeEventParty(){
                 from event_party 
                      join type_event 
                      on type_event.pkID = event_party.fkEventType
-                where fkParty = ${filter.pid}` )
+                where fkParty = ${filter.pid} ${eventIdsFilter} ${filterSearchStr}` )
     }
   
   /**
@@ -194,7 +206,24 @@ function read( rs, filter, respHdl ){
                         event_party.pkID =${filter.id} and event_party.fkParty =${filter.pid}`
     db.get(query, getRow)
 }
-    function remove(){ console.log("call remove") }
+/*
+filter
+{
+    ids: [ <список id на удаление> ]
+    pid: <идентификатор междусобойчика>
+}
+*/
+function remove( filter, respHdl ){
+    const onSuccess = (err)=>{
+        console.log(err)
+        respHdl( R.isNil(err) ? null : err.msg, R.isNil(err) ? true: null  )
+    }
+    const query  = `delete from event_party 
+                    where
+                        event_party.pkID in ( ${filter.ids.join(',')} 
+                        and event_party.fkParty =${filter.pid}`
+    db.run(query, onSuccess )
+}
     function insert() { console.log("call insrty") }
     function update(){console.log("call upadte") }
     

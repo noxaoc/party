@@ -14,3 +14,11 @@ export const read = ( req, res, next )=>{
     console.log(req.body)
     getResult(EventParty.read, req.body, res )
 }
+
+/*
+{"filter":{"pid":1,"ids":[1,2]}}
+*/
+export const remove = ( req, res, next )=>{
+    console.log(req.body)
+    getResult(EventParty.remove, req.body, res )
+}

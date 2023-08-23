@@ -1,14 +1,17 @@
 "use strict";
 
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.DBEventParty = void 0;
 exports.Participant = Participant;
 exports.doTestSQL = doTestSQL;
-var _ramda = require("ramda");
+var R = _interopRequireWildcard(require("ramda"));
 var _partyday = require("../../lib/partyday");
 var _record = require("../../lib/record");
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /*
 Создание схемы базы "Междусобойчика" в sqlite
 */
@@ -85,7 +88,17 @@ function makeEventParty() {
    *  Конструирование строки запроса для получения списка событий междусобойчика
    */
   function listQueryStr(filter, ord, nav) {
-    return "select event_party.pkID as id, \n                    event_party.name as name, \n                    event_party.description as description, \n                    type_event.name as evTypeName, \n                    event_party.dtStart  as dtStart\n                from event_party \n                     join type_event \n                     on type_event.pkID = event_party.fkEventType\n                where fkParty = ".concat(filter.pid);
+    var eventIdsFilter = '';
+    var filterSearchStr = '';
+    if (R.isNotNil(filter.ids) && !R.isEmpty(filter.ids)) {
+      if (R.length(filter.ids) === 1) {
+        eventIdsFilter = "and event_party.pkID = ".concat(filter.ids[0]);
+      } else {
+        eventIdsFilter = "and event_party.pkID in ( ".concat(filter.ids.join(','), " )");
+      }
+    }
+    if (R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr)) filterSearchStr = "and event_party.name like '%".concat(filter.searchStr, "%'");
+    return "select event_party.pkID as id, \n                    event_party.name as name, \n                    event_party.description as description, \n                    type_event.name as evTypeName, \n                    event_party.dtStart  as dtStart\n                from event_party \n                     join type_event \n                     on type_event.pkID = event_party.fkEventType\n                where fkParty = ".concat(filter.pid, " ").concat(eventIdsFilter, " ").concat(filterSearchStr);
   }
 
   /**
@@ -117,8 +130,20 @@ function makeEventParty() {
     var query = "select event_party.pkID as id, \n                           event_party.name as name, \n                           event_party.description as description, \n                           type_event.name as evTypeName, \n                           event_party.dtStart  as dtStart\n                    from event_party \n                        left join type_event \n                        on type_event.pkID = event_party.fkEventType\n                    where\n                        event_party.pkID =".concat(filter.id, " and event_party.fkParty =").concat(filter.pid);
     db.get(query, getRow);
   }
-  function remove() {
-    console.log("call remove");
+  /*
+  filter
+  {
+      ids: [ <список id на удаление> ]
+      pid: <идентификатор междусобойчика>
+  }
+  */
+  function remove(filter, respHdl) {
+    var onSuccess = function onSuccess(err) {
+      console.log(err);
+      respHdl(R.isNil(err) ? null : err.msg, R.isNil(err) ? true : null);
+    };
+    var query = "delete from event_party \n                    where\n                        event_party.pkID in ( ".concat(filter.ids.join(','), " \n                        and event_party.fkParty =").concat(filter.pid);
+    db.run(query, onSuccess);
   }
   function insert() {
     console.log("call insrty");

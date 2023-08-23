@@ -8,12 +8,15 @@ function  makeEventParty(){
 const  partyURL = ()=> "http://localhost:3333/party"     
 
 function remoteCall( method,  rec, setResult, setError ){
+    console.log(method)
     const getResult = ( { r, e } )=>{
         if( r === undefined || e === undefined ){
-            setResult("Сервер вернул, то чего не ждали")
+            console.log("Неожиданный ответ от сервера!")
+            setResult(undefined)
         }
         else if( r === null && e !== null ){
-            setResult(e)
+            console.log(e)
+            setResult(undefined)
         }else
             setResult(r)
     } 
@@ -64,9 +67,22 @@ function read( filter, setResult, setError ){
     remoteCall( "/eventparty/read",{ "filter": filter}, setResult, setError)
 }
 
+/*
+Список событий междусобойчика
+filter = {
+    pid: <идентификатор междусобойчика>
+    ids: [<идентификаторы событий>]
+}
+curl -i -H 'Content-Type: application/json;charset=utf-8' -d '{"filter":{"pid":1, "ids":[1,2]}}' http://localhost:3333/party/eventparty/list
+*/  
+function remove( filter, setResult, setError ){
+    remoteCall( "/eventparty/remove",{ "filter": filter}, setResult, setError)
+}
+
 return Object.freeze({
     list,
-    read
+    read,
+    remove
 })
 
 }

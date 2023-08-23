@@ -42,8 +42,10 @@ function makeEventParty() {
     var rs = (0, _record.makeRecordSet)([['id', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't']]);
     _dbschema.DBEventParty.read(rs, rec.filter, respHdl);
   }
-  function remove() {
-    console.log("call remove");
+  function remove(rec, respHdl) {
+    if (R.isNil(rec.filter.pid)) throw 'Работа невозможна, так как не удалось определить идентификатор междусобойчика!';
+    if (R.isNil(rec.filter.ids) || R.isEmpty(rec.filter.ids)) respHdl(null, true);
+    _dbschema.DBEventParty.remove(rec.filter, respHdl);
   }
   function insert() {
     console.log("call insrty");

@@ -84,7 +84,7 @@ export function getFrmtRSet( rSet ){
 hdl = ( rec, frmt )=>...
 */
 export function mapRSet( hdl, rSet ){
-    if( emptyRSet(rSet) )
+    if( R.isNil(rSet)   || emptyRSet(rSet) )
         return []
     let result = []
     const rSetFormat = getFrmtRSet(rSet)
@@ -115,4 +115,11 @@ export function makePlainObj( rec, frmt ){
 export function makePlainObjByIdx( rSet, idx = 0 ){
     return makePlainObj( rSet[idx + 1], getFrmtRSet(rSet))
 
+}
+
+/*
+Преобразовать RecordSet в список js - объектов
+*/
+export function makeListPlainObj( rSet ){
+    return mapRSet( makePlainObj, rSet )
 }

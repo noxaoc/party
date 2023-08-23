@@ -184,6 +184,21 @@ return (
 
 }
 
+
+const ErrorMsgAlert = ()=>{
+  return (
+      <Card border="light" className="table-wrapper table-responsive shadow-sm">
+        <Card.Body className="pt-0 pb-1 px-2">
+          <Card.Title>Произошла непредвиденная ошибка</Card.Title>
+          <Card.Text>
+            Мы искренне сожалеем, но по неизвестной причине запрос не удается исполнить.
+            Если перезагрузка страницы не помогает, обратитесь в техническую поддержку.
+          </Card.Text>
+        </Card.Body>
+      </Card>
+  )
+}
+
 /*
  Список событий междусобойчика
 id - идентификатор события
@@ -203,7 +218,7 @@ export const EventsPartyTable = ( props ) => {
   const [showDlg, setShowDlg] = useState({showDlg:false,currID:null, editRec:{}});
   // перевод в режим редактирования диалог просмотра события
   const [editMode, setEditMode] = useState(false);
-  // список событий
+  // список событий, если events === undefined, то произошла ошибка
   const [events, setEvents] = useState([])
   
   useEffect(() => {
@@ -214,7 +229,6 @@ export const EventsPartyTable = ( props ) => {
                     ( error )=>console.log(error.message) )
     return ()=>{}
   },[props.searchStr])
-
   
   // создать обработчик на редактирование записи
   const makeOnEditHdl = ( id )=>{
@@ -230,8 +244,9 @@ export const EventsPartyTable = ( props ) => {
   //удалить событие по id и вызвать обновление списка  событий
   const doRemoveEvent = (id)=>{
     return (_)=>{
-      Event.remove(getCurrentGID(),id);
-      setState(!changed);
+      EventParty.remove( {pid:getCurrentGID(), ids:[id] }, 
+                    ( result )=>{ result === undefined ? alert("Произошла ошибка") : setState(!changed) } , 
+                    ( error )=>console.log(error.message) ) 
     }
   }
 
@@ -241,9 +256,8 @@ export const EventsPartyTable = ( props ) => {
   }
 
   const TableRow = (props) => {
-    const { id, name, evTypeName, description, dtStart, } = props;
+    const { id, name, evTypeName, description, dtStart } = props;
     let dt_arr = R.split(' ', dtStart )
-
     return (
       <tr>
         <td className="p-1">
@@ -296,7 +310,8 @@ export const EventsPartyTable = ( props ) => {
       </tr>
     );
   };
-
+  if( events === undefined )
+    return  <ErrorMsgAlert /> 
   return (
     <Card border="light" className="table-wrapper table-responsive shadow-sm">
       { showDlg.showDlg && <EventPartyDlg hookShowDlg={[showDlg, setShowDlg]} 

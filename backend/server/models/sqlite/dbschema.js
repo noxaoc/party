@@ -4,6 +4,7 @@
 import * as R from 'ramda';
 import { PartyDate }  from '../../lib/partyday'
 import { addRecord } from '../../lib/record'
+import { resolveShowConfigPath } from '@babel/core/lib/config/files';
 
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(':memory:');
@@ -20,7 +21,7 @@ const createEvent =
 `create table event_party(
 pkID integer primary key,
 fkEventType int,
-fkParty int,
+fkParty int not null,
 dtStart int,
 free int,
 name text,
@@ -207,25 +208,68 @@ function read( rs, filter, respHdl ){
     db.get(query, getRow)
 }
 /*
-filter
+rec
 {
     ids: [ <список id на удаление> ]
     pid: <идентификатор междусобойчика>
 }
+* @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
 */
-function remove( filter, respHdl ){
-    const onSuccess = (err)=>{
-        console.log(err)
-        respHdl( R.isNil(err) ? null : err.msg, R.isNil(err) ? true: null  )
+function remove( {pid, ids}, respHdl ){
+    function onSuccess(err){
+        respHdl( err, this.changes  )
     }
     const query  = `delete from event_party 
                     where
-                        event_party.pkID in ( ${filter.ids.join(',')} 
-                        and event_party.fkParty =${filter.pid}`
+                        event_party.pkID in ( ${ids.join(',')}) 
+                        and event_party.fkParty =${pid}`
     db.run(query, onSuccess )
 }
-    function insert() { console.log("call insrty") }
-    function update(){console.log("call upadte") }
+
+/*    
+* @param {*} rec запись
+* @param {*} respHdl (err, res) в res будет id добавленной записи
+*/
+function insert( rec, respHdl ) { 
+    const header = ['name', 'description', 'dtStart', 'fkEventType', 'fkParty']
+    const flds =  R.filter( fld => fld in rec, header )
+    const placeholders = R.map( fld=>'$'+fld, flds )
+    const arg = {}
+    R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+
+    const query = `insert into event_party( ${flds.join(',')} ) 
+                   values ( ${placeholders.join(',')}) ` 
+    
+    function onSuccess (err){
+        respHdl(err, this.lastID)
+    }
+    db.run( query, arg, onSuccess )
+}
+
+/*    
+* @param {*} rec запись
+* @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+*/
+function update(rec,respHdl){
+    if( R.isNil(rec.pkID) ){
+        respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"))
+        return
+    }
+    const header = ['name', 'description', 'dtStart', 'fkEventType', 'fkParty']
+    const flds =  R.filter( fld => fld in rec, header )
+    const placeholders = R.map( fld=>fld+'=$'+fld, flds )
+    const arg = {}
+    R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+
+    const query = `update event_party 
+                   set ${placeholders.join(', ')} 
+                   where pkID = ${rec.pkID}`
+    function onSuccess (err){
+        respHdl(err, this.changes)
+    }
+    db.run( query, arg, onSuccess )
+
+}
     
     return Object.freeze({
         list,

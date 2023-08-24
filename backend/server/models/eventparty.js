@@ -17,7 +17,7 @@ function makeEventParty(){
  */      
 function list( rec, respHdl ){ 
     if( R.isNil(rec.filter.pid ) )
-        throw 'Работа невозможна, так как не удалось определить идентификатор междусобойчика!'
+        throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
     let rs = makeRecordSet( [ ['id','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'] ] )  
     DBEventParty.list( rs, rec.filter, rec.ord, rec.nav, respHdl )
 }
@@ -31,23 +31,50 @@ function list( rec, respHdl ){
  */
 function read( rec, respHdl) { 
     if( R.isNil(rec.filter.pid ) )
-        throw 'Работа невозможна, так как не удалось определить идентификатор междусобойчика!'
+        throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
     if( R.isNil(rec.filter.id) )
         respHdl(null,null)
     let rs = makeRecordSet( [ ['id','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'] ] )  
     DBEventParty.read( rs, rec.filter, respHdl )
 }
 
+/*
+rec
+{
+    ids: [ <список id на удаление> ]
+    pid: <идентификатор междусобойчика>
+}
+* @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+*/
 function remove( rec, respHdl ) { 
 if( R.isNil(rec.filter.pid ) )
-    throw 'Работа невозможна, так как не удалось определить идентификатор междусобойчика!'
+    throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
 if( R.isNil(rec.filter.ids) || R.isEmpty(rec.filter.ids) )
-    respHdl(null,true)
+    respHdl(null,0)
 DBEventParty.remove( rec.filter, respHdl )
 
 }
-        function insert() { console.log("call insrty") }
-        function update(){console.log("call upadte") }
+
+/*    
+* @param {*} rec запись {rec:{}}
+* @param {*} respHdl (err, res) в res будет id добавленной записи
+*/
+function insert( rec, respHdl ) { 
+    if( R.isNil(rec.pkParty) )
+        throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
+    DBEventParty.insert( rec.rec, respHdl )
+}
+
+/*    
+* @param {*} rec запись {rec:{}}
+* @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+*/
+function update(rec, respHdl ){
+    if( R.isNil(rec.pkParty) )
+        throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
+    DBEventParty.pdate( rec.rec, respHdl )
+
+}
         
         return Object.freeze({
             list,

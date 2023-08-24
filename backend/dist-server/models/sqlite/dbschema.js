@@ -10,6 +10,7 @@ exports.doTestSQL = doTestSQL;
 var R = _interopRequireWildcard(require("ramda"));
 var _partyday = require("../../lib/partyday");
 var _record = require("../../lib/record");
+var _files = require("@babel/core/lib/config/files");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /*
@@ -19,7 +20,7 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(':memory:');
 var createParty = "create table party(\npkID integer primary key,\ndtStart int,\ndtEnd int,\nname text,\ndescription text)";
-var createEvent = "create table event_party(\npkID integer primary key,\nfkEventType int,\nfkParty int,\ndtStart int,\nfree int,\nname text,\ndescription text)";
+var createEvent = "create table event_party(\npkID integer primary key,\nfkEventType int,\nfkParty int not null,\ndtStart int,\nfree int,\nname text,\ndescription text)";
 var createTypeEvent = "create table type_event(\npkID integer primary key,\nid text,\nname text,\ndescription text)";
 var createPricesEvent = "create table price_event(\npkID integer primary key,\nname text,\nprice real)";
 
@@ -131,25 +132,71 @@ function makeEventParty() {
     db.get(query, getRow);
   }
   /*
-  filter
+  rec
   {
       ids: [ <список id на удаление> ]
       pid: <идентификатор междусобойчика>
   }
+  * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
   */
-  function remove(filter, respHdl) {
-    var onSuccess = function onSuccess(err) {
-      console.log(err);
-      respHdl(R.isNil(err) ? null : err.msg, R.isNil(err) ? true : null);
-    };
-    var query = "delete from event_party \n                    where\n                        event_party.pkID in ( ".concat(filter.ids.join(','), " \n                        and event_party.fkParty =").concat(filter.pid);
+  function remove(_ref, respHdl) {
+    var pid = _ref.pid,
+      ids = _ref.ids;
+    function onSuccess(err) {
+      respHdl(err, this.changes);
+    }
+    var query = "delete from event_party \n                    where\n                        event_party.pkID in ( ".concat(ids.join(','), ") \n                        and event_party.fkParty =").concat(pid);
     db.run(query, onSuccess);
   }
-  function insert() {
-    console.log("call insrty");
+
+  /*    
+  * @param {*} rec запись
+  * @param {*} respHdl (err, res) в res будет id добавленной записи
+  */
+  function insert(rec, respHdl) {
+    var header = ['name', 'description', 'dtStart', 'fkEventType', 'fkParty'];
+    var flds = R.filter(function (fld) {
+      return fld in rec;
+    }, header);
+    var placeholders = R.map(function (fld) {
+      return '$' + fld;
+    }, flds);
+    var arg = {};
+    R.forEach(function (fld) {
+      return arg['$' + fld] = rec[fld];
+    }, flds);
+    var query = "insert into event_party( ".concat(flds.join(','), " ) \n                   values ( ").concat(placeholders.join(','), ") ");
+    function onSuccess(err) {
+      respHdl(err, this.lastID);
+    }
+    db.run(query, arg, onSuccess);
   }
-  function update() {
-    console.log("call upadte");
+
+  /*    
+  * @param {*} rec запись
+  * @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+  */
+  function update(rec, respHdl) {
+    if (R.isNil(rec.pkID)) {
+      respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"));
+      return;
+    }
+    var header = ['name', 'description', 'dtStart', 'fkEventType', 'fkParty'];
+    var flds = R.filter(function (fld) {
+      return fld in rec;
+    }, header);
+    var placeholders = R.map(function (fld) {
+      return fld + '=$' + fld;
+    }, flds);
+    var arg = {};
+    R.forEach(function (fld) {
+      return arg['$' + fld] = rec[fld];
+    }, flds);
+    var query = "update event_party \n                   set ".concat(placeholders.join(', '), " \n                   where pkID = ").concat(rec.pkID);
+    function onSuccess(err) {
+      respHdl(err, this.changes);
+    }
+    db.run(query, arg, onSuccess);
   }
   return Object.freeze({
     list: list,

@@ -24,7 +24,7 @@ function makeEventParty() {
    * @returns RecordSet
    */
   function list(rec, respHdl) {
-    if (R.isNil(rec.filter.pid)) throw 'Работа невозможна, так как не удалось определить идентификатор междусобойчика!';
+    if (R.isNil(rec.filter.pid)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
     var rs = (0, _record.makeRecordSet)([['id', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't']]);
     _dbschema.DBEventParty.list(rs, rec.filter, rec.ord, rec.nav, respHdl);
   }
@@ -37,21 +37,42 @@ function makeEventParty() {
    * * @returns RecordSet из 1 записи
    */
   function read(rec, respHdl) {
-    if (R.isNil(rec.filter.pid)) throw 'Работа невозможна, так как не удалось определить идентификатор междусобойчика!';
+    if (R.isNil(rec.filter.pid)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
     if (R.isNil(rec.filter.id)) respHdl(null, null);
     var rs = (0, _record.makeRecordSet)([['id', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't']]);
     _dbschema.DBEventParty.read(rs, rec.filter, respHdl);
   }
+
+  /*
+  rec
+  {
+      ids: [ <список id на удаление> ]
+      pid: <идентификатор междусобойчика>
+  }
+  * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+  */
   function remove(rec, respHdl) {
-    if (R.isNil(rec.filter.pid)) throw 'Работа невозможна, так как не удалось определить идентификатор междусобойчика!';
-    if (R.isNil(rec.filter.ids) || R.isEmpty(rec.filter.ids)) respHdl(null, true);
+    if (R.isNil(rec.filter.pid)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
+    if (R.isNil(rec.filter.ids) || R.isEmpty(rec.filter.ids)) respHdl(null, 0);
     _dbschema.DBEventParty.remove(rec.filter, respHdl);
   }
-  function insert() {
-    console.log("call insrty");
+
+  /*    
+  * @param {*} rec запись {rec:{}}
+  * @param {*} respHdl (err, res) в res будет id добавленной записи
+  */
+  function insert(rec, respHdl) {
+    if (R.isNil(rec.pkParty)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
+    _dbschema.DBEventParty.insert(rec.rec, respHdl);
   }
-  function update() {
-    console.log("call upadte");
+
+  /*    
+  * @param {*} rec запись {rec:{}}
+  * @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+  */
+  function update(rec, respHdl) {
+    if (R.isNil(rec.pkParty)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
+    _dbschema.DBEventParty.pdate(rec.rec, respHdl);
   }
   return Object.freeze({
     list: list,

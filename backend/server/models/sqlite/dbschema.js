@@ -204,7 +204,7 @@ function read( rs, filter, respHdl ){
                         left join type_event 
                         on type_event.pkID = event_party.fkEventType
                     where
-                        event_party.pkID =${filter.id} and event_party.fkParty =${filter.pid}`
+                        event_party.pkID =${filter.pkID} and event_party.fkParty =${filter.fkParty}`
     db.get(query, getRow)
 }
 /*
@@ -215,14 +215,14 @@ rec
 }
 * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
 */
-function remove( {pid, ids}, respHdl ){
+function remove( {fkParty, ids}, respHdl ){
     function onSuccess(err){
         respHdl( err, this.changes  )
     }
     const query  = `delete from event_party 
                     where
                         event_party.pkID in ( ${ids.join(',')}) 
-                        and event_party.fkParty =${pid}`
+                        and event_party.fkParty =${fkParty}`
     db.run(query, onSuccess )
 }
 
@@ -279,13 +279,30 @@ function update(rec,respHdl){
         update
     });
 }
-export const DBEventParty = makeEventParty()
 
-export function Participant(){
+function makeTypeEventParty(){
+  
+function all( rs, respHdl ){ 
+    const getRow = (err, row )=>addRecord(rs, row)
+    const query  = "SELECT pkID, name, description FROM type_event"
+    db.each(query, getRow, ( err )=>respHdl(err,rs) ) 
+}
+
+return Object.freeze({
+    all
+})
+}
+
+
+export const DBEventParty = makeEventParty()
+export const DBTypeEventParty = makeTypeEventParty()
+
+
+function DBParticipant(){
   
         
     function list( ext, filter, ord,  nav ){ 
-
+      
         console.log("call list"); 
     }
     function read() { console.log("call read"); }

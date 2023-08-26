@@ -1,7 +1,12 @@
 "use strict";
 
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 var _dbschema = require("../sqlite/dbschema.js");
+var R = _interopRequireWildcard(require("ramda"));
+var _record = require("../../lib/record.js");
 var _partyday = require("../../lib/partyday.js");
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 //import * as R from 'ramda'
 
 test("DBEventParty.update(rec}", function (done) {
@@ -25,9 +30,9 @@ test("DBEventParty.update(rec}", function (done) {
   };
   _dbschema.DBEventParty.update(rec, resHdl);
 });
-test("DBEventParty.remove({pid:1,ids:[1]}", function (done) {
+test("DBEventParty.remove({fkParty:1,ids:[1]}", function (done) {
   var rec = {
-    pid: 1,
+    fkParty: 1,
     ids: [1]
   };
   var resHdl = function resHdl(err, removed) {
@@ -65,4 +70,20 @@ test("DBEventParty.insert(rec}", function (done) {
     }
   };
   _dbschema.DBEventParty.insert(rec, resHdl);
+});
+test("DBTypeEventParty.all", function (done) {
+  var resHdl = function resHdl(err, rSet) {
+    if (err) {
+      done(err);
+      return;
+    }
+    try {
+      expect(R.length(rSet)).toEqual(5);
+      done();
+    } catch (err) {
+      done(err);
+    }
+  };
+  var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's']]);
+  _dbschema.DBTypeEventParty.all(rs, resHdl);
 });

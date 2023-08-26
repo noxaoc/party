@@ -9,8 +9,8 @@ import {  Col, Row, Card,  Button, Table, Dropdown,
 
 import {InputLine} from "./InputLine"
 import { makePlainObj, mapRSet, lengthRSet, makePlainObjByIdx } from "../lib/record"
-import { Event, TypeEvent } from "../data/participants"
 import { EventParty } from "../data/eventParty"
+import { TypeEventParty } from "../data/typeEventParty"
 import { InputComment } from "./InputComment"
 const R = require('ramda');
 
@@ -37,13 +37,13 @@ export const readEventParty=( id )=>{
 Поле для редактирования типа события междусобойчика
 принимает на вход запись формата Participant.GetSchema
 editMode - true если режим редактирования
+typeEvents - список типов событий
 */
 const InputEventTypeParty =( props )=>{
   // получить список типов событий
-  const {editMode, value } = props
-  const typeEvents = TypeEvent.list()
+  const {editMode, value, typeEvents } = props
   const gOption = ( te )=>{
-      return <option key={`type-event-${te.id}`} value={te.id}>{te.name}</option>
+      return <option key={`type-event-${te.pkID}`} value={te.pkID}>{te.name}</option>
   }
   const form_select = <Form.Select aria-label="Default select example"  >
                           <option>Не выбрано</option>
@@ -96,7 +96,7 @@ function ControlledTabsParticipant( {editMode, pState } ) {
  * editMode = true - форма в режиме редактирования
  * eventRec - редактируемая запись события
  */
-const EventPartyForm=({ editMode, eventRec })=>{
+const EventPartyForm=({ editMode, eventRec, typeEvents })=>{
 return (  
     <Formik initialValues={ {...eventRec} }>
     { (props)=>(
@@ -104,7 +104,7 @@ return (
        {/*console.log(props)*/}
         <Field as={InputLine} editMode={editMode} name="name" placeholder="Название события" ctrlId="eForm.name" label="Название" />
         <Field as={InputLine} editMode={editMode} name="dtStart" placeholder="Дата начала" ctrlId="eForm.dtStart" label="Дата начала" />
-        <Field as={InputEventTypeParty} editMode={editMode} name="evTypeName" />
+        <Field as={InputEventTypeParty} editMode={editMode} name="evTypeName" typeEvents={typeEvents} />
         <Field as={InputComment} editMode={editMode} name="description" />
       </Form>
       )
@@ -124,7 +124,6 @@ return (
 *     schow
 *       false - модальный диалог скрыт
 *       true - модальный диалог выводится
-*     currID - id редактируемого события междусобойчика
 *     editRec - редактируемое событие междусобойчика
 *   setShowDdlg - функция переводящая диалог в противоположное указанному в showDefault состояние
 * hookEdit:
@@ -132,21 +131,22 @@ return (
 *     false - режим просмотра, без изменения данных
 *     true - режим редактирования данных, в этом режиме при нажатии кнопки сохранить данные меняются
 *   setEditMode - перевести в режим редактирования или снять его
+*   typeEvents - список событий
 */
-export const EventPartyDlg = ( { hookShowDlg, hookEdit } )=>{
+export const EventPartyDlg = ( { hookShowDlg, hookEdit, typeEvents } )=>{
   const [showDlg, setShowDlg] = hookShowDlg
   const [editMode, setEditMode] = hookEdit
 
   // обработка закрытия формы
   const handleClose = () => {
-    setShowDlg( {showDlg:false,currID:null, editRec:{}} )
+    setShowDlg( {showDlg:false, editRec:{}} )
     setEditMode(false)
   }
  
   // сохранить участника
   const saveEvent = ()=>{
-    // собрать данные с формы и записать
-    // console.log(participant.name)
+    // собрать данные с формы и записать или вставить
+    console.log(showDlg.editRec)
     /*
     event.startDate = parseDateTimeStr( event.dateStartStr )
     if( R.isNil( event.id ) ){
@@ -175,9 +175,7 @@ return (
     </Col>
   </Modal.Header>
   <Modal.Body className="py-1">
-    {/*<ControlledTabsEventParty  editMode={editMode} pState={pState} />*/}
-    {/*<EventPartyForm editMode={editMode} pState={pState} />*/}
-    <EventPartyForm editMode={editMode} eventRec={showDlg.editRec} />
+    <EventPartyForm editMode={editMode} eventRec={showDlg.editRec} typeEvents={typeEvents} />
   </Modal.Body>
 </Modal>
 )
@@ -212,40 +210,43 @@ export const EventsPartyTable = ( props ) => {
   const [ changed, setState ] = useState(false)
   // показывать или нет диалог просмотра участника
   /* showDlg - показать диалог редактирования, 
-     currID - id события для редактирования, 
-     rec - редактируемая запись
+     editRec - редактируемая запись
   */
-  const [showDlg, setShowDlg] = useState({showDlg:false,currID:null, editRec:{}});
+  const [showDlg, setShowDlg] = useState({showDlg:false, editRec:{}});
   // перевод в режим редактирования диалог просмотра события
   const [editMode, setEditMode] = useState(false);
   // список событий, если events === undefined, то произошла ошибка
   const [events, setEvents] = useState([])
+  // список типов событий, он никогда почти не меняется
+  const [typeEvents, setTypeEvents]=useState([])
   
+  
+  useEffect(() => {
+    TypeEventParty.all( result=> setTypeEvents(result) )
+    return ()=>{}
+  },[])
+
   useEffect(() => {
     // получить список событий в соответствии с фильтрацией
     const filter = { searchStr : props.searchStr, pid: getCurrentGID() }
-    EventParty.list( filter, null, null, 
-                    ( result )=>{ setEvents(result)}, 
-                    ( error )=>console.log(error.message) )
+    EventParty.list( filter, null, null,  result=>setEvents(result) )
     return ()=>{}
   },[props.searchStr])
   
   // создать обработчик на редактирование записи
   const makeOnEditHdl = ( id )=>{
     return () => {
-    EventParty.list( {ids:[id], pid: getCurrentGID() }, null, null, 
-                     ( result )=>{  
-                        setShowDlg( {showDlg:true,currID:id,editRec:makePlainObjByIdx(result) } )
-                     }, 
-                     ( error )=>console.log(error.message) )
+      EventParty.list( {ids:[id], pid: getCurrentGID() }, null, null, 
+                     result =>setShowDlg( {showDlg:true, editRec:makePlainObjByIdx(result) } ) )
+          
     }
   }
 
   //удалить событие по id и вызвать обновление списка  событий
-  const doRemoveEvent = (id)=>{
-    return (_)=>{
-      EventParty.remove( {pid:getCurrentGID(), ids:[id] }, 
-                    ( result )=>{ result === undefined ? alert("Произошла ошибка") : setState(!changed) } , 
+  const doRemoveEvent = id =>{
+    return ()=>{
+      EventParty.remove( {fkParty:getCurrentGID(), ids:[id] }, 
+                    ( result )=>{ R.isNil(result) ? alert("Произошла неизвестная ошибка") : setState(!changed) } , 
                     ( error )=>console.log(error.message) ) 
     }
   }
@@ -296,7 +297,6 @@ export const EventsPartyTable = ( props ) => {
             </Dropdown.Toggle>
             {/** выпадающее меню из пунктов при нажатии переключателя */}
             <Dropdown.Menu>
-              {/*<Dropdown.Item onClick={(_)=>setShowDlg( {showDlg:true,currID:id} )}>*/}
               <Dropdown.Item onClick={ makeOnEditHdl(id) }>
                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Редактировать
               </Dropdown.Item>
@@ -315,7 +315,8 @@ export const EventsPartyTable = ( props ) => {
   return (
     <Card border="light" className="table-wrapper table-responsive shadow-sm">
       { showDlg.showDlg && <EventPartyDlg hookShowDlg={[showDlg, setShowDlg]} 
-                                          hookEdit={[editMode,setEditMode]} /> } 
+                                          hookEdit={[editMode,setEditMode]}
+                                          typeEvents={typeEvents} /> } 
       <Card.Body className="pt-0 pb-1 px-2">
         <Table hover className="user-table align-items-center">
             <thead>

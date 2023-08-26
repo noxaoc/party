@@ -1,5 +1,7 @@
 //import * as R from 'ramda'
-import {DBEventParty} from '../sqlite/dbschema.js'
+import {DBEventParty,DBTypeEventParty} from '../sqlite/dbschema.js'
+import * as R from "ramda"
+import { makeRecordSet } from '../../lib/record.js'
 import { PartyDate } from '../../lib/partyday.js'
 
 
@@ -23,8 +25,8 @@ test("DBEventParty.update(rec}", done => {
     DBEventParty.update( rec, resHdl)
 })
 
-test("DBEventParty.remove({pid:1,ids:[1]}", done => {
-    const rec = {pid:1,ids:[1] } 
+test("DBEventParty.remove({fkParty:1,ids:[1]}", done => {
+    const rec = {fkParty:1,ids:[1] } 
     const resHdl = ( err, removed )=>{
         if( err ){
             done(err)
@@ -59,4 +61,22 @@ test("DBEventParty.insert(rec}", done => {
         }
     }
     DBEventParty.insert( rec, resHdl)
+})
+
+test("DBTypeEventParty.all", done => {
+    const resHdl = ( err, rSet )=>{
+        if( err ){
+            done(err)
+            return
+        }
+        try{
+            expect(R.length(rSet)).toEqual(5)
+            done()
+        }
+        catch(err){
+            done(err)
+        }
+    }
+    let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'] ] )  
+    DBTypeEventParty.all( rs, resHdl)
 })

@@ -1,38 +1,10 @@
 /*
 Получение информации о событиях междусобойчика
 */
-
+import { PartyService } from "./lib/remoteCallParty"
 
 function  makeEventParty(){
-
-const  partyURL = ()=> "http://localhost:3333/party"     
-
-function remoteCall( method,  rec, setResult, setError ){
-    console.log(method)
-    const getResult = ( { r, e } )=>{
-        if( r === undefined || e === undefined ){
-            console.log("Неожиданный ответ от сервера!")
-            setResult(undefined)
-        }
-        else if( r === null && e !== null ){
-            console.log(e)
-            setResult(undefined)
-        }else
-            setResult(r)
-    } 
-    fetch( partyURL() + method, 
-    {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(rec)
-    })
-    .then( response => response.json(), err=>console.log(err.message) )
-    .then( getResult, setError)    
-}
-    
-    
+  
 /*
     getSchema(){
         // required - true обязательное поле, not null. Если отсутствует null допустим
@@ -48,9 +20,8 @@ function remoteCall( method,  rec, setResult, setError ){
     }
 */
 
-
- /*
-Список событий междусобойчика
+/*
+* Список событий междусобойчика
 filter = {
     searchStr: <подстрока поиска по названию  события>
     ids: [<идентификаторы событий>]
@@ -59,30 +30,53 @@ curl -i -H 'Content-Type: application/json;charset=utf-8' -d '{"filter":{"pid":1
     let rs = makeRecordSet( [ ['id','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'] ] )  
 
 */    
-function  list( filter, ord, nav, setResult, setError ){     
-remoteCall( "/eventparty/list",{ "filter": filter, "ord":ord,"nav":nav}, setResult, setError)
-}
-
-function read( filter, setResult, setError ){
-    remoteCall( "/eventparty/read",{ "filter": filter}, setResult, setError)
+function  list( filter, ord, nav, setResult, setError  ){     
+PartyService.post( "/eventparty/list",{ "filter": filter, "ord":ord,"nav":nav}, setResult, setError)
 }
 
 /*
-Список событий междусобойчика
-filter = {
-    pid: <идентификатор междусобойчика>
-    ids: [<идентификаторы событий>]
+*
+*/
+function read( filter, setResult, setError ){
+    PartyService.post( "/eventparty/read",{ "filter": filter}, setResult, setError)
 }
+
+/* 
+* Удалить события междусобойчика
+* @param rec = 
+{
+    pid: <идентификатор междусобойчика, обязателен>
+    ids: [<идентификаторы событий, которые надо удалить>]
+}
+если ids пуст, ничего не удалится
 curl -i -H 'Content-Type: application/json;charset=utf-8' -d '{"filter":{"pid":1, "ids":[1,2]}}' http://localhost:3333/party/eventparty/list
 */  
-function remove( filter, setResult, setError ){
-    remoteCall( "/eventparty/remove",{ "filter": filter}, setResult, setError)
+function remove( rec, setResult, setError ){
+    PartyService.post( "/eventparty/remove", rec, setResult, setError)
+}
+
+/* Добавить запись о событии междусобойчика   
+* @param {*} rec обычного формата {name, description, fkParty ...}
+* @param {*}  setResult будет передан id добавленной записи
+*/ 
+function insert( rec, setResult, setError ){
+    PartyService.post( "/eventparty/insert", rec, setResult, setError)
+}
+
+/* Обновить запись о событии междусобойчика   
+* @param {*} rec обычного формата {name, description, fkParty ...}
+* @param {*} setResult будет передано ко-во обновленных записей, т.е. единица
+*/ 
+function update( rec, setResult, setError ){
+    PartyService.post( "/eventparty/update", rec, setResult, setError)
 }
 
 return Object.freeze({
     list,
     read,
-    remove
+    remove,
+    insert,
+    update
 })
 
 }

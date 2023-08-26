@@ -4,8 +4,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DBEventParty = void 0;
-exports.Participant = Participant;
+exports.DBTypeEventParty = exports.DBEventParty = void 0;
 exports.doTestSQL = doTestSQL;
 var R = _interopRequireWildcard(require("ramda"));
 var _partyday = require("../../lib/partyday");
@@ -128,7 +127,7 @@ function makeEventParty() {
       (0, _record.addRecord)(rs, row);
       respHdl(rs);
     };
-    var query = "select event_party.pkID as id, \n                           event_party.name as name, \n                           event_party.description as description, \n                           type_event.name as evTypeName, \n                           event_party.dtStart  as dtStart\n                    from event_party \n                        left join type_event \n                        on type_event.pkID = event_party.fkEventType\n                    where\n                        event_party.pkID =".concat(filter.id, " and event_party.fkParty =").concat(filter.pid);
+    var query = "select event_party.pkID as id, \n                           event_party.name as name, \n                           event_party.description as description, \n                           type_event.name as evTypeName, \n                           event_party.dtStart  as dtStart\n                    from event_party \n                        left join type_event \n                        on type_event.pkID = event_party.fkEventType\n                    where\n                        event_party.pkID =".concat(filter.pkID, " and event_party.fkParty =").concat(filter.fkParty);
     db.get(query, getRow);
   }
   /*
@@ -140,12 +139,12 @@ function makeEventParty() {
   * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
   */
   function remove(_ref, respHdl) {
-    var pid = _ref.pid,
+    var fkParty = _ref.fkParty,
       ids = _ref.ids;
     function onSuccess(err) {
       respHdl(err, this.changes);
     }
-    var query = "delete from event_party \n                    where\n                        event_party.pkID in ( ".concat(ids.join(','), ") \n                        and event_party.fkParty =").concat(pid);
+    var query = "delete from event_party \n                    where\n                        event_party.pkID in ( ".concat(ids.join(','), ") \n                        and event_party.fkParty =").concat(fkParty);
     db.run(query, onSuccess);
   }
 
@@ -206,9 +205,25 @@ function makeEventParty() {
     update: update
   });
 }
+function makeTypeEventParty() {
+  function all(rs, respHdl) {
+    var getRow = function getRow(err, row) {
+      return (0, _record.addRecord)(rs, row);
+    };
+    var query = "SELECT pkID, name, description FROM type_event";
+    db.each(query, getRow, function (err) {
+      return respHdl(err, rs);
+    });
+  }
+  return Object.freeze({
+    all: all
+  });
+}
 var DBEventParty = makeEventParty();
 exports.DBEventParty = DBEventParty;
-function Participant() {
+var DBTypeEventParty = makeTypeEventParty();
+exports.DBTypeEventParty = DBTypeEventParty;
+function DBParticipant() {
   function list(ext, filter, ord, nav) {
     console.log("call list");
   }

@@ -41,22 +41,19 @@ typeEvents - список типов событий
 */
 const InputEventTypeParty =( props )=>{
   // получить список типов событий
-  const {editMode, value, typeEvents } = props
+  const {value, typeEvents, onChange, name } = props
   const gOption = ( te )=>{
       return <option key={`type-event-${te.pkID}`} value={te.pkID}>{te.name}</option>
   }
-  const form_select = <Form.Select aria-label="Default select example"  >
-                          <option>Не выбрано</option>
-                          {R.map( gOption, typeEvents)}
-                      </Form.Select>
-                        
-  const form_input = <Form.Control type="input" value={value} readOnly />
-
+                    
   return (
     <Form.Group as={Row} className="mb-1" controlId="eForm.evTypeName">
       <Form.Label column sm={3}>Вид</Form.Label>
         <Col sm={9}>
-        { editMode ? form_select : form_input }
+          <Form.Select aria-label="Default select example" name={name} value={value} onChange={onChange} >
+            <option>Не выбрано</option>
+            {R.map( gOption, typeEvents)}
+          </Form.Select>
         </Col>
     </Form.Group>
   )
@@ -97,14 +94,17 @@ function ControlledTabsParticipant( {editMode, pState } ) {
  * eventRec - редактируемая запись события
  */
 const EventPartyForm=({ editMode, eventRec, typeEvents })=>{
+console.log(eventRec)
+   {/* <Formik initialValues={ {...eventRec} }>*/}
 return (  
-    <Formik initialValues={ {...eventRec} }>
+    <Formik initialValues={ {...eventRec} }  >
     { (props)=>(
       <Form as={FormikForm}> 
        {/*console.log(props)*/}
-        <Field as={InputLine} editMode={editMode} name="name" placeholder="Название события" ctrlId="eForm.name" label="Название" />
+        <Field as={InputLine} editMode={editMode}  name="name" placeholder="Название события" ctrlId="eForm.name" label="Название" />
         <Field as={InputLine} editMode={editMode} name="dtStart" placeholder="Дата начала" ctrlId="eForm.dtStart" label="Дата начала" />
-        <Field as={InputEventTypeParty} editMode={editMode} name="evTypeName" typeEvents={typeEvents} />
+        {!editMode && <Field as={InputLine} editMode={editMode} name="evTypeName" ctrlId="eForm.evTypeName" label="Вид" />}
+        {editMode && <Field as={InputEventTypeParty} editMode={editMode} name="fkTypeEvent" typeEvents={typeEvents} />}
         <Field as={InputComment} editMode={editMode} name="description" />
       </Form>
       )

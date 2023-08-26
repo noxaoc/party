@@ -20,7 +20,7 @@ description text)`
 const createEvent =
 `create table event_party(
 pkID integer primary key,
-fkEventType int,
+fkTypeEvent int,
 fkParty int not null,
 dtStart int,
 free int,
@@ -60,7 +60,7 @@ values ( 'Базовая до 12.02.23', 20000 ),
        ( "Базовая после 12.02.23", 23000 )`
 
 const initEventTable =
-`insert into event_party( 'name', 'description', 'dtStart', 'fkEventType', 'fkParty' ) 
+`insert into event_party( 'name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty' ) 
         values ( 'Mix&Match Kids', 'Темп 32-38 bpm', 
                  ${ PartyDate.toTS('13.06.23 11:00:00') }, 
                  (select pkID from type_event where id = 'competition'), 
@@ -120,10 +120,10 @@ db.each("SELECT pkID, name, price FROM price_event ", (err, row) => {
         console.log(`pkID=${row.pkID} name=${row.name} price=${row.price}`)
 })
 
-db.each(`SELECT pkID, name, description, fkEventType, fkParty, dtStart 
+db.each(`SELECT pkID, name, description, fkTypeEvent, fkParty, dtStart 
         FROM event_party`, (err, row) => {
     console.log(`pkID=${row.pkID} name=${row.name} descr=${row.description}
-    dtStart=${ PartyDate.fromTS(row.dtStart)} fkEventType=${row.fkEventType==undefined? '': row.fkEventType}` ) 
+    dtStart=${ PartyDate.fromTS(row.dtStart)} fkTypeEvent=${row.fkTypeEvent==undefined? '': row.fkTypeEvent}` ) 
 }) 
 
 
@@ -131,7 +131,7 @@ db.each(`SELECT event_party.pkID as pkID, event_party.name as name,
          event_party.description, type_event.name as type, fkParty, dtStart 
         FROM event_party 
         join type_event 
-        on type_event.pkID = event_party.fkEventType`, (err, row) => {
+        on type_event.pkID = event_party.fkTypeEvent`, (err, row) => {
     console.log(err)
     console.log(`pkID=${row.pkID} name=${row.name} descr=${row.description}
     dtStart=${ PartyDate.fromTS(row.dtStart)} type=${row.type}` )
@@ -164,10 +164,11 @@ function makeEventParty(){
                     event_party.name as name, 
                     event_party.description as description, 
                     type_event.name as evTypeName, 
-                    event_party.dtStart  as dtStart
+                    event_party.dtStart  as dtStart,
+                    event_party.fkTypeEvent as fkTypeEvent
                 from event_party 
                      join type_event 
-                     on type_event.pkID = event_party.fkEventType
+                     on type_event.pkID = event_party.fkTypeEvent
                 where fkParty = ${filter.pid} ${eventIdsFilter} ${filterSearchStr}` )
     }
   
@@ -202,7 +203,7 @@ function read( rs, filter, respHdl ){
                            event_party.dtStart  as dtStart
                     from event_party 
                         left join type_event 
-                        on type_event.pkID = event_party.fkEventType
+                        on type_event.pkID = event_party.fkTypeEvent
                     where
                         event_party.pkID =${filter.pkID} and event_party.fkParty =${filter.fkParty}`
     db.get(query, getRow)
@@ -231,7 +232,7 @@ function remove( {fkParty, ids}, respHdl ){
 * @param {*} respHdl (err, res) в res будет id добавленной записи
 */
 function insert( rec, respHdl ) { 
-    const header = ['name', 'description', 'dtStart', 'fkEventType', 'fkParty']
+    const header = ['name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty']
     const flds =  R.filter( fld => fld in rec, header )
     const placeholders = R.map( fld=>'$'+fld, flds )
     const arg = {}
@@ -255,7 +256,7 @@ function update(rec,respHdl){
         respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"))
         return
     }
-    const header = ['name', 'description', 'dtStart', 'fkEventType', 'fkParty']
+    const header = ['name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty']
     const flds =  R.filter( fld => fld in rec, header )
     const placeholders = R.map( fld=>fld+'=$'+fld, flds )
     const arg = {}

@@ -19,7 +19,7 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(':memory:');
 var createParty = "create table party(\npkID integer primary key,\ndtStart int,\ndtEnd int,\nname text,\ndescription text)";
-var createEvent = "create table event_party(\npkID integer primary key,\nfkEventType int,\nfkParty int not null,\ndtStart int,\nfree int,\nname text,\ndescription text)";
+var createEvent = "create table event_party(\npkID integer primary key,\nfkTypeEvent int,\nfkParty int not null,\ndtStart int,\nfree int,\nname text,\ndescription text)";
 var createTypeEvent = "create table type_event(\npkID integer primary key,\nid text,\nname text,\ndescription text)";
 var createPricesEvent = "create table price_event(\npkID integer primary key,\nname text,\nprice real)";
 
@@ -28,7 +28,7 @@ var createPricesEvent = "create table price_event(\npkID integer primary key,\nn
 var initPartyTable = "insert into party( name ) \nvalues ( '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' ),\n       ( 'Swingtown Little Cup 2023' )";
 var initTypeEventTable = "insert into type_event( id, name ) \nvalues ( 'party', '\u0412\u0435\u0447\u0435\u0440\u0438\u043D\u043A\u0430' ),\n       ( 'lesson', '\u041B\u0435\u043A\u0446\u0438\u044F' ),\n       ( 'competition', 'C\u043E\u0440\u0435\u0432\u043D\u043E\u0432\u0430\u043D\u0438\u0435'),\n       ( 'masterClass', '\u041C\u0430\u0441\u0442\u0435\u0440-\u043A\u043B\u0430\u0441\u0441')";
 var initPricesTable = "insert into price_event( 'name', 'price' ) \nvalues ( '\u0411\u0430\u0437\u043E\u0432\u0430\u044F \u0434\u043E 12.02.23', 20000 ),\n       ( \"\u0411\u0430\u0437\u043E\u0432\u0430\u044F \u043F\u043E\u0441\u043B\u0435 12.02.23\", 23000 )";
-var initEventTable = "insert into event_party( 'name', 'description', 'dtStart', 'fkEventType', 'fkParty' ) \n        values ( 'Mix&Match Kids', '\u0422\u0435\u043C\u043F 32-38 bpm', \n                 ".concat(_partyday.PartyDate.toTS('13.06.23 11:00:00'), ", \n                 (select pkID from type_event where id = 'competition'), \n                 (select pkID from party where name = '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' )),\n               ( 'Strictly Kids', '\u0422\u0435\u043C\u043F 40-42 bpm', \n                ").concat(_partyday.PartyDate.toTS('13.06.23 13:00:00'), ", \n                (select pkID from type_event where id = 'competition'),\n                (select pkID from party where name = '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' )),\n                ( 'Strictly Kids', '\u0422\u0435\u043C\u043F 40-42 bpm', \n                ").concat(_partyday.PartyDate.toTS('13.06.22 15:00:00'), ", \n                (select pkID from type_event where id = 'competition'),\n                (select pkID from party where name = 'Swingtown Little Cup 2023' ))");
+var initEventTable = "insert into event_party( 'name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty' ) \n        values ( 'Mix&Match Kids', '\u0422\u0435\u043C\u043F 32-38 bpm', \n                 ".concat(_partyday.PartyDate.toTS('13.06.23 11:00:00'), ", \n                 (select pkID from type_event where id = 'competition'), \n                 (select pkID from party where name = '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' )),\n               ( 'Strictly Kids', '\u0422\u0435\u043C\u043F 40-42 bpm', \n                ").concat(_partyday.PartyDate.toTS('13.06.23 13:00:00'), ", \n                (select pkID from type_event where id = 'competition'),\n                (select pkID from party where name = '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' )),\n                ( 'Strictly Kids', '\u0422\u0435\u043C\u043F 40-42 bpm', \n                ").concat(_partyday.PartyDate.toTS('13.06.22 15:00:00'), ", \n                (select pkID from type_event where id = 'competition'),\n                (select pkID from party where name = 'Swingtown Little Cup 2023' ))");
 
 /*
 Создаем таблицы
@@ -71,10 +71,10 @@ function doTestSQL() {
   db.each("SELECT pkID, name, price FROM price_event ", function (err, row) {
     console.log("pkID=".concat(row.pkID, " name=").concat(row.name, " price=").concat(row.price));
   });
-  db.each("SELECT pkID, name, description, fkEventType, fkParty, dtStart \n        FROM event_party", function (err, row) {
-    console.log("pkID=".concat(row.pkID, " name=").concat(row.name, " descr=").concat(row.description, "\n    dtStart=").concat(_partyday.PartyDate.fromTS(row.dtStart), " fkEventType=").concat(row.fkEventType == undefined ? '' : row.fkEventType));
+  db.each("SELECT pkID, name, description, fkTypeEvent, fkParty, dtStart \n        FROM event_party", function (err, row) {
+    console.log("pkID=".concat(row.pkID, " name=").concat(row.name, " descr=").concat(row.description, "\n    dtStart=").concat(_partyday.PartyDate.fromTS(row.dtStart), " fkTypeEvent=").concat(row.fkTypeEvent == undefined ? '' : row.fkTypeEvent));
   });
-  db.each("SELECT event_party.pkID as pkID, event_party.name as name, \n         event_party.description, type_event.name as type, fkParty, dtStart \n        FROM event_party \n        join type_event \n        on type_event.pkID = event_party.fkEventType", function (err, row) {
+  db.each("SELECT event_party.pkID as pkID, event_party.name as name, \n         event_party.description, type_event.name as type, fkParty, dtStart \n        FROM event_party \n        join type_event \n        on type_event.pkID = event_party.fkTypeEvent", function (err, row) {
     console.log(err);
     console.log("pkID=".concat(row.pkID, " name=").concat(row.name, " descr=").concat(row.description, "\n    dtStart=").concat(_partyday.PartyDate.fromTS(row.dtStart), " type=").concat(row.type));
   });
@@ -98,7 +98,7 @@ function makeEventParty() {
       }
     }
     if (R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr)) filterSearchStr = "and event_party.name like '%".concat(filter.searchStr, "%'");
-    return "select event_party.pkID as id, \n                    event_party.name as name, \n                    event_party.description as description, \n                    type_event.name as evTypeName, \n                    event_party.dtStart  as dtStart\n                from event_party \n                     join type_event \n                     on type_event.pkID = event_party.fkEventType\n                where fkParty = ".concat(filter.pid, " ").concat(eventIdsFilter, " ").concat(filterSearchStr);
+    return "select event_party.pkID as id, \n                    event_party.name as name, \n                    event_party.description as description, \n                    type_event.name as evTypeName, \n                    event_party.dtStart  as dtStart,\n                    event_party.fkTypeEvent as fkTypeEvent\n                from event_party \n                     join type_event \n                     on type_event.pkID = event_party.fkTypeEvent\n                where fkParty = ".concat(filter.pid, " ").concat(eventIdsFilter, " ").concat(filterSearchStr);
   }
 
   /**
@@ -127,7 +127,7 @@ function makeEventParty() {
       (0, _record.addRecord)(rs, row);
       respHdl(rs);
     };
-    var query = "select event_party.pkID as id, \n                           event_party.name as name, \n                           event_party.description as description, \n                           type_event.name as evTypeName, \n                           event_party.dtStart  as dtStart\n                    from event_party \n                        left join type_event \n                        on type_event.pkID = event_party.fkEventType\n                    where\n                        event_party.pkID =".concat(filter.pkID, " and event_party.fkParty =").concat(filter.fkParty);
+    var query = "select event_party.pkID as id, \n                           event_party.name as name, \n                           event_party.description as description, \n                           type_event.name as evTypeName, \n                           event_party.dtStart  as dtStart\n                    from event_party \n                        left join type_event \n                        on type_event.pkID = event_party.fkTypeEvent\n                    where\n                        event_party.pkID =".concat(filter.pkID, " and event_party.fkParty =").concat(filter.fkParty);
     db.get(query, getRow);
   }
   /*
@@ -153,7 +153,7 @@ function makeEventParty() {
   * @param {*} respHdl (err, res) в res будет id добавленной записи
   */
   function insert(rec, respHdl) {
-    var header = ['name', 'description', 'dtStart', 'fkEventType', 'fkParty'];
+    var header = ['name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty'];
     var flds = R.filter(function (fld) {
       return fld in rec;
     }, header);
@@ -180,7 +180,7 @@ function makeEventParty() {
       respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"));
       return;
     }
-    var header = ['name', 'description', 'dtStart', 'fkEventType', 'fkParty'];
+    var header = ['name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty'];
     var flds = R.filter(function (fld) {
       return fld in rec;
     }, header);

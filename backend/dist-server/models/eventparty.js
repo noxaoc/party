@@ -25,7 +25,7 @@ function makeEventParty() {
    */
   function list(rec, respHdl) {
     if (R.isNil(rec.filter.pid)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
-    var rs = (0, _record.makeRecordSet)([['id', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't']]);
+    var rs = (0, _record.makeRecordSet)([['id', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't'], ['fkTypeEvent', 'n']]);
     _dbschema.DBEventParty.list(rs, rec.filter, rec.ord, rec.nav, respHdl);
   }
 

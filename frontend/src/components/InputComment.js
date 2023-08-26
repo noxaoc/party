@@ -5,11 +5,12 @@ import React from "react";
 import { Form } from '@themesberg/react-bootstrap'
     
 export const  InputComment = ( props )=>{
-const { editMode, value, onChange } = props
+const { editMode, value, onChange, name } = props
 //console.log(props)
 return (
 <Form.Group className="mb-2" controlId="pForm.comment">
     <Form.Control as="textarea" 
+                  name={name}
                   rows={3} 
                   placeholder="Комментарий" 
                   value={value} 

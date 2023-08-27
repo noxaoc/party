@@ -15,11 +15,11 @@ function makePostResponseOK(result) {
     e: null
   };
 }
-function makePostResponseError(msg, error_uuid) {
+function makePostResponseError(err, error_uuid) {
   return {
     r: null,
     e: {
-      msg: msg,
+      msg: err.message,
       uuid: error_uuid
     }
   };

@@ -160,12 +160,13 @@ function makeEventParty(){
             filterSearchStr = `and event_party.name like '%${filter.searchStr}%'`
         
         return (
-               `select event_party.pkID as id, 
+               `select event_party.pkID as pkID, 
                     event_party.name as name, 
                     event_party.description as description, 
                     type_event.name as evTypeName, 
                     event_party.dtStart  as dtStart,
-                    event_party.fkTypeEvent as fkTypeEvent
+                    event_party.fkTypeEvent as fkTypeEvent,
+                    event_party.fkParty as fkParty
                 from event_party 
                      join type_event 
                      on type_event.pkID = event_party.fkTypeEvent
@@ -196,11 +197,12 @@ function read( rs, filter, respHdl ){
         addRecord(rs, row)
         respHdl(rs)
     }
-    const query  = `select event_party.pkID as id, 
+    const query  = `select event_party.pkID as pkID, 
                            event_party.name as name, 
                            event_party.description as description, 
                            type_event.name as evTypeName, 
-                           event_party.dtStart  as dtStart
+                           event_party.dtStart  as dtStart,
+                           event_party.fkParty as fkParty
                     from event_party 
                         left join type_event 
                         on type_event.pkID = event_party.fkTypeEvent

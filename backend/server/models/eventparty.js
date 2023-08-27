@@ -18,7 +18,8 @@ function makeEventParty(){
 function list( rec, respHdl ){ 
     if( R.isNil(rec.filter.pid ) )
         throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
-    let rs = makeRecordSet( [ ['id','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'], ['fkTypeEvent','n'] ] )  
+    let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'], 
+                              ['fkTypeEvent','n'], ['fkParty','n'] ] )  
     DBEventParty.list( rs, rec.filter, rec.ord, rec.nav, respHdl )
 }
 
@@ -34,7 +35,8 @@ function read( rec, respHdl) {
         throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
     if( R.isNil(rec.filter.pkID) )
         respHdl(null,null)
-    let rs = makeRecordSet( [ ['id','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'] ] )  
+    let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'], ['evTypeName','s'], 
+                              ['dtStart','t'], ['fkParty','n'] ] )  
     DBEventParty.read( rs, rec.filter, respHdl )
 }
 
@@ -62,7 +64,7 @@ DBEventParty.remove( rec, respHdl )
 function insert( rec, respHdl ) { 
     if( R.isNil(rec.fkParty) )
         throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
-    DBEventParty.insert( rec.rec, respHdl )
+    DBEventParty.insert( rec, respHdl )
 }
 
 /* Обновить запись события междусобойчика   
@@ -72,7 +74,7 @@ function insert( rec, respHdl ) {
 function update(rec, respHdl ){
     if( R.isNil(rec.fkParty) )
         throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
-    DBEventParty.pdate( rec.rec, respHdl )
+    DBEventParty.update( rec, respHdl )
 
 }
         

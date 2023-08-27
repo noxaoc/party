@@ -12,16 +12,19 @@ function  makePartyService(){
         const defaultErrHdl = ( err ) => {
             console.log( `Ошибка ${err.message} вызова ${method}`)
         }
+        const defaultSetResult = (  ) => {
+        }
+        const setRes =  R.isNil(setResult) ? defaultSetResult : setResult
         const getResult = ( { r, e } )=>{
             if( r === undefined || e === undefined ){
                 console.log("Неожиданный ответ от сервера!")
-                setResult(undefined)
+                setRes(undefined)
             }
             else if( r === null && e !== null ){
                 console.log(e)
-                setResult(undefined)
+                setRes(undefined)
             }else
-                setResult(r)
+                setRes(r)
         } 
         fetch( partyURL() + method, 
         {

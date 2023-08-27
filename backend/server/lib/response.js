@@ -7,8 +7,8 @@ function makePostResponseOK( result ){
     return { r: result, e: null }
 }
 
-function makePostResponseError( msg, error_uuid ){
-    return { r: null, e: { msg: msg, uuid: error_uuid } }
+function makePostResponseError( err, error_uuid ){
+    return { r: null, e: { msg: err.message, uuid: error_uuid } }
 }
 
 export function  getResult( func, arg, response ){

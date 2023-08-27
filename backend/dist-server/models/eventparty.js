@@ -25,7 +25,7 @@ function makeEventParty() {
    */
   function list(rec, respHdl) {
     if (R.isNil(rec.filter.pid)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
-    var rs = (0, _record.makeRecordSet)([['id', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't'], ['fkTypeEvent', 'n']]);
+    var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't'], ['fkTypeEvent', 'n'], ['fkParty', 'n']]);
     _dbschema.DBEventParty.list(rs, rec.filter, rec.ord, rec.nav, respHdl);
   }
 
@@ -39,7 +39,7 @@ function makeEventParty() {
   function read(rec, respHdl) {
     if (R.isNil(rec.filter.fkParty)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
     if (R.isNil(rec.filter.pkID)) respHdl(null, null);
-    var rs = (0, _record.makeRecordSet)([['id', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't']]);
+    var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't'], ['fkParty', 'n']]);
     _dbschema.DBEventParty.read(rs, rec.filter, respHdl);
   }
 
@@ -63,7 +63,7 @@ function makeEventParty() {
   */
   function insert(rec, respHdl) {
     if (R.isNil(rec.fkParty)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
-    _dbschema.DBEventParty.insert(rec.rec, respHdl);
+    _dbschema.DBEventParty.insert(rec, respHdl);
   }
 
   /* Обновить запись события междусобойчика   
@@ -72,7 +72,7 @@ function makeEventParty() {
   */
   function update(rec, respHdl) {
     if (R.isNil(rec.fkParty)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
-    _dbschema.DBEventParty.pdate(rec.rec, respHdl);
+    _dbschema.DBEventParty.update(rec, respHdl);
   }
   return Object.freeze({
     list: list,

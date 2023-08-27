@@ -2,6 +2,8 @@
 Получение информации о событиях междусобойчика
 */
 import { PartyService } from "./lib/remoteCallParty"
+import * as R from "ramda"
+import { PartyDate } from "../lib/partyday"
 
 function  makeEventParty(){
   
@@ -60,7 +62,7 @@ function remove( rec, setResult, setError ){
 * @param {*}  setResult будет передан id добавленной записи
 */ 
 function insert( rec, setResult, setError ){
-    PartyService.post( "/eventparty/insert", rec, setResult, setError)
+    PartyService.post( "/eventparty/insert",  { ...rec, ...getChgFlds(rec) }, setResult, setError)
 }
 
 /* Обновить запись о событии междусобойчика   
@@ -68,7 +70,37 @@ function insert( rec, setResult, setError ){
 * @param {*} setResult будет передано ко-во обновленных записей, т.е. единица
 */ 
 function update( rec, setResult, setError ){
-    PartyService.post( "/eventparty/update", rec, setResult, setError)
+    PartyService.post( "/eventparty/update",  { ...rec, ...getChgFlds(rec) } , setResult, setError)
+}
+
+function getChgFlds( rec ){
+    const frmt = [ ['pkID','n'], ['name','s'], ['description','s'], ['fkTypeEvent','s'], ['dtStart','t'], ['fkParty','n'] ] 
+    const chgFlds = {}
+    const createChgFlds = fld => {
+        const name = fld[0]
+        const type = fld[1]
+        switch( type ){
+            case 't':{
+                const value = rec[name]
+                if( value !== undefined && typeof(value) === 'string' )
+                    chgFlds[name] = PartyDate.toTS(value)
+                break
+            } 
+            default:{
+                break
+            }
+        } 
+    }
+    R.forEach( createChgFlds, frmt )
+    return chgFlds
+}
+
+function upsert( rec,  setResult, setError )
+{
+    if( R.isNil(rec.pkID) )
+        EventParty.insert(rec,  setResult, setError )
+    else
+        EventParty.update(rec,  setResult, setError )
 }
 
 return Object.freeze({
@@ -76,7 +108,8 @@ return Object.freeze({
     read,
     remove,
     insert,
-    update
+    update,
+    upsert
 })
 
 }

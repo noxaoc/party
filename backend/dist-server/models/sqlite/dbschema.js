@@ -98,7 +98,7 @@ function makeEventParty() {
       }
     }
     if (R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr)) filterSearchStr = "and event_party.name like '%".concat(filter.searchStr, "%'");
-    return "select event_party.pkID as id, \n                    event_party.name as name, \n                    event_party.description as description, \n                    type_event.name as evTypeName, \n                    event_party.dtStart  as dtStart,\n                    event_party.fkTypeEvent as fkTypeEvent\n                from event_party \n                     join type_event \n                     on type_event.pkID = event_party.fkTypeEvent\n                where fkParty = ".concat(filter.pid, " ").concat(eventIdsFilter, " ").concat(filterSearchStr);
+    return "select event_party.pkID as pkID, \n                    event_party.name as name, \n                    event_party.description as description, \n                    type_event.name as evTypeName, \n                    event_party.dtStart  as dtStart,\n                    event_party.fkTypeEvent as fkTypeEvent,\n                    event_party.fkParty as fkParty\n                from event_party \n                     join type_event \n                     on type_event.pkID = event_party.fkTypeEvent\n                where fkParty = ".concat(filter.pid, " ").concat(eventIdsFilter, " ").concat(filterSearchStr);
   }
 
   /**
@@ -127,7 +127,7 @@ function makeEventParty() {
       (0, _record.addRecord)(rs, row);
       respHdl(rs);
     };
-    var query = "select event_party.pkID as id, \n                           event_party.name as name, \n                           event_party.description as description, \n                           type_event.name as evTypeName, \n                           event_party.dtStart  as dtStart\n                    from event_party \n                        left join type_event \n                        on type_event.pkID = event_party.fkTypeEvent\n                    where\n                        event_party.pkID =".concat(filter.pkID, " and event_party.fkParty =").concat(filter.fkParty);
+    var query = "select event_party.pkID as pkID, \n                           event_party.name as name, \n                           event_party.description as description, \n                           type_event.name as evTypeName, \n                           event_party.dtStart  as dtStart,\n                           event_party.fkParty as fkParty\n                    from event_party \n                        left join type_event \n                        on type_event.pkID = event_party.fkTypeEvent\n                    where\n                        event_party.pkID =".concat(filter.pkID, " and event_party.fkParty =").concat(filter.fkParty);
     db.get(query, getRow);
   }
   /*

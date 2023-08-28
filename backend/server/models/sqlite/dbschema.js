@@ -191,7 +191,6 @@ function makeEventParty(){
     db.each(query, getRow, ( err )=>respHdl(err,rs) )  
 }
 
-
 function read( rs, filter, respHdl ){ 
     const getRow = (err, row )=>{
         addRecord(rs, row)

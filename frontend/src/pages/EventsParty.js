@@ -5,21 +5,23 @@
 
 
 import React, {useState} from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faCog } from '@fortawesome/free-solid-svg-icons';
-import { Button, ButtonGroup, Dropdown } from '@themesberg/react-bootstrap';
-import { EventPartyDlg, EventsPartyTable, createEventParty } from "../components/EventPartysTable";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheck, faCog } from '@fortawesome/free-solid-svg-icons'
+import { Button, ButtonGroup, Dropdown } from '@themesberg/react-bootstrap'
+import {  EventsPartyTable } from "../components/EventPartysTable"
+import { EventParty } from "../data/eventParty"
+import { makePlainObjByIdx } from "../lib/record"
 
 
 
 export default ( props ) => {
     // showDlg - показать диалог создания события, currEventID - id редактируемого события, он при создании всегда null
-    const [showDlg, setShowDlg] = useState({showDlg:false,currID:null});
+    const [showDlg, setShowDlg] = useState({showDlg:false,editRec:{}});
     //диалог создания всегда в режиме редактирования
-    const [editMode, setEditMode] = useState(true)
+    //const [editMode, setEditMode] = useState(true)
     const onClickCreateEvent= ()=>{
-      setShowDlg({showDlg:true, currID:null})
-      setEditMode(true)
+        EventParty.init( { pid: getCurrentGID(), initRec: true }, "EventParty.list", 
+                       result =>setShowDlg( {showDlg:true, editRec:makePlainObjByIdx(result) } ) )
     }
     return (
       <>
@@ -51,12 +53,17 @@ export default ( props ) => {
           </Dropdown>
           </div>
         </div>
-      { showDlg.showDlg && <EventPartyDlg hookShowDlg={[showDlg, setShowDlg]} 
+      {/* showDlg.showDlg && <EventPartyDlg hookShowDlg={[showDlg, setShowDlg]} 
                                             hookEdit={[editMode,setEditMode]} 
-                                            event={createEventParty()} /> }
+                                            event={createEventParty()} 
+                                            hookChgEvents={[changed, setChanged]}
+                                            typeEvents={typeEvents}
+                                            />
+                                            
+                                            */}
   
       {/*собственно список участников*/}
-        <EventsPartyTable {...props} />
+        <EventsPartyTable {...props}  hookShowDlg={[showDlg, setShowDlg]} />
       </>
     );
   };

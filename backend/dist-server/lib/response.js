@@ -9,17 +9,16 @@ exports.getResult = getResult;
 msg и uuid необязательны
 */
 function makePostResponseOK(result) {
-  console.log(result);
   return {
     r: result,
     e: null
   };
 }
-function makePostResponseError(err, error_uuid) {
+function makePostResponseError(msg, error_uuid) {
   return {
     r: null,
     e: {
-      msg: err.message,
+      msg: msg,
       uuid: error_uuid
     }
   };

@@ -44,7 +44,7 @@ export function getFldType( frmt ){
 export function makeRecordSet( frmt ){
     const checkFrmtFld = ( frmt_fld )=>{
         if( R.length(frmt_fld) < 2 )
-            throw 'Неверно сконструированный формат!'
+            throw new SyntaxError('Неверно сконструированный формат RecordSet!')
         // проверить допустимый тип еще надо
         return false
     }
@@ -62,7 +62,7 @@ export function addRecord( rSet, db_rec ){
 }
 
 export function emptyRSet( rSet ){
-   return lengthDataRSet(rSet) === 0
+   return lengthRSet(rSet) === 0
 }
 
 export function lengthRSet( rSet ){
@@ -84,7 +84,7 @@ export function getFrmtRSet( rSet ){
 hdl = ( rec, frmt )=>...
 */
 export function mapRSet( hdl, rSet ){
-    if( emptyRSet(rSet) )
+    if( R.isNil(rSet)   || emptyRSet(rSet) )
         return []
     let result = []
     const rSetFormat = getFrmtRSet(rSet)
@@ -110,4 +110,16 @@ export function makePlainObj( rec, frmt ){
     }
     frmt.forEach( fldHdl  )
     return pobj
+}
+
+export function makePlainObjByIdx( rSet, idx = 0 ){
+    return makePlainObj( rSet[idx + 1], getFrmtRSet(rSet))
+
+}
+
+/*
+Преобразовать RecordSet в список js - объектов
+*/
+export function makeListPlainObj( rSet ){
+    return mapRSet( makePlainObj, rSet )
 }

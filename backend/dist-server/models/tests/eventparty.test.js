@@ -2,6 +2,7 @@
 
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 var _dbschema = require("../sqlite/dbschema.js");
+var _eventparty = require("../eventparty.js");
 var R = _interopRequireWildcard(require("ramda"));
 var _record = require("../../lib/record.js");
 var _partyday = require("../../lib/partyday.js");
@@ -86,4 +87,55 @@ test("DBTypeEventParty.all", function (done) {
   };
   var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's']]);
   _dbschema.DBTypeEventParty.all(rs, resHdl);
+});
+test("EventParty.init({initRec: initRec, method:list, insImmediatly: false })", function (done) {
+  var initRec = {
+    initRec: {
+      fkParty: 1
+    },
+    method: "EventParty.list"
+  };
+  var resHdl = function resHdl(err, rSet) {
+    if (err) {
+      done(err);
+      return;
+    }
+    try {
+      expect(R.length(rSet)).toEqual(2);
+      var rec = (0, _record.makePlainObjByIdx)(rSet, 0);
+      expect(rec.fkParty).toEqual(1);
+      expect(rec.pkID).toBeNull();
+      done();
+    } catch (err) {
+      done(err);
+    }
+  };
+  _eventparty.EventParty.init(initRec, resHdl);
+});
+test("EventParty.init({initRec: initRec, method:list, insImmediatly: true })", function (done) {
+  var initRec = {
+    initRec: {
+      fkParty: 1,
+      fkTypeEvent: 1
+    },
+    method: "EventParty.list",
+    insImmediatly: true
+  };
+  var resHdl = function resHdl(err, rSet) {
+    if (err) {
+      done(err);
+      return;
+    }
+    try {
+      console.log(rSet);
+      expect(R.length(rSet)).toEqual(2);
+      var rec = (0, _record.makePlainObjByIdx)(rSet, 0);
+      expect(rec.fkParty).toEqual(1);
+      expect(rec.pkID).toBeGreaterThan(0);
+      done();
+    } catch (err) {
+      done(err);
+    }
+  };
+  _eventparty.EventParty.init(initRec, resHdl);
 });

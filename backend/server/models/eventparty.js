@@ -1,6 +1,6 @@
 import * as R from 'ramda'
 import {DBEventParty} from './sqlite/dbschema.js'
-import { makeRecordSet } from '../lib/record.js'
+import { addRecord, makeRecordSet } from '../lib/record.js'
 
 function makeEventParty(){  
 /**
@@ -22,6 +22,36 @@ function list( rec, respHdl ){
                               ['fkTypeEvent','n'], ['fkParty','n'] ] )  
     DBEventParty.list( rs, rec.filter, rec.ord, rec.nav, respHdl )
 }
+
+/*
+* Сконструировать пустую запись
+* { "initRec": initRec, "method":method, "insImmediatly": insImmediatly }
+* initRec -  поля для инициализации записи
+* method -  имя метода чей формат нам  нужно возвратить при инициализации
+* insImmediatly - сразу добавить запись
+* Возвращает: запись формата метода чье имя передано в method
+*/
+function  init( { initRec, method, insImmediatly }, respHdl ){     
+    if( R.isNil(initRec.fkParty ) )
+        throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')  
+    if( R.isNotNil(insImmediatly) && insImmediatly === true ){
+        const respIns = ( err, id )=>{
+            if( R.isNotNil(err) ){
+                respHdl(err, null)
+                return
+            }
+            console.log( `id=${id}`)
+            list( {filter:{ pid: initRec.fkParty, ids:[id] }, ord:null, nav:null }, respHdl )
+        }
+        insert( initRec, respIns ) 
+    } else {
+        let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'], ['evTypeName','s'], 
+        ['dtStart','t'], ['fkTypeEvent','n'], ['fkParty','n'] ] )  
+        addRecord( rs, initRec )
+        respHdl(null, rs)
+    }
+}
+
 
 /**
  * Прочитать по идентификатору событие между собойчика
@@ -83,7 +113,8 @@ return Object.freeze({
     read,
     remove,
     insert,
-    update
+    update,
+    init
 })
 
 }

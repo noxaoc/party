@@ -1,7 +1,8 @@
 //import * as R from 'ramda'
 import {DBEventParty,DBTypeEventParty} from '../sqlite/dbschema.js'
+import { EventParty } from '../eventparty.js'
 import * as R from "ramda"
-import { makeRecordSet } from '../../lib/record.js'
+import { makePlainObjByIdx, makeRecordSet } from '../../lib/record.js'
 import { PartyDate } from '../../lib/partyday.js'
 
 
@@ -79,4 +80,47 @@ test("DBTypeEventParty.all", done => {
     }
     let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'] ] )  
     DBTypeEventParty.all( rs, resHdl)
+})
+
+test("EventParty.init({initRec: initRec, method:list, insImmediatly: false })", done => {
+    const initRec = { initRec:{ fkParty: 1}, method: "EventParty.list" }
+    const resHdl = ( err, rSet )=>{
+        if( err ){
+            done(err)
+            return
+        }
+        try{
+            expect(R.length(rSet)).toEqual(2)
+            const rec = makePlainObjByIdx(rSet,0)
+            expect( rec.fkParty ).toEqual(1)
+            expect( rec.pkID ).toBeNull()
+            done()
+        }
+        catch(err){
+            done(err)
+        }
+    }
+    EventParty.init( initRec, resHdl )
+})
+
+test("EventParty.init({initRec: initRec, method:list, insImmediatly: true })", done => {
+    const initRec = { initRec:{ fkParty: 1, fkTypeEvent: 1}, method: "EventParty.list", insImmediatly: true }
+    const resHdl = ( err, rSet )=>{
+        if( err ){
+            done(err)
+            return
+        }
+        try{
+            console.log(rSet)
+            expect(R.length(rSet)).toEqual(2)
+            const rec = makePlainObjByIdx(rSet,0)
+            expect( rec.fkParty ).toEqual(1)
+            expect( rec.pkID ).toBeGreaterThan(0)
+            done()
+        }
+        catch(err){
+            done(err)
+        }
+    }
+    EventParty.init( initRec, resHdl )
 })

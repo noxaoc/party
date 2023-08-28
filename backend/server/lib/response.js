@@ -3,16 +3,14 @@
 msg и uuid необязательны
 */
 function makePostResponseOK( result ){
-    console.log(result)
     return { r: result, e: null }
 }
 
-function makePostResponseError( err, error_uuid ){
-    return { r: null, e: { msg: err.message, uuid: error_uuid } }
+function makePostResponseError( msg, error_uuid ){
+    return { r: null, e: { msg: msg, uuid: error_uuid } }
 }
 
 export function  getResult( func, arg, response ){
-   
     const setResponse = ( err, result )=>{
         if( err )
             response.status(500).json(makePostResponseError(err,null))

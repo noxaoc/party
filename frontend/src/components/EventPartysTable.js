@@ -60,9 +60,6 @@ const InputEventTypeParty =( props )=>{
   )
 }
 
-
-
-
 /* Вкладки на диалоге редактирования участников
 */
 /*
@@ -101,22 +98,19 @@ function ControlledTabsParticipant( {editMode, pState } ) {
 *       true - модальный диалог выводится
 *     editRec - редактируемое событие междусобойчика
 *   setShowDdlg - функция переводящая диалог в противоположное указанному в showDefault состояние
-* hookEdit:
-*   editMode: 
-*     false - режим просмотра, без изменения данных
-*     true - режим редактирования данных, в этом режиме при нажатии кнопки сохранить данные меняются
-*   setEditMode - перевести в режим редактирования или снять его
 *   typeEvents - список событий
 */
-export const EventPartyDlg = ( { hookShowDlg, hookEdit, typeEvents, hookChgEvents } )=>{
+export const EventPartyDlg = ( { hookShowDlg,  typeEvents, hookChgEvents } )=>{
   const [showDlg, setShowDlg] = hookShowDlg
-  const [editMode, setEditMode] = hookEdit
+  // перевод в режим редактирования диалога просмотра события
+  // false - режим просмотра, без изменения данных
+  // true - режим редактирования данных, в этом режиме при нажатии кнопки сохранить данные меняются
+  const [editMode, setEditMode] = useState(false)
   const [changed, setChanged] = hookChgEvents
 
   // обработка закрытия формы
   const handleClose = () => {
     setShowDlg( {showDlg:false, editRec:{}} )
-    setEditMode(false)
   }
  
   // сохранить участника
@@ -127,7 +121,6 @@ export const EventPartyDlg = ( { hookShowDlg, hookEdit, typeEvents, hookChgEvent
     handleClose()
   }
 
-  
   return (
     <Formik initialValues={ {...showDlg.editRec} }  
             onSubmit={saveEvent} >
@@ -140,7 +133,7 @@ export const EventPartyDlg = ( { hookShowDlg, hookEdit, typeEvents, hookChgEvent
                 <Modal.Title className="h5">Событие</Modal.Title>
               </Col>
               <Col sm={3} className="d-flex justify-content-end" >
-                <EditButton hookEdit={hookEdit} onSubmit={props.handleSubmit}/>
+                <EditButton hookEdit={[editMode, setEditMode]} onSubmit={props.handleSubmit}/>
               </Col>
               <Col sm={1} className="d-flex justify-content-end" >
                 <Button className="m-0 py-2" variant="close" aria-label="Close" onClick={handleClose} />
@@ -191,9 +184,10 @@ export const EventsPartyTable = ( props ) => {
   /* showDlg - показать диалог редактирования, 
      editRec - редактируемая запись
   */
-  const [showDlg, setShowDlg] = useState({showDlg:false, editRec:{}});
+  const [showDlg, setShowDlg] = props.hookShowDlg
+  //const [showDlg, setShowDlg] = useState({showDlg:false, editRec:{}});
   // перевод в режим редактирования диалог просмотра события
-  const [editMode, setEditMode] = useState(false);
+  //const [editMode, setEditMode] = useState(false);
   // список событий, если events === undefined, то произошла ошибка
   const [events, setEvents] = useState([])
   // список типов событий, он никогда почти не меняется
@@ -293,7 +287,6 @@ export const EventsPartyTable = ( props ) => {
   return (
     <Card border="light" className="table-wrapper table-responsive shadow-sm">
       { showDlg.showDlg && <EventPartyDlg hookShowDlg={[showDlg, setShowDlg]} 
-                                          hookEdit={[editMode,setEditMode]}
                                           hookChgEvents={[changed, setChanged]}
                                           typeEvents={typeEvents} /> } 
       <Card.Body className="pt-0 pb-1 px-2">

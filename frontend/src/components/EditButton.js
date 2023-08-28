@@ -5,7 +5,7 @@ import { Button } from '@themesberg/react-bootstrap'
 * 
 */
 export const EditButton = ( props )=>{
-    console.log(props)
+//    console.log(props)
 const { hookEdit, onSubmit} = props
 const [editMode, setEditMode] = hookEdit
 const type = editMode ? "submit" : "button"

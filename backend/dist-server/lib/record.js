@@ -10,7 +10,9 @@ exports.getFldName = getFldName;
 exports.getFldType = getFldType;
 exports.getFrmtRSet = getFrmtRSet;
 exports.lengthRSet = lengthRSet;
+exports.makeListPlainObj = makeListPlainObj;
 exports.makePlainObj = makePlainObj;
+exports.makePlainObjByIdx = makePlainObjByIdx;
 exports.makeRecordSet = makeRecordSet;
 exports.mapRSet = mapRSet;
 var _partyday = require("./partyday");
@@ -58,7 +60,7 @@ function getFldType(frmt) {
 }
 function makeRecordSet(frmt) {
   var checkFrmtFld = function checkFrmtFld(frmt_fld) {
-    if (R.length(frmt_fld) < 2) throw 'Неверно сконструированный формат!';
+    if (R.length(frmt_fld) < 2) throw new SyntaxError('Неверно сконструированный формат RecordSet!');
     // проверить допустимый тип еще надо
     return false;
   };
@@ -74,7 +76,7 @@ function addRecord(rSet, db_rec) {
   rSet.push(rec);
 }
 function emptyRSet(rSet) {
-  return lengthDataRSet(rSet) === 0;
+  return lengthRSet(rSet) === 0;
 }
 function lengthRSet(rSet) {
   var length = R.length(rSet) - 1;
@@ -94,7 +96,7 @@ function getFrmtRSet(rSet) {
 hdl = ( rec, frmt )=>...
 */
 function mapRSet(hdl, rSet) {
-  if (emptyRSet(rSet)) return [];
+  if (R.isNil(rSet) || emptyRSet(rSet)) return [];
   var result = [];
   var rSetFormat = getFrmtRSet(rSet);
   var localHdl = function localHdl(rec, idx) {
@@ -117,4 +119,15 @@ function makePlainObj(rec, frmt) {
   };
   frmt.forEach(fldHdl);
   return pobj;
+}
+function makePlainObjByIdx(rSet) {
+  var idx = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+  return makePlainObj(rSet[idx + 1], getFrmtRSet(rSet));
+}
+
+/*
+Преобразовать RecordSet в список js - объектов
+*/
+function makeListPlainObj(rSet) {
+  return mapRSet(makePlainObj, rSet);
 }

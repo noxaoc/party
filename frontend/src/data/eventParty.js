@@ -43,6 +43,19 @@ function read( filter, setResult, setError ){
     PartyService.post( "/eventparty/read",{ "filter": filter}, setResult, setError)
 }
 
+/*
+* Сконструировать пустую запись
+* { "initRec": initRec, "method":method, "insImmediatly": insImmediatly }
+* initRec -  поля для инициализации записи
+* method -  имя метода чей формат нам  нужно возвратить при инициализации
+* insImmediatly - сразу добавить запись
+* Возвращает: запись формата метода чье имя передано в method
+*/
+function  init( rec, setResult, setError  ){     
+    PartyService.post( "/eventparty/init",{ ...rec }, setResult, setError)
+}
+    
+
 /* 
 * Удалить события междусобойчика
 * @param rec = 
@@ -109,7 +122,8 @@ return Object.freeze({
     remove,
     insert,
     update,
-    upsert
+    upsert,
+    init
 })
 
 }

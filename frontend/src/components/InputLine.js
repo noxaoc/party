@@ -27,7 +27,7 @@ export const  InputLine = ( props )=>{
 
 const { ctrlId, editMode, name, type, label, value, placeholder, onChange } = props
 const type_elem = R.isNil(type) ? "input" : type;
-console.log(value)
+//console.log(value)
 return (
     <Form.Group as={Row} className="mb-1" controlId={ctrlId}>
         <Form.Label column sm={3}>{label}</Form.Label>

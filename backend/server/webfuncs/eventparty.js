@@ -38,3 +38,16 @@ export const update = ( req, res, next )=>{
     console.log(req.body)
     getResult(EventParty.update, req.body, res )
 }
+
+/*
+* Сконструировать пустую запись
+* { "initRec": initRec, "method":method, "insImmediatly": insImmediatly }
+* initRec -  поля для инициализации записи
+* method -  имя метода чей формат нам  нужно возвратить при инициализации
+* insImmediatly - сразу добавить запись
+* Возвращает: запись формата метода чье имя передано в method
+*/
+export const init = ( rec, respHdl )=>{
+    console.log(req.body)
+    getResult(EventParty.init, req.body, res )
+}

@@ -29,6 +29,43 @@ function makeEventParty() {
     _dbschema.DBEventParty.list(rs, rec.filter, rec.ord, rec.nav, respHdl);
   }
 
+  /*
+  * Сконструировать пустую запись
+  * { "initRec": initRec, "method":method, "insImmediatly": insImmediatly }
+  * initRec -  поля для инициализации записи
+  * method -  имя метода чей формат нам  нужно возвратить при инициализации
+  * insImmediatly - сразу добавить запись
+  * Возвращает: запись формата метода чье имя передано в method
+  */
+  function init(_ref, respHdl) {
+    var initRec = _ref.initRec,
+      method = _ref.method,
+      insImmediatly = _ref.insImmediatly;
+    if (R.isNil(initRec.fkParty)) throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!');
+    if (R.isNotNil(insImmediatly) && insImmediatly === true) {
+      var respIns = function respIns(err, id) {
+        if (R.isNotNil(err)) {
+          respHdl(err, null);
+          return;
+        }
+        console.log("id=".concat(id));
+        list({
+          filter: {
+            pid: initRec.fkParty,
+            ids: [id]
+          },
+          ord: null,
+          nav: null
+        }, respHdl);
+      };
+      insert(initRec, respIns);
+    } else {
+      var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's'], ['evTypeName', 's'], ['dtStart', 't'], ['fkTypeEvent', 'n'], ['fkParty', 'n']]);
+      (0, _record.addRecord)(rs, initRec);
+      respHdl(null, rs);
+    }
+  }
+
   /**
    * Прочитать по идентификатору событие между собойчика
    * @param {*} rec запись в которой обязательно присутствует pkID  - идентификатор события и 
@@ -79,7 +116,8 @@ function makeEventParty() {
     read: read,
     remove: remove,
     insert: insert,
-    update: update
+    update: update,
+    init: init
   });
 }
 var EventParty = makeEventParty();

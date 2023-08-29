@@ -47,7 +47,8 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
     } else {
         let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'], ['evTypeName','s'], 
         ['dtStart','t'], ['fkTypeEvent','n'], ['fkParty','n'] ] )  
-        addRecord( rs, initRec )
+        const rec = {name:"", description:"", evTypeName:"", dtStart: 0, fkTypeEvent: 1, ...initRec }
+        addRecord( rs, rec )
         respHdl(null, rs)
     }
 }

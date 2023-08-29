@@ -11,6 +11,7 @@ import { Button, ButtonGroup, Dropdown } from '@themesberg/react-bootstrap'
 import {  EventsPartyTable } from "../components/EventPartysTable"
 import { EventParty } from "../data/eventParty"
 import { makePlainObjByIdx } from "../lib/record"
+import { getPartyID } from "../lib/partypath"
 
 
 
@@ -20,7 +21,7 @@ export default ( props ) => {
     //диалог создания всегда в режиме редактирования
     //const [editMode, setEditMode] = useState(true)
     const onClickCreateEvent= ()=>{
-        EventParty.init( { pid: getCurrentGID(), initRec: true }, "EventParty.list", 
+        EventParty.init( { initRec:{ fkParty: getPartyID()}, method: "EventParty.list" }, 
                        result =>setShowDlg( {showDlg:true, editRec:makePlainObjByIdx(result) } ) )
     }
     return (

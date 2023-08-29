@@ -18,7 +18,7 @@ import commands from "../data/commands";
 const R = require('ramda');
 
 // получить идентификатор текущего междусобойчика
-function getCurrentGID(){
+function getPartyID(){
   return 1;
 }
 
@@ -57,13 +57,13 @@ function calcExtFldParticipant( participant ){
 export function createParticipant(){
   console.log("createPart")
 
-  const p = Participant.createNull( {gid:getCurrentGID() }  )
+  const p = Participant.createNull( {gid:getPartyID() }  )
   return calcExtFldParticipant(p)
 }
 
 export const readParticipant=( pid )=>{
   console.log("readPart")
-  let p = Participant.read(getCurrentGID(), pid )
+  let p = Participant.read(getPartyID(), pid )
   if( R.isNil(p) )
     return createParticipant()
   return calcExtFldParticipant(p) 
@@ -502,7 +502,7 @@ const EventOfParticipant=( props )=>{
 */
 const ListEventOfParticipant=( props )=>{
   const { editMode, pid } = props
-  const events = Participant.events( getCurrentGID(), pid )
+  const events = Participant.events( getPartyID(), pid )
   return (
     <Card border="light" className="table-wrapper table-responsive shadow-sm">
       {/*showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]} 
@@ -611,9 +611,9 @@ export const ParticipantDlg = ( { hookShowDlg, hookEdit, participant } )=>{
   const [editMode, setEditMode] = hookEdit
  
   //console.log(`pid= ${showDlg.currPid} showDlg= ${showDlg.showDlg}`)
- // let participant = Participant.read(getCurrentGID(), showDlg.currPid )
+ // let participant = Participant.read(getPartyID(), showDlg.currPid )
   //if( R.isNil(participant ) )
-  //  participant = Participant.createNull({gid:getCurrentGID()})
+  //  participant = Participant.createNull({gid:getPartyID()})
   const pState = useObjInput(participant)
   console.log("render participantdlg")
 
@@ -680,7 +680,7 @@ export const ParticipantsTable = ( props ) => {
   const [editMode, setEditMode] = useState(false);
   // получить список участников в соответствии с фильтрацией
   const filter = { searchStr : props.searchStr }
-  const participants = Participant.listMain(getCurrentGID(), filter)
+  const participants = Participant.listMain(getPartyID(), filter)
   const totalParticipants = participants.length
 
   console.log("перерисовываю participant table")
@@ -688,7 +688,7 @@ export const ParticipantsTable = ( props ) => {
   //удалить участника по pid и вызвать обновление списка участников
   const doRemoveParticipant = (pid)=>{
     return (_)=>{
-      Participant.remove(getCurrentGID(),pid);
+      Participant.remove(getPartyID(),pid);
       setState(!changed);
     }
   }

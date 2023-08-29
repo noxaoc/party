@@ -13,22 +13,18 @@ import { EventParty } from "../data/eventParty"
 import { TypeEventParty } from "../data/typeEventParty"
 import { InputComment } from "./InputComment"
 import { EditButton } from "./EditButton"
+import { getPartyID } from "../lib/partypath"
 const R = require('ramda');
-
-// получить идентификатор текущего междусобойчика
-function getCurrentGID(){
-  return 1;
-}
 
 // создать пустое событие для текущего gid
 export function createEventParty(){
-  const e = Event.createNull( {gid:getCurrentGID() })
+  const e = Event.createNull( {gid:getPartyID() })
   return { ...e, dateStartStr: "", typeEventName: "" }
 }
 
 
 export const readEventParty=( id )=>{
-  const events = Event.listAll( getCurrentGID(), { ids: [id]} )
+  const events = Event.listAll( getPartyID(), { ids: [id]} )
   if( R.isNil(events) || R.isEmpty(events) )
     return createEventParty()
   return events[0]
@@ -105,7 +101,8 @@ export const EventPartyDlg = ( { hookShowDlg,  typeEvents, hookChgEvents } )=>{
   // перевод в режим редактирования диалога просмотра события
   // false - режим просмотра, без изменения данных
   // true - режим редактирования данных, в этом режиме при нажатии кнопки сохранить данные меняются
-  const [editMode, setEditMode] = useState(false)
+  const initEditMode = R.isNil(showDlg.editRec.pkID)? true : false
+  const [editMode, setEditMode] = useState(initEditMode)
   const [changed, setChanged] = hookChgEvents
 
   // обработка закрытия формы
@@ -200,7 +197,7 @@ export const EventsPartyTable = ( props ) => {
 
   useEffect(() => {
     // получить список событий в соответствии с фильтрацией
-    const filter = { searchStr : props.searchStr, pid: getCurrentGID() }
+    const filter = { searchStr : props.searchStr, pid: getPartyID() }
     EventParty.list( filter, null, null,  result=>setEvents(result) )
     return ()=>{}
   },[props.searchStr, changed])
@@ -208,7 +205,7 @@ export const EventsPartyTable = ( props ) => {
   // создать обработчик на редактирование записи
   const makeOnEditHdl = ( id )=>{
     return () => {
-      EventParty.list( {ids:[id], pid: getCurrentGID() }, null, null, 
+      EventParty.list( {ids:[id], pid: getPartyID() }, null, null, 
                      result =>setShowDlg( {showDlg:true, editRec:makePlainObjByIdx(result) } ) )
           
     }
@@ -217,7 +214,7 @@ export const EventsPartyTable = ( props ) => {
   //удалить событие по id и вызвать обновление списка  событий
   const doRemoveEvent = id =>{
     return ()=>{
-      EventParty.remove( {fkParty:getCurrentGID(), ids:[id] }, 
+      EventParty.remove( {fkParty:getPartyID(), ids:[id] }, 
                     ( result )=>{ R.isNil(result) ? alert("Произошла неизвестная ошибка") : setChanged(!changed) } , 
                     ( error )=>console.log(error.message) ) 
     }

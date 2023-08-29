@@ -47,7 +47,7 @@ export const update = ( req, res, next )=>{
 * insImmediatly - сразу добавить запись
 * Возвращает: запись формата метода чье имя передано в method
 */
-export const init = ( rec, respHdl )=>{
+export const init = (  req, res, next )=>{
     console.log(req.body)
     getResult(EventParty.init, req.body, res )
 }

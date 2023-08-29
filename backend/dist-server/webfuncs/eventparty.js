@@ -56,7 +56,7 @@ var update = function update(req, res, next) {
 * Возвращает: запись формата метода чье имя передано в method
 */
 exports.update = update;
-var init = function init(rec, respHdl) {
+var init = function init(req, res, next) {
   console.log(req.body);
   (0, _response.getResult)(_eventparty.EventParty.init, req.body, res);
 };

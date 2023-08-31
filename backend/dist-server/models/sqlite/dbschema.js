@@ -4,7 +4,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DBTypeEventParty = exports.DBEventParty = void 0;
+exports.DBTypeEventParty = exports.DBParty = exports.DBEventParty = void 0;
 exports.doTestSQL = doTestSQL;
 var R = _interopRequireWildcard(require("ramda"));
 var _partyday = require("../../lib/partyday");
@@ -18,14 +18,14 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(':memory:');
-var createParty = "create table party(\npkID integer primary key,\ndtStart int,\ndtEnd int,\nname text,\ndescription text)";
+var createParty = "create table party(\npkID integer primary key,\nfkClient int,\ndtStart int,\ndtEnd int,\nname text,\ndescription text,\nplace text,\noutgoing float,\npayment float,\nprofit float\n)";
 var createEvent = "create table event_party(\npkID integer primary key,\nfkTypeEvent int,\nfkParty int not null,\ndtStart int,\nfree int,\nname text,\ndescription text)";
 var createTypeEvent = "create table type_event(\npkID integer primary key,\nid text,\nname text,\ndescription text)";
 var createPricesEvent = "create table price_event(\npkID integer primary key,\nname text,\nprice real)";
 
 /* Генерируем данные
 */
-var initPartyTable = "insert into party( name ) \nvalues ( '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' ),\n       ( 'Swingtown Little Cup 2023' )";
+var initPartyTable = "insert into party( name, place, dtStart, dtEnd, outgoing, payment, profit, fkClient ) \nvalues ( '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430', '\u042F\u0440\u043E\u0441\u043B\u0430\u0432\u043B\u044C',  \n         ".concat(_partyday.PartyDate.dateToTS('13.06.23'), ", \n         ").concat(_partyday.PartyDate.dateToTS('16.06.23'), ",0,0,0,1 ),\n       ( 'Swingtown Little Cup 2023', '\u041C\u043E\u0441\u043A\u0432\u0430', \n         ").concat(_partyday.PartyDate.dateToTS('20.06.23'), ", \n         ").concat(_partyday.PartyDate.dateToTS('26.06.23'), ", 0,0,0,1 )");
 var initTypeEventTable = "insert into type_event( id, name ) \nvalues ( 'party', '\u0412\u0435\u0447\u0435\u0440\u0438\u043D\u043A\u0430' ),\n       ( 'lesson', '\u041B\u0435\u043A\u0446\u0438\u044F' ),\n       ( 'competition', 'C\u043E\u0440\u0435\u0432\u043D\u043E\u0432\u0430\u043D\u0438\u0435'),\n       ( 'masterClass', '\u041C\u0430\u0441\u0442\u0435\u0440-\u043A\u043B\u0430\u0441\u0441')";
 var initPricesTable = "insert into price_event( 'name', 'price' ) \nvalues ( '\u0411\u0430\u0437\u043E\u0432\u0430\u044F \u0434\u043E 12.02.23', 20000 ),\n       ( \"\u0411\u0430\u0437\u043E\u0432\u0430\u044F \u043F\u043E\u0441\u043B\u0435 12.02.23\", 23000 )";
 var initEventTable = "insert into event_party( 'name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty' ) \n        values ( 'Mix&Match Kids', '\u0422\u0435\u043C\u043F 32-38 bpm', \n                 ".concat(_partyday.PartyDate.toTS('13.06.23 11:00:00'), ", \n                 (select pkID from type_event where id = 'competition'), \n                 (select pkID from party where name = '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' )),\n               ( 'Strictly Kids', '\u0422\u0435\u043C\u043F 40-42 bpm', \n                ").concat(_partyday.PartyDate.toTS('13.06.23 13:00:00'), ", \n                (select pkID from type_event where id = 'competition'),\n                (select pkID from party where name = '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' )),\n                ( 'Strictly Kids', '\u0422\u0435\u043C\u043F 40-42 bpm', \n                ").concat(_partyday.PartyDate.toTS('13.06.22 15:00:00'), ", \n                (select pkID from type_event where id = 'competition'),\n                (select pkID from party where name = 'Swingtown Little Cup 2023' ))");
@@ -219,6 +219,133 @@ function makeTypeEventParty() {
     all: all
   });
 }
+
+/* 
+Основные запросы по таблице party 
+*/
+function makeParty() {
+  /**
+   *  Конструирование строки запроса для получения списка междусобойчиков
+   */
+  function listQueryStr(filter, ord, nav) {
+    var eventIdsFilter = '';
+    var filterSearchStr = '';
+    if (R.isNotNil(filter.ids) && !R.isEmpty(filter.ids)) {
+      if (R.length(filter.ids) === 1) {
+        eventIdsFilter = "where pkID = ".concat(filter.ids[0]);
+      } else {
+        eventIdsFilter = "where pkID in ( ".concat(filter.ids.join(','), " )");
+      }
+    } else if (R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr)) filterSearchStr = "where party.name like '%".concat(filter.searchStr, "%'");
+    return "select party.pkID as pkID, \n                       party.name as name, \n                       party.description as description, \n                       party.dtStart  as dtStart,\n                       party.dtEnd  as dtEnd,\n                       party.place as place,\n                       party.outgoing as outgoing,\n                       party.payment as payment,\n                       party.profit as profit\n                from party \n                ".concat(eventIdsFilter, " ").concat(filterSearchStr);
+  }
+
+  /**
+   * 
+   * @param {*} ext 
+   * @param {*} filter  - задает фильтрацию  списка 
+   *                        { ids:[], // идентификаторы междусобойчика
+   *                          searchStr:<подстрока поиска по имени>}
+   * @param {*} ord  - задает сортировку списка
+   * @param {*} nav  - задает навигацию списка 
+   *                    { page: <номер страницы>, 
+   *                      cnt:< кол - во записей на странице> }
+   * @returns RecordSet
+   */
+  function list(rs, filter, ord, nav, respHdl) {
+    var getRow = function getRow(err, row) {
+      return (0, _record.addRecord)(rs, row);
+    };
+    var query = listQueryStr(filter, ord, nav);
+    db.each(query, getRow, function (err) {
+      return respHdl(err, rs);
+    });
+  }
+  function read(rs, filter, respHdl) {
+    var getRow = function getRow(err, row) {
+      (0, _record.addRecord)(rs, row);
+      respHdl(rs);
+    };
+    var query = "select event_party.pkID as pkID, \n                           event_party.name as name, \n                           event_party.description as description, \n                           type_event.name as evTypeName, \n                           event_party.dtStart  as dtStart,\n                           event_party.fkParty as fkParty\n                    from event_party \n                        left join type_event \n                        on type_event.pkID = event_party.fkTypeEvent\n                    where\n                        event_party.pkID =".concat(filter.pkID, " and event_party.fkParty =").concat(filter.fkParty);
+    db.get(query, getRow);
+  }
+  /*
+  rec
+  {
+      ids: [ <список id на удаление> ]
+      pid: <идентификатор междусобойчика>
+  }
+  * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+  */
+  function remove(_ref2, respHdl) {
+    var fkParty = _ref2.fkParty,
+      ids = _ref2.ids;
+    function onSuccess(err) {
+      respHdl(err, this.changes);
+    }
+    var query = "delete from party \n                    where\n                        pkID in ( ".concat(ids.join(','), ")");
+    db.run(query, onSuccess);
+  }
+
+  /*    
+  * @param {*} rec запись
+  * @param {*} respHdl (err, res) в res будет id добавленной записи
+  */
+  function insert(rec, respHdl) {
+    var header = ['name', 'description', 'dtStart', 'dtEnd', 'place', 'outgoing', 'payment', 'profit'];
+    var flds = R.filter(function (fld) {
+      return fld in rec;
+    }, header);
+    var placeholders = R.map(function (fld) {
+      return '$' + fld;
+    }, flds);
+    var arg = {};
+    R.forEach(function (fld) {
+      return arg['$' + fld] = rec[fld];
+    }, flds);
+    var query = "insert into party( ".concat(flds.join(','), " ) \n                   values ( ").concat(placeholders.join(','), ") ");
+    function onSuccess(err) {
+      respHdl(err, this.lastID);
+    }
+    db.run(query, arg, onSuccess);
+  }
+
+  /*    
+  * @param {*} rec запись
+  * @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+  */
+  function update(rec, respHdl) {
+    if (R.isNil(rec.pkID)) {
+      respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"));
+      return;
+    }
+    var header = ['name', 'description', 'dtStart', 'dtEnd', 'place', 'outgoing', 'payment', 'profit'];
+    var flds = R.filter(function (fld) {
+      return fld in rec;
+    }, header);
+    var placeholders = R.map(function (fld) {
+      return fld + '=$' + fld;
+    }, flds);
+    var arg = {};
+    R.forEach(function (fld) {
+      return arg['$' + fld] = rec[fld];
+    }, flds);
+    var query = "update party \n                   set ".concat(placeholders.join(', '), " \n                   where pkID = ").concat(rec.pkID);
+    function onSuccess(err) {
+      respHdl(err, this.changes);
+    }
+    db.run(query, arg, onSuccess);
+  }
+  return Object.freeze({
+    list: list,
+    read: read,
+    remove: remove,
+    insert: insert,
+    update: update
+  });
+}
+var DBParty = makeParty();
+exports.DBParty = DBParty;
 var DBEventParty = makeEventParty();
 exports.DBEventParty = DBEventParty;
 var DBTypeEventParty = makeTypeEventParty();

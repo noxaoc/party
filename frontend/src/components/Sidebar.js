@@ -106,9 +106,11 @@ export default (props = {}) => {
             <Nav className="flex-column pt-3 pt-md-0">
               <NavItem title="Междусобойчик" link={Routes.Presentation.path} image={ReactHero} />
 
-              <NavItem title="Анализ" link={Routes.DashboardOverview.path} icon={faChartPie} />
+              <NavItem title="Междусобойчики" icon={faHandHoldingUsd} link={Routes.Partys.path} />
               <NavItem title="События" icon={faHandHoldingUsd} link={Routes.EventsParty.path} />
               <NavItem title="Участники" icon={faHandHoldingUsd} link={Routes.Participans.path} />
+              <NavItem title="Анализ" link={Routes.DashboardOverview.path} icon={faChartPie} />
+
               <NavItem title="Настройки" icon={faCog} link={Routes.Settings.path} />
     
               <CollapsableNavItem eventKey="tables/" title="События" icon={faTable}>

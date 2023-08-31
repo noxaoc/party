@@ -5,9 +5,10 @@ import { Routes } from "../routes";
 // pages
 import Presentation from "./Presentation";
 import Upgrade from "./Upgrade";
-import DashboardOverview from "./dashboard/DashboardOverview";
+//import DashboardOverview from "./dashboard/DashboardOverview";
 import EventsParty from "./EventsParty";
 import Participans from "./Participants";
+import Partys from "./Partys"
 
 //import Transactions from "./Transactions";
 import Settings from "./Settings";
@@ -72,18 +73,7 @@ const RouteWithSidebar = ({ component: Component, ...rest }) => {
     const timer = setTimeout(() => setLoaded(true), 1000);
     return () => clearTimeout(timer);
   }, []);
-/*
-  const localStorageIsSettingsVisible = () => {
-    return localStorage.getItem('settingsVisible') === 'false' ? false : true
-  }
 
-  const [showSettings, setShowSettings] = useState(localStorageIsSettingsVisible);
-/*
-  const toggleSettings = () => {
-    setShowSettings(!showSettings);
-    localStorage.setItem('settingsVisible', !showSettings);
-  }
-*/
   const MainContentWithSearchStr = props=>{
     const [state, setState ]=useState( {searchStr:""} )
     return (
@@ -126,9 +116,12 @@ export default () => (
 
     {/* pages */}
     {/* переход в рабочую страницу dashboard - а */}
-    <RouteWithSidebar exact path={Routes.DashboardOverview.path} component={DashboardOverview} />
+    {/*<RouteWithSidebar exact path={Routes.DashboardOverview.path} component={DashboardOverview} />*/}
 
     <RouteWithSidebar exact path={Routes.Upgrade.path} component={Upgrade} />
+    {/** Междусобойчики */}
+    <RouteWithSidebar exact path={Routes.Partys.path} component={Partys} />
+
     {/**События междусобойчика */}
     <RouteWithSidebar exact path={Routes.EventsParty.path} component={EventsParty} />
 

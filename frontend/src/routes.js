@@ -3,12 +3,15 @@ export const Routes = {
     // pages
     // разводящая страница
     Presentation: { path: "/" }, 
+    // список междусобойчиков
+    Partys: { path: "/:pid/ctrl/partys" },
+
     //DashboardOverview: { path: "/dashboard/overview" },
     DashboardOverview: { path: "/admin/events" },
     // управление событиями страница для клинта
     //EventsControl: { path: "/ctrl/events" },
     // Список событий междусобойчика
-    EventsParty: { path: "/ctrl/events" },
+    EventsParty: { path: "/:pid/ctrl/events" },
 
     // список участников
     Participans: { path: "/participans" },

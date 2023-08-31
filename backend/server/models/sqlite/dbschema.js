@@ -12,10 +12,16 @@ const db = new sqlite3.Database(':memory:');
 const createParty =
 `create table party(
 pkID integer primary key,
+fkClient int,
 dtStart int,
 dtEnd int,
 name text,
-description text)`
+description text,
+place text,
+outgoing float,
+payment float,
+profit float
+)`
 
 const createEvent =
 `create table event_party(
@@ -43,9 +49,13 @@ price real)`
 /* Генерируем данные
 */
 const initPartyTable = 
-`insert into party( name ) 
-values ( 'Искры джаза' ),
-       ( 'Swingtown Little Cup 2023' )`
+`insert into party( name, place, dtStart, dtEnd, outgoing, payment, profit, fkClient ) 
+values ( 'Искры джаза', 'Ярославль',  
+         ${ PartyDate.dateToTS('13.06.23') }, 
+         ${ PartyDate.dateToTS('16.06.23') },0,0,0,1 ),
+       ( 'Swingtown Little Cup 2023', 'Москва', 
+         ${ PartyDate.dateToTS('20.06.23') }, 
+         ${ PartyDate.dateToTS('26.06.23') }, 0,0,0,1 )`
     
 const initTypeEventTable = 
 `insert into type_event( id, name ) 
@@ -295,7 +305,150 @@ return Object.freeze({
 })
 }
 
+/* 
+Основные запросы по таблице party 
+*/
+function makeParty(){
+    /**
+     *  Конструирование строки запроса для получения списка междусобойчиков
+     */
+    function listQueryStr( filter, ord, nav ){
+        let eventIdsFilter = '' 
+        let filterSearchStr = ''
+        if( R.isNotNil(filter.ids) && !R.isEmpty(filter.ids) ){   
+            if( R.length(filter.ids) === 1 ){
+                eventIdsFilter = `where pkID = ${filter.ids[0]}`
+            }else{
+                eventIdsFilter = `where pkID in ( ${filter.ids.join(',')} )`
+            }
+        }
+        else if( R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr) )       
+            filterSearchStr = `where party.name like '%${filter.searchStr}%'`
+        
+        return (
+               `select party.pkID as pkID, 
+                       party.name as name, 
+                       party.description as description, 
+                       party.dtStart  as dtStart,
+                       party.dtEnd  as dtEnd,
+                       party.place as place,
+                       party.outgoing as outgoing,
+                       party.payment as payment,
+                       party.profit as profit
+                from party 
+                ${eventIdsFilter} ${filterSearchStr}` )
+    }
+  
+  /**
+   * 
+   * @param {*} ext 
+   * @param {*} filter  - задает фильтрацию  списка 
+   *                        { ids:[], // идентификаторы междусобойчика
+   *                          searchStr:<подстрока поиска по имени>}
+   * @param {*} ord  - задает сортировку списка
+   * @param {*} nav  - задает навигацию списка 
+   *                    { page: <номер страницы>, 
+   *                      cnt:< кол - во записей на странице> }
+   * @returns RecordSet
+   */      
+  function list(rs, filter, ord, nav, respHdl ){ 
+    const getRow = (err, row )=>addRecord(rs, row)
+    const query  = listQueryStr(filter,ord,nav)
+    db.each(query, getRow, ( err )=>respHdl(err,rs) )  
+}
 
+function read( rs, filter, respHdl ){ 
+    const getRow = (err, row )=>{
+        addRecord(rs, row)
+        respHdl(rs)
+    }
+    const query  = `select event_party.pkID as pkID, 
+                           event_party.name as name, 
+                           event_party.description as description, 
+                           type_event.name as evTypeName, 
+                           event_party.dtStart  as dtStart,
+                           event_party.fkParty as fkParty
+                    from event_party 
+                        left join type_event 
+                        on type_event.pkID = event_party.fkTypeEvent
+                    where
+                        event_party.pkID =${filter.pkID} and event_party.fkParty =${filter.fkParty}`
+    db.get(query, getRow)
+}
+/*
+rec
+{
+    ids: [ <список id на удаление> ]
+    pid: <идентификатор междусобойчика>
+}
+* @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+*/
+function remove( {fkParty, ids}, respHdl ){
+    function onSuccess(err){
+        respHdl( err, this.changes  )
+    }
+    const query  = `delete from party 
+                    where
+                        pkID in ( ${ids.join(',')})`
+    db.run(query, onSuccess )
+}
+
+/*    
+* @param {*} rec запись
+* @param {*} respHdl (err, res) в res будет id добавленной записи
+*/
+function insert( rec, respHdl ) { 
+    const header = ['name', 'description', 'dtStart', 'dtEnd', 'place', 'outgoing', 'payment', 'profit']
+    const flds =  R.filter( fld => fld in rec, header )
+    const placeholders = R.map( fld=>'$'+fld, flds )
+    const arg = {}
+    R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+
+    const query = `insert into party( ${flds.join(',')} ) 
+                   values ( ${placeholders.join(',')}) ` 
+    
+    function onSuccess (err){
+        respHdl(err, this.lastID)
+    }
+    db.run( query, arg, onSuccess )
+}
+
+/*    
+* @param {*} rec запись
+* @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+*/
+function update(rec,respHdl){
+    if( R.isNil(rec.pkID) ){
+        respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"))
+        return
+    }
+    const header = ['name', 'description', 'dtStart', 'dtEnd', 'place', 'outgoing', 'payment', 'profit']
+    const flds =  R.filter( fld => fld in rec, header )
+    const placeholders = R.map( fld=>fld+'=$'+fld, flds )
+    const arg = {}
+    R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+
+    const query = `update party 
+                   set ${placeholders.join(', ')} 
+                   where pkID = ${rec.pkID}`
+    function onSuccess (err){
+        respHdl(err, this.changes)
+    }
+    db.run( query, arg, onSuccess )
+
+}
+    
+    return Object.freeze({
+        list,
+        read,
+        remove,
+        insert,
+        update
+    });
+}
+
+
+export const DBParty = makeParty()
 export const DBEventParty = makeEventParty()
 export const DBTypeEventParty = makeTypeEventParty()
 

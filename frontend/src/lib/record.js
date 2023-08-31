@@ -103,6 +103,9 @@ export function makePlainObj( rec, frmt ){
             case "t":
                 pobj[getFldName(ffrmt)] = PartyDate.fromTS(rec[idx])
                 break
+            case "d":
+                pobj[getFldName(ffrmt)] = PartyDate.dateFromTS(rec[idx])
+                break
             default:
                 pobj[getFldName(ffrmt)] = rec[idx]
                 break

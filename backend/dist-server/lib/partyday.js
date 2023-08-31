@@ -22,6 +22,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
                                                                                                                                                                                                                                                                                                                                                                                               */
 _dayjs["default"].extend(_customParseFormat["default"]);
 var datetimeFormat = "DD.MM.YY HH:mm:ss";
+var dateFormat = "DD.MM.YY";
 var PartyDate = /*#__PURE__*/function () {
   function PartyDate() {
     _classCallCheck(this, PartyDate);
@@ -38,12 +39,31 @@ var PartyDate = /*#__PURE__*/function () {
     }
 
     /*
-    Получить из timestamp строку в формате atetimeFormat
+    Получить из timestamp строку в формате datetimeFormat
     */
   }, {
     key: "fromTS",
     value: function fromTS(ts) {
       return _dayjs["default"].unix(ts).format(datetimeFormat);
+    }
+
+    /*
+    Получить timestamp – количество секунд, прошедших с 1 января 1970 года UTC+0.
+    из строки в формате dateFormat
+    */
+  }, {
+    key: "dateToTS",
+    value: function dateToTS(ts_str) {
+      return (0, _dayjs["default"])(ts_str, dateFormat).unix();
+    }
+
+    /*
+    Получить из timestamp строку в формате dateFormat
+    */
+  }, {
+    key: "dateFromTS",
+    value: function dateFromTS(ts) {
+      return _dayjs["default"].unix(ts).format(dateFormat);
     }
   }]);
   return PartyDate;

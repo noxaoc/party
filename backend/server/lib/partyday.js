@@ -11,6 +11,8 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
 const datetimeFormat = "DD.MM.YY HH:mm:ss"
+const dateFormat = "DD.MM.YY"
+
 export class  PartyDate{
 
 /*
@@ -22,10 +24,26 @@ static toTS( ts_str ){
 }
 
 /*
-Получить из timestamp строку в формате atetimeFormat
+Получить из timestamp строку в формате datetimeFormat
 */
 static fromTS( ts ){
     return dayjs.unix( ts ).format(datetimeFormat)
 }
+
+/*
+Получить timestamp – количество секунд, прошедших с 1 января 1970 года UTC+0.
+из строки в формате dateFormat
+*/
+static dateToTS( ts_str ){
+    return dayjs( ts_str, dateFormat ).unix()
+}
+
+/*
+Получить из timestamp строку в формате dateFormat
+*/
+static dateFromTS( ts ){
+    return dayjs.unix( ts ).format(dateFormat)
+}
+
 
 }

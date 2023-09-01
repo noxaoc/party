@@ -32,7 +32,7 @@ static fromTS( ts ){
 
 /*
 Получить timestamp – количество секунд, прошедших с 1 января 1970 года UTC+0.
-из строки в формате dateFormat
+из строки в формате 'DD.MM.YY' т.е. часы, минуты, секунды равны 0
 */
 static dateToTS( ts_str ){
     return dayjs( ts_str, dateFormat ).unix()
@@ -45,5 +45,10 @@ static dateFromTS( ts ){
     return dayjs.unix( ts ).format(dateFormat)
 }
 
+/* Получить текущую дату в timestamp, при это часы, минуты, секунды равны 0
+*/
+static getCurrDate(){
+    return dayjs().set('hour',0).set('minute',0).set('second',0)
+}
 
 }

@@ -383,13 +383,12 @@ rec
 }
 * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
 */
-function remove( {fkParty, ids}, respHdl ){
+function remove( {ids}, respHdl ){
     function onSuccess(err){
         respHdl( err, this.changes  )
     }
     const query  = `delete from party 
-                    where
-                        pkID in ( ${ids.join(',')})`
+                    where pkID in ( ${ids.join(',')})`
     db.run(query, onSuccess )
 }
 
@@ -435,18 +434,17 @@ function update(rec,respHdl){
         respHdl(err, this.changes)
     }
     db.run( query, arg, onSuccess )
-
 }
     
-    return Object.freeze({
-        list,
-        read,
-        remove,
-        insert,
-        update
-    });
-}
+return Object.freeze({
+    list,
+    read,
+    remove,
+    insert,
+    update
+})
 
+}
 
 export const DBParty = makeParty()
 export const DBEventParty = makeEventParty()
@@ -454,7 +452,6 @@ export const DBTypeEventParty = makeTypeEventParty()
 
 
 function DBParticipant(){
-  
         
     function list( ext, filter, ord,  nav ){ 
       

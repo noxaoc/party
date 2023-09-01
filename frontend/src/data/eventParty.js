@@ -3,7 +3,7 @@
 */
 import { PartyService } from "./lib/remoteCallParty"
 import * as R from "ramda"
-import { PartyDate } from "../lib/partyday"
+import { getChgFldsRec } from "../lib/record"
 
 function  makeEventParty(){
   
@@ -88,24 +88,7 @@ function update( rec, setResult, setError ){
 
 function getChgFlds( rec ){
     const frmt = [ ['pkID','n'], ['name','s'], ['description','s'], ['fkTypeEvent','s'], ['dtStart','t'], ['fkParty','n'] ] 
-    const chgFlds = {}
-    const createChgFlds = fld => {
-        const name = fld[0]
-        const type = fld[1]
-        switch( type ){
-            case 't':{
-                const value = rec[name]
-                if( value !== undefined && typeof(value) === 'string' )
-                    chgFlds[name] = PartyDate.toTS(value)
-                break
-            } 
-            default:{
-                break
-            }
-        } 
-    }
-    R.forEach( createChgFlds, frmt )
-    return chgFlds
+    return getChgFldsRec( frmt, rec )
 }
 
 function upsert( rec,  setResult, setError )

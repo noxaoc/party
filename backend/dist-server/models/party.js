@@ -7,6 +7,7 @@ exports.Party = void 0;
 var R = _interopRequireWildcard(require("ramda"));
 var _dbschema = require("./sqlite/dbschema.js");
 var _record = require("../lib/record.js");
+var _partyday = require("../lib/partyday.js");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
@@ -61,14 +62,17 @@ function makeParty() {
       };
       insert(initRec, respIns);
     } else {
-      var _objectSpread2;
       var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's'], ['place', 's'], ['dtStart', 'd'], ['dtEnd', 'd'], ['outgoing', 'n'], ['payment', 'n'], ['profit', 'n']]);
-      var rec = _objectSpread((_objectSpread2 = {
+      var rec = _objectSpread({
         name: "",
         description: "",
         place: "",
-        dtStart: 0
-      }, _defineProperty(_objectSpread2, "dtStart", 0), _defineProperty(_objectSpread2, "outgoing", 0), _defineProperty(_objectSpread2, "payment", 0), _defineProperty(_objectSpread2, "profit", 0), _objectSpread2), initRec);
+        dtStart: _partyday.PartyDate.getCurrDate(),
+        dtEnd: _partyday.PartyDate.getCurrDate(),
+        outgoing: 0,
+        payment: 0,
+        profit: 0
+      }, initRec);
       (0, _record.addRecord)(rs, rec);
       respHdl(null, rs);
     }

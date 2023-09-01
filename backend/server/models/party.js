@@ -1,6 +1,7 @@
 import * as R from 'ramda'
 import {DBParty} from './sqlite/dbschema.js'
 import { addRecord, makeRecordSet } from '../lib/record.js'
+import { PartyDate } from '../lib/partyday.js'
 
 function makeParty(){  
 /**
@@ -44,8 +45,8 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
         let rs = makeRecordSet( [   ['pkID','n'], ['name','s'], ['description','s'], ['place','s'], 
                                     ['dtStart','d'], ['dtEnd','d'],
                                     ['outgoing','n'], ['payment','n'], ['profit','n'], ]  )  
-        const rec = {   name:"", description:"", place:"", dtStart: 0, 
-                        dtStart: 0, outgoing: 0, payment:0, profit: 0, ...initRec }
+        const rec = {   name:"", description:"", place:"", dtStart: PartyDate.getCurrDate(), 
+                        dtEnd: PartyDate.getCurrDate(), outgoing: 0, payment:0, profit: 0, ...initRec }
         addRecord( rs, rec )
         respHdl(null, rs)
     }

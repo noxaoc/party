@@ -49,7 +49,7 @@ var PartyDate = /*#__PURE__*/function () {
 
     /*
     Получить timestamp – количество секунд, прошедших с 1 января 1970 года UTC+0.
-    из строки в формате dateFormat
+    из строки в формате 'DD.MM.YY' т.е. часы, минуты, секунды равны 0
     */
   }, {
     key: "dateToTS",
@@ -64,6 +64,14 @@ var PartyDate = /*#__PURE__*/function () {
     key: "dateFromTS",
     value: function dateFromTS(ts) {
       return _dayjs["default"].unix(ts).format(dateFormat);
+    }
+
+    /* Получить текущую дату в timestamp, при это часы, минуты, секунды равны 0
+    */
+  }, {
+    key: "getCurrDate",
+    value: function getCurrDate() {
+      return (0, _dayjs["default"])().set('hour', 0).set('minute', 0).set('second', 0);
     }
   }]);
   return PartyDate;

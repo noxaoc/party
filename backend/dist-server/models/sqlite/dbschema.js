@@ -278,12 +278,11 @@ function makeParty() {
   * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
   */
   function remove(_ref2, respHdl) {
-    var fkParty = _ref2.fkParty,
-      ids = _ref2.ids;
+    var ids = _ref2.ids;
     function onSuccess(err) {
       respHdl(err, this.changes);
     }
-    var query = "delete from party \n                    where\n                        pkID in ( ".concat(ids.join(','), ")");
+    var query = "delete from party \n                    where pkID in ( ".concat(ids.join(','), ")");
     db.run(query, onSuccess);
   }
 

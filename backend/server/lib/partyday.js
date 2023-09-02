@@ -48,7 +48,7 @@ static dateFromTS( ts ){
 /* Получить текущую дату в timestamp, при это часы, минуты, секунды равны 0
 */
 static getCurrDate(){
-    return dayjs().set('hour',0).set('minute',0).set('second',0)
+    return dayjs().set('hour',0).set('minute',0).set('second',0).unix()
 }
 
 }

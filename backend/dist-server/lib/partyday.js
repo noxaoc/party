@@ -71,7 +71,7 @@ var PartyDate = /*#__PURE__*/function () {
   }, {
     key: "getCurrDate",
     value: function getCurrDate() {
-      return (0, _dayjs["default"])().set('hour', 0).set('minute', 0).set('second', 0);
+      return (0, _dayjs["default"])().set('hour', 0).set('minute', 0).set('second', 0).unix();
     }
   }]);
   return PartyDate;

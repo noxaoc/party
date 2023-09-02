@@ -225,6 +225,8 @@ export const EventsPartyTable = ( props ) => {
     return <TableRow key={`event-${pobj.pkID}`} {...pobj} />
   }
 
+  const makeSpace = str => R.isEmpty(str) ? <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</pre> : (str +"...")
+
   const TableRow = (props) => {
     const { pkID, name, evTypeName, description, dtStart } = props;
     let dt_arr = R.split(' ', dtStart )
@@ -251,17 +253,12 @@ export const EventsPartyTable = ( props ) => {
           </Container>
         </td>
         <td className="p-1">
-          <span className="fw-normal">
-            {description}
-          </span>
-        </td>
-        <td className="p-1">
           {/**выпадающий список */}
           <Dropdown as={ButtonGroup} >
             {/**переключатель на который нажимают */}
             <Dropdown.Toggle as={Button}  split variant="link" className="text-dark m-0 p-0" > 
                 <span className="fw-normal">
-                   Действие
+                  { makeSpace(description) }
                 </span>   
             </Dropdown.Toggle>
             {/** выпадающее меню из пунктов при нажатии переключателя */}
@@ -294,7 +291,6 @@ export const EventsPartyTable = ( props ) => {
               <th className="border-bottom text-center">Вид</th>
               <th className="border-bottom text-center">Дата начала</th>
               <th className="border-bottom px-1">Описание</th>
-              <th className="border-bottom text-center px-1">Что?</th>
             </tr>
           </thead>
           <tbody>

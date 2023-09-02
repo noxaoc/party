@@ -41,6 +41,7 @@ export const PartyDlg = ( { hookShowDlg,  hookChgPartys } )=>{
   const [editMode, setEditMode] = useState(initEditMode)
   const [changed, setChanged] = hookChgPartys
 
+  //console.log(showDlg.editRec)
   // обработка закрытия формы
   const handleClose = () => {
     setShowDlg( {showDlg:false, editRec:{}} )
@@ -144,8 +145,10 @@ export const PartyTable = ( props ) => {
     return <TableRow key={`party-${pobj.pkID}`} {...pobj} />
   }
 
+  const makeSpace = str => R.isEmpty(str) ? <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</pre> : (str +"...")
+
   const TableRow = (props) => {
-    const { pkID, name, place, dtStart, dtEnd, outgoing, payment, profit } = props;
+    const { pkID, name, place, dtStart, dtEnd, outgoing, payment, profit, description } = props;
     return (
       <tr>
         <td className="p-1">
@@ -174,17 +177,12 @@ export const PartyTable = ( props ) => {
           </span>
         </td>
         <td className="p-1">
-          <span className="fw-normal">
-            {PartyMoney.getEmpty(profit)}
-          </span>
-        </td>
-        <td className="p-1">
           {/**выпадающий список */}
           <Dropdown as={ButtonGroup} >
             {/**переключатель на который нажимают */}
             <Dropdown.Toggle as={Button}  split variant="link" className="text-dark m-0 p-0" > 
                 <span className="fw-normal">
-                   Действие
+                { makeSpace( PartyMoney.getEmpty(profit) ) }
                 </span>   
             </Dropdown.Toggle>
             {/** выпадающее меню из пунктов при нажатии переключателя */}
@@ -218,7 +216,6 @@ export const PartyTable = ( props ) => {
               <th className="border-bottom px-1">Затраты</th>
               <th className="border-bottom px-1">Поступления</th>
               <th className="border-bottom px-1">Прибыль</th>
-              <th className="border-bottom text-center px-1">Что?</th>
             </tr>
           </thead>
           <tbody>
@@ -227,7 +224,7 @@ export const PartyTable = ( props ) => {
         </Table>
         <Card.Footer className="px-1 py-2 border-0 d-flex justify-content-start">
           <small className="fw-bold">
-            Всего: <b>{ lengthRSet(partys) }</b>
+            Всего междусобойчиков: <b>{ lengthRSet(partys) }</b>
           </small>
         </Card.Footer>
       </Card.Body>

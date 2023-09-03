@@ -86,9 +86,12 @@ function makeParty() {
    * * @returns RecordSet из 1 записи
    */
   function read(rec, respHdl) {
-    if (R.isNil(rec.filter.pkID)) respHdl(null, null);
+    if (R.isNil(rec.pkID)) {
+      respHdl(null, null);
+      return;
+    }
     var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's'], ['place', 's'], ['dtStart', 'd'], ['dtEnd', 'd'], ['outgoing', 'n'], ['payment', 'n'], ['profit', 'n']]);
-    _dbschema.DBParty.read(rs, rec.filter, respHdl);
+    _dbschema.DBParty.read(rs, rec, respHdl);
   }
 
   /*
@@ -99,7 +102,10 @@ function makeParty() {
   * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
   */
   function remove(rec, respHdl) {
-    if (R.isNil(rec.ids) || R.isEmpty(rec.ids)) respHdl(null, 0);
+    if (R.isNil(rec.ids) || R.isEmpty(rec.ids)) {
+      respHdl(null, 0);
+      return;
+    }
     _dbschema.DBParty.remove(rec, respHdl);
   }
 

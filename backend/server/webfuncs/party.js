@@ -8,7 +8,7 @@ export const list = ( req, res, next )=>{
 }
 
 /*
-{"filter":{"id":1}}
+{"pkID":1}
 */
 export const read = ( req, res, next )=>{
     console.log(req.body)

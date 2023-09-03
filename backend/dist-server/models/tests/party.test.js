@@ -120,3 +120,23 @@ test("DBParty.list({ids:[]})", function (done) {
   var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's'], ['place', 's'], ['dtStart', 'd'], ['dtEnd', 'd'], ['outgoing', 'n'], ['payment', 'n'], ['profit', 'n']]);
   _dbschema.DBParty.list(rs, filter, null, null, resHdl);
 });
+test("DBParty.read({pkID:2})", function (done) {
+  var resHdl = function resHdl(err, rSet) {
+    if (err) {
+      done(err);
+      return;
+    }
+    try {
+      expect(R.length(rSet)).toEqual(2);
+      var partyRec = (0, _record.makePlainObjByIdx)(rSet);
+      expect(partyRec.pkID).toEqual(2);
+      done();
+    } catch (err) {
+      done(err);
+    }
+  };
+  var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['name', 's'], ['description', 's'], ['place', 's'], ['dtStart', 'd'], ['dtEnd', 'd'], ['outgoing', 'n'], ['payment', 'n'], ['profit', 'n']]);
+  _dbschema.DBParty.read(rs, {
+    pkID: 2
+  }, resHdl);
+});

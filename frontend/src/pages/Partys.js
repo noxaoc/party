@@ -13,6 +13,7 @@ import { Party } from "../data/party"
 import { makePlainObjByIdx } from "../lib/record"
 
 export default ( props ) => {
+  console.log(props.match.params)
     // showDlg - показать диалог создания междусобойчика
     const [showDlg, setShowDlg] = useState({showDlg:false,editRec:{}});
     const onClickCreateParty= ()=>{

@@ -53,7 +53,7 @@ function makeEventParty() {
           respHdl(err, null);
           return;
         }
-        console.log("id=".concat(id));
+        //console.log( `id=${id}`)
         list({
           filter: {
             pid: initRec.fkParty,

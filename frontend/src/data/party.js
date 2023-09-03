@@ -25,7 +25,7 @@ PartyService.post( "/party/list",{ "filter": filter, "ord":ord,"nav":nav}, setRe
 *
 */
 function read( filter, setResult, setError ){
-    PartyService.post( "/party/read",{ "filter": filter}, setResult, setError)
+    PartyService.post( "/party/read",{...filter}, setResult, setError)
 }
 
 /*

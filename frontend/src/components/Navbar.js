@@ -1,17 +1,46 @@
 /*
  навигационная панель почти на всех страницах с поисковой строкой и аватаркой пользователя
 */
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCog, faSearch, faSignOutAlt, faUserShield } from "@fortawesome/free-solid-svg-icons";
 import { faUserCircle } from "@fortawesome/free-regular-svg-icons";
 import { Nav, Form, Image, Navbar, Dropdown, Container, InputGroup } from '@themesberg/react-bootstrap';
 
+import { Party } from "../data/party";
+import { makePlainObjByIdx } from "../lib/record";
+import * as R from "ramda" 
+
 //import NOTIFICATIONS_DATA from "../data/notifications";
 import Profile3 from "../assets/img/team/profile-picture-3.jpg";
-
+import PartyIco from "../assets/img/jazz-dance.svg"
 
 export default (props) => {
+  const { partyID } = useParams()
+  const [partyInfo, setCurrPartyInfo] = useState({partyID:null, text:"Выберите текущий междусобойчик"})
+  console.log("render Navbar partyID="+ partyID )
+
+  useEffect(() => {
+    // получить имя текущего междусобойчика
+    //console.log(`вызван useeffect`)
+    const onRespHdl = result =>{
+      const partyObj = makePlainObjByIdx(result)
+      //console.log(`вызван ${partyObj.name}`)
+      if(R.isNotNil(partyObj.pkID) ){
+        const text = partyObj.name + ', ' + partyObj.place + ', ' + partyObj.dtStart + ' - ' + partyObj.dtEnd
+        setCurrPartyInfo({partyID:partyObj.pkID, text: text})
+      }
+      else
+        setCurrPartyInfo({partyID:null, text:"Выберите текущий междусобойчик"})
+
+    }
+    const pkID = Number(partyID)
+    if( R.isNotNil(pkID) && !isNaN(pkID) )
+      Party.read( {pkID:pkID},  onRespHdl )
+    return ()=>{}
+  },[partyID])
+  
   const {onChangeSearchStr} = props
   /*
   const [notifications, setNotifications] = useState(NOTIFICATIONS_DATA);
@@ -59,13 +88,22 @@ export default (props) => {
               <Form.Group id="topbarSearch">
                 <InputGroup className="input-group-merge search-bar">
                   {/**Иконка поиска */}
-                  <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
+                  <InputGroup.Text>
+                    <FontAwesomeIcon icon={faSearch} />
+                  </InputGroup.Text>
                   {/** подсказка в строке поиска */}
                   <Form.Control type="text" placeholder="Введите строку для поиска" 
-                      onChange={onChangeSearchStr /*(e) => console.log(e.target.value)*/} />
+                      onChange={onChangeSearchStr /*(e) => console.log(e.target.value)*/} />           
                 </InputGroup>
               </Form.Group>
             </Form>
+          </div>
+          <div className="media d-flex align-items-center">
+          {/** Тут иконка междусобойчика должна быть */}  
+            <Image src={PartyIco} className="user-avatar md-avatar rounded-circle" />
+            <div className="media-body ms-2 text-dark align-items-center d-none d-lg-block">
+                <span className="mb-0 font-small fw-bold">{partyInfo.text}</span>
+            </div>
           </div>
           <Nav className="align-items-center">
             <Dropdown as={Nav.Item}>
@@ -74,7 +112,7 @@ export default (props) => {
                 <div className="media d-flex align-items-center">
                   <Image src={Profile3} className="user-avatar md-avatar rounded-circle" />
                   <div className="media-body ms-2 text-dark align-items-center d-none d-lg-block">
-                    <span className="mb-0 font-small fw-bold">Bonnie Green</span>
+                    <span className="mb-0 font-small fw-bold">Башарина Мария</span>
                   </div>
                 </div>
               </Dropdown.Toggle>

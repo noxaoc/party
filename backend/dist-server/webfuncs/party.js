@@ -12,7 +12,7 @@ var list = function list(req, res, next) {
 };
 
 /*
-{"filter":{"id":1}}
+{"pkID":1}
 */
 exports.list = list;
 var read = function read(req, res, next) {

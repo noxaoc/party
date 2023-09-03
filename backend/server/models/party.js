@@ -61,12 +61,14 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
  * * @returns RecordSet из 1 записи
  */
 function read( rec, respHdl) { 
-    if( R.isNil(rec.filter.pkID) )
+    if( R.isNil(rec.pkID) ){
         respHdl(null,null)
+        return
+    }
     let rs = makeRecordSet([ ['pkID','n'], ['name','s'], ['description','s'], ['place','s'], 
                              ['dtStart','d'], ['dtEnd','d'],
-                             ['outgoing','n'], ['payment','n'], ['profit','n'], ]  )  
-    DBParty.read( rs, rec.filter, respHdl )
+                             ['outgoing','n'], ['payment','n'], ['profit','n'] ]  )  
+    DBParty.read( rs, rec, respHdl )
 }
 
 /*
@@ -77,8 +79,10 @@ function read( rec, respHdl) {
 * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
 */
 function remove( rec, respHdl ) { 
-if( R.isNil(rec.ids) || R.isEmpty(rec.ids) )
+if( R.isNil(rec.ids) || R.isEmpty(rec.ids) ){
     respHdl(null,0)
+    return
+}
 DBParty.remove( rec, respHdl )
 
 }

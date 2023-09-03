@@ -354,26 +354,26 @@ function makeParty(){
   function list(rs, filter, ord, nav, respHdl ){ 
     const getRow = (err, row )=>addRecord(rs, row)
     const query  = listQueryStr(filter,ord,nav)
-    db.each(query, getRow, ( err )=>respHdl(err,rs) )  
+    db.each(query, getRow,  err=>respHdl(err,rs) )  
 }
 
 function read( rs, filter, respHdl ){ 
     const getRow = (err, row )=>{
         addRecord(rs, row)
-        respHdl(rs)
+        respHdl(err,rs)
     }
-    const query  = `select event_party.pkID as pkID, 
-                           event_party.name as name, 
-                           event_party.description as description, 
-                           type_event.name as evTypeName, 
-                           event_party.dtStart  as dtStart,
-                           event_party.fkParty as fkParty
-                    from event_party 
-                        left join type_event 
-                        on type_event.pkID = event_party.fkTypeEvent
-                    where
-                        event_party.pkID =${filter.pkID} and event_party.fkParty =${filter.fkParty}`
-    db.get(query, getRow)
+    const query  = `select party.pkID as pkID, 
+                        party.name as name, 
+                        party.description as description, 
+                        party.dtStart  as dtStart,
+                        party.dtEnd  as dtEnd,
+                        party.place as place,
+                        party.outgoing as outgoing,
+                        party.payment as payment,
+                        party.profit as profit
+                    from party 
+                    where pkID =${filter.pkID}`
+    db.get(query, getRow )
 }
 /*
 rec

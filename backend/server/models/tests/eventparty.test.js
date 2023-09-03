@@ -111,7 +111,7 @@ test("EventParty.init({initRec: initRec, method:list, insImmediatly: true })", d
             return
         }
         try{
-            console.log(rSet)
+           // console.log(rSet)
             expect(R.length(rSet)).toEqual(2)
             const rec = makePlainObjByIdx(rSet,0)
             expect( rec.fkParty ).toEqual(1)

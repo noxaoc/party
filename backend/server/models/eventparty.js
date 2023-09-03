@@ -40,7 +40,7 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
                 respHdl(err, null)
                 return
             }
-            console.log( `id=${id}`)
+            //console.log( `id=${id}`)
             list( {filter:{ pid: initRec.fkParty, ids:[id] }, ord:null, nav:null }, respHdl )
         }
         insert( initRec, respIns ) 

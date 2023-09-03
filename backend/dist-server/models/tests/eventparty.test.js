@@ -127,7 +127,7 @@ test("EventParty.init({initRec: initRec, method:list, insImmediatly: true })", f
       return;
     }
     try {
-      console.log(rSet);
+      // console.log(rSet)
       expect(R.length(rSet)).toEqual(2);
       var rec = (0, _record.makePlainObjByIdx)(rSet, 0);
       expect(rec.fkParty).toEqual(1);

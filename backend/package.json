@@ -31,7 +31,8 @@
     "dev": "NODE_ENV=development npm-run-all build server",
     "prod": "NODE_ENV=production npm-run-all build server",
     "watch:dev": "nodemon",
-    "test": "jest"
+    "run_jest": "jest",
+    "test": "npm-run-all build run_jest"
   },
   "dependencies": {
     "@babel/cli": "^7.22.9",

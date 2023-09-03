@@ -4,17 +4,17 @@ export const Routes = {
     // разводящая страница
     Presentation: { path: "/" }, 
     // список междусобойчиков
-    Partys: { path: "/:pid/ctrl/partys" },
+    Partys: { path: "/:partyID/ctrl/partys" },
 
     //DashboardOverview: { path: "/dashboard/overview" },
     DashboardOverview: { path: "/admin/events" },
     // управление событиями страница для клинта
     //EventsControl: { path: "/ctrl/events" },
     // Список событий междусобойчика
-    EventsParty: { path: "/:pid/ctrl/events" },
+    EventsParty: { path: "/:partyID/ctrl/events" },
 
     // список участников
-    Participans: { path: "/participans" },
+    Participans: { path: "/:partyID/participans" },
 
     Transactions: { path: "/transactions" },
     Settings: { path: "/settings" },

@@ -117,3 +117,27 @@ test("DBParty.list({ids:[]})", done => {
                               ['outgoing','n'], ['payment','n'], ['profit','n'] ] )
     DBParty.list( rs, filter, null, null, resHdl )
 })
+
+test("DBParty.read({pkID:2})", done => {
+    const resHdl = ( err, rSet )=>{
+        if( err ){
+            done(err)
+            return
+        }
+        try{
+            expect(R.length(rSet)).toEqual(2)
+            const partyRec = makePlainObjByIdx(rSet)
+            expect(partyRec.pkID).toEqual(2)
+            done()
+        }
+        catch(err){
+            done(err)
+        }
+    }
+   
+    let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'], ['place','s'], 
+                              ['dtStart','d'], ['dtEnd','d'],
+                              ['outgoing','n'], ['payment','n'], ['profit','n'] ] )
+    DBParty.read( rs, {pkID:2}, resHdl )
+})
+

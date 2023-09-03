@@ -102,7 +102,7 @@ export default (props = {}) => {
                 <FontAwesomeIcon icon={faTimes} />
               </Nav.Link>
             </div>
-            {/* левая вертикальная навигационная панель */}
+            {/* вертикальная навигационная панель слева */}
             <Nav className="flex-column pt-3 pt-md-0">
               <NavItem title="Междусобойчик" link={Routes.Presentation.path} image={ReactHero} />
 

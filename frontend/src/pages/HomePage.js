@@ -94,6 +94,7 @@ const RouteWithSidebar = ({ component: Component, ...rest }) => {
       <>
         <Preloader show={loaded ? false : true} />
         {/** Навигационная панель слева */}
+
         <Sidebar />
         {/** основной контент со строкой поиска */}
         <MainContentWithSearchStr {...props} />
@@ -103,7 +104,9 @@ const RouteWithSidebar = ({ component: Component, ...rest }) => {
   );
 };
 
-export default () => (
+export default () =>{
+  console.log("render homepage")
+  return(
   <Switch>
     <RouteWithLoader exact path={Routes.Presentation.path} component={Presentation} />
     <RouteWithLoader exact path={Routes.Signin.path} component={Signin} />
@@ -159,4 +162,5 @@ export default () => (
 
     <Redirect to={Routes.NotFound.path} />
   </Switch>
-);
+)
+}

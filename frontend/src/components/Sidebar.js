@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import SimpleBar from 'simplebar-react';
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams, generatePath } from "react-router-dom";
 import { CSSTransition } from 'react-transition-group';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBook, faBoxOpen, faChartPie, faCog, faFileAlt, faHandHoldingUsd, faSignOutAlt, faTable, faTimes } from "@fortawesome/free-solid-svg-icons";
@@ -14,9 +14,11 @@ import ProfilePicture from "../assets/img/team/profile-picture-3.jpg";
 
 export default (props = {}) => {
   const location = useLocation();
+  const { partyID } = useParams()
   const { pathname } = location;
   const [show, setShow] = useState(false);
   const showClass = show ? "show" : "";
+  console.log( "render sidebar partyID=" + partyID + "pathname=" + pathname )
 
   const onCollapse = () => setShow(!show);
 
@@ -71,7 +73,7 @@ export default (props = {}) => {
   Navbar.Brand - это просто будет иконка при щелке на которую мы попадем на Routes.DashboardOverview.path
   Navbar.Toggle - это кнопка при нажатии показывающая скрытую панель слева
   */
-  
+  const setPartyID = path => generatePath(path,{ partyID: partyID})
   return (
     <>
       <Navbar expand={false} collapseOnSelect variant="dark" className="navbar-theme-primary px-4 d-md-none">
@@ -106,9 +108,12 @@ export default (props = {}) => {
             <Nav className="flex-column pt-3 pt-md-0">
               <NavItem title="Междусобойчик" link={Routes.Presentation.path} image={ReactHero} />
 
-              <NavItem title="Междусобойчики" icon={faHandHoldingUsd} link={Routes.Partys.path} />
-              <NavItem title="События" icon={faHandHoldingUsd} link={Routes.EventsParty.path} />
-              <NavItem title="Участники" icon={faHandHoldingUsd} link={Routes.Participans.path} />
+              <NavItem title="Междусобойчики" icon={faHandHoldingUsd} 
+                      link={setPartyID(Routes.Partys.path)} />
+              <NavItem title="События" icon={faHandHoldingUsd} 
+                      link={ setPartyID(Routes.EventsParty.path) } />
+              <NavItem title="Участники" icon={faHandHoldingUsd} 
+                      link={setPartyID( Routes.Participans.path) } />
               <NavItem title="Анализ" link={Routes.DashboardOverview.path} icon={faChartPie} />
 
               <NavItem title="Настройки" icon={faCog} link={Routes.Settings.path} />

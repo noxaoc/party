@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from "react"
 import { Formik, Form as FormikForm, Field } from 'formik'
+import { generatePath, Link } from "react-router-dom";
+
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import {  Col, Row, Card,  Button, Table, Dropdown, 
           Modal, ButtonGroup, Form } from '@themesberg/react-bootstrap'
 
+import { Routes } from "../routes";
 import {InputLine} from "./InputLine"
 import { makePlainObj, mapRSet, lengthRSet, makePlainObjByIdx, changeNullValueToEmptyStr } from "../lib/record"
 import { Party } from "../data/party"
@@ -190,7 +193,9 @@ export const PartyTable = ( props ) => {
               <Dropdown.Item onClick={ makeOnEditHdl(pkID) }>
                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Редактировать
               </Dropdown.Item>
-
+              <Dropdown.Item as={Link} to={ generatePath(Routes.Partys.path,{ partyID: pkID}) }>
+                <FontAwesomeIcon icon={faEdit} className="me-2" /> Сделать текущим
+              </Dropdown.Item>
               <Dropdown.Item className="text-danger" onClick={doRemoveByID(pkID)}>
                 <FontAwesomeIcon icon={faTrashAlt} className="me-2"  /> Удалить
               </Dropdown.Item>

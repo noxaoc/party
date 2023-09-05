@@ -4,12 +4,13 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DBTypeEventParty = exports.DBParty = exports.DBEventParty = void 0;
+exports.DBTypeEventParty = exports.DBParty = exports.DBParticipant = exports.DBEventParty = void 0;
 exports.doTestSQL = doTestSQL;
 var R = _interopRequireWildcard(require("ramda"));
 var _partyday = require("../../lib/partyday");
 var _record = require("../../lib/record");
 var _files = require("@babel/core/lib/config/files");
+var _testdata = require("../tests/testdata");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /*
@@ -22,6 +23,8 @@ var createParty = "create table party(\npkID integer primary key,\nfkClient int,
 var createEvent = "create table event_party(\npkID integer primary key,\nfkTypeEvent int,\nfkParty int not null,\ndtStart int,\nfree int,\nname text,\ndescription text)";
 var createTypeEvent = "create table type_event(\npkID integer primary key,\nid text,\nname text,\ndescription text)";
 var createPricesEvent = "create table price_event(\npkID integer primary key,\nname text,\nprice real)";
+var createParticipant = "create table participant(\npkID integer primary key,\nname text,\nfkParty int not null,\nnum int,\nsurname text,\npatronymic text,\nphone text,\nemail text,\ndtReg int,\nclub text,\nrole text,\nprice real,\npaid real,\ncomment text )";
+var initParticipantTable = "insert into participant( name, fkParty, num, surname, patronymic, phone, email, dtReg, club, role, price, paid, comment)\nvalues ( $name, $fkParty, $num, $surname, $patronymic, $phone, $email, $dtReg, $club, $role, $price, $paid, $comment)";
 
 /* Генерируем данные
 */
@@ -39,10 +42,20 @@ function initDatabase() {
     db.run(createEvent);
     db.run(createTypeEvent);
     db.run(createPricesEvent);
+    db.run(createParticipant);
     db.run(initPartyTable);
     db.run(initTypeEventTable);
     db.run(initPricesTable);
     db.run(initEventTable);
+    var addParticipant = function addParticipant(rec) {
+      var obj = {};
+      var makeProp = function makeProp(value, key) {
+        return obj['$' + key] = value;
+      };
+      R.forEachObjIndexed(makeProp, rec);
+      db.run(initParticipantTable, obj);
+    };
+    R.forEach(addParticipant, (0, _testdata.getParticipants)());
   });
 }
 initDatabase();
@@ -343,27 +356,130 @@ function makeParty() {
     update: update
   });
 }
-var DBParty = makeParty();
-exports.DBParty = DBParty;
-var DBEventParty = makeEventParty();
-exports.DBEventParty = DBEventParty;
-var DBTypeEventParty = makeTypeEventParty();
-exports.DBTypeEventParty = DBTypeEventParty;
-function DBParticipant() {
-  function list(ext, filter, ord, nav) {
-    console.log("call list");
+function makeParticipant() {
+  /**
+   *  Конструирование строки запроса для получения списка участников
+   * filter={ searchStr:"вася", fkParty:1, ids:[1,2,3]}
+   */
+  function listQueryStr(filter, ord, nav) {
+    var ids = '';
+    var searchStr = '';
+    if (R.isNotNil(filter.ids) && !R.isEmpty(filter.ids)) {
+      if (R.length(filter.ids) === 1) {
+        ids = "and p.pkID = ".concat(filter.ids[0]);
+      } else {
+        ids = "and p.pkID in ( ".concat(filter.ids.join(','), " )");
+      }
+    }
+    if (R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr)) filterSearchStr = "and p.name like '%".concat(filter.searchStr, "%'");
+    return "select p.pkID as pkID, \n                   p.fkParty as fkParty,\n                   p.num as num,\n                   p.name as name, \n                   p.surname as surname, \n                   p.patronymic as patronymic, \n                   p.club as club, \n                   p.email as email, \n                   p.dtReg  as dtReg,\n                   p.phone  as phone\n                   p.role as role,\n                   p.price as price,\n                   p.paid as paid,\n                   p.comment as comment\n            from participant p\n            where fkParty=".concat(filter.fkParty, " ").concat(ids, " ").concat(searchStr);
   }
-  function read() {
-    console.log("call read");
+
+  /**
+  * 
+  * @param {*} ext 
+  * @param {*} filter  - задает фильтрацию  списка 
+  *                        { ids:[], // идентификаторы участников
+  *                          fkParty: 1, // идентифкатор междусобойчика
+  *                          searchStr:<подстрока поиска по имени>}
+  * @param {*} ord  - задает сортировку списка
+  * @param {*} nav  - задает навигацию списка 
+  *                    { page: <номер страницы>, 
+  *                      cnt:< кол - во записей на странице> }
+  * @returns RecordSet
+  */
+  function list(rs, filter, ord, nav, respHdl) {
+    var getRow = function getRow(err, row) {
+      return (0, _record.addRecord)(rs, row);
+    };
+    var query = listQueryStr(filter, ord, nav);
+    db.each(query, getRow, function (err) {
+      return respHdl(err, rs);
+    });
   }
-  function remove() {
-    console.log("call remove");
+  function read(rs, filter, respHdl) {
+    var getRow = function getRow(err, row) {
+      (0, _record.addRecord)(rs, row);
+      respHdl(err, rs);
+    };
+    var query = "select p.pkID as pkID, \np.fkParty as fkParty,\np.num as num,\np.name as name, \np.surname as surname, \np.patronymic as patronymic, \np.club as club, \np.email as email, \np.dtReg  as dtReg,\np.phone  as phone\np.role as role,\np.price as price,\np.paid as paid,\np.comment as comment\nfrom participant p\nwhere fkParty=".concat(filter.fkParty);
+    db.get(query, getRow);
   }
-  function insert() {
-    console.log("call insrty");
+
+  /*
+  rec
+  {
+  ids: [ <список id на удаление> ]
+  fkParty: <идентификатор междусобойчика>
   }
-  function update() {
-    console.log("call upadte");
+  * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+  */
+  function remove(_ref3, respHdl) {
+    var ids = _ref3.ids,
+      fkParty = _ref3.fkParty;
+    function onSuccess(err) {
+      respHdl(err, this.changes);
+    }
+    var query = "delete from participant\n                where pkID in ( ".concat(ids.join(','), ") fkParty = ").concat(fkParty);
+    db.run(query, onSuccess);
+  }
+
+  /*    
+  * @param {*} rec запись
+  * @param {*} respHdl (err, res) в res будет id добавленной записи
+  */
+  function insert(rec, respHdl) {
+    if (R.isNil(rec.fkParty)) {
+      respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'fkParty'!"));
+      return;
+    }
+    var header = ['fkParty', 'num', 'name', 'surname', 'patronymic', 'club', 'email', 'phone', 'dtReg', 'role', 'price', 'paid', 'comment'];
+    var flds = R.filter(function (fld) {
+      return fld in rec;
+    }, header);
+    var placeholders = R.map(function (fld) {
+      return '$' + fld;
+    }, flds);
+    var arg = {};
+    R.forEach(function (fld) {
+      return arg['$' + fld] = rec[fld];
+    }, flds);
+    var query = "insert into participant( ".concat(flds.join(','), " ) \n               values ( ").concat(placeholders.join(','), ") ");
+    function onSuccess(err) {
+      respHdl(err, this.lastID);
+    }
+    db.run(query, arg, onSuccess);
+  }
+
+  /*    
+  * @param {*} rec запись
+  * @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+  */
+  function update(rec, respHdl) {
+    if (R.isNil(rec.pkID)) {
+      respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"));
+      return;
+    }
+    if (R.isNil(rec.fkParty)) {
+      respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'fkParty'!"));
+      return;
+    }
+    var header = ['num', 'name', 'surname', 'patronymic', 'club', 'email', 'phone', 'dtReg', 'role', 'price', 'paid', 'comment'];
+    var flds = R.filter(function (fld) {
+      return fld in rec;
+    }, header);
+    var placeholders = R.map(function (fld) {
+      return fld + '=$' + fld;
+    }, flds);
+    var arg = {};
+    R.forEach(function (fld) {
+      return arg['$' + fld] = rec[fld];
+    }, flds);
+    var query = "update participant\n               set ".concat(placeholders.join(', '), " \n               where pkID = ").concat(rec.pkID, " and fkParty = ").concat(rec.fkParty);
+    function onSuccess(err) {
+      respHdl(err, this.changes);
+    }
+    db.run(query, arg, onSuccess);
   }
   return Object.freeze({
     list: list,
@@ -373,3 +489,11 @@ function DBParticipant() {
     update: update
   });
 }
+var DBParty = makeParty();
+exports.DBParty = DBParty;
+var DBEventParty = makeEventParty();
+exports.DBEventParty = DBEventParty;
+var DBTypeEventParty = makeTypeEventParty();
+exports.DBTypeEventParty = DBTypeEventParty;
+var DBParticipant = makeParticipant();
+exports.DBParticipant = DBParticipant;

@@ -94,7 +94,6 @@ const RouteWithSidebar = ({ component: Component, ...rest }) => {
       <>
         <Preloader show={loaded ? false : true} />
         {/** Навигационная панель слева */}
-
         <Sidebar />
         {/** основной контент со строкой поиска */}
         <MainContentWithSearchStr {...props} />
@@ -118,21 +117,16 @@ export default () =>{
     <RouteWithLoader exact path={Routes.ServerError.path} component={ServerError} />
 
     {/* pages */}
-    {/* переход в рабочую страницу dashboard - а */}
-    {/*<RouteWithSidebar exact path={Routes.DashboardOverview.path} component={DashboardOverview} />*/}
-
-    <RouteWithSidebar exact path={Routes.Upgrade.path} component={Upgrade} />
     {/** Междусобойчики */}
     <RouteWithSidebar exact path={Routes.Partys.path} component={Partys} />
-
     {/**События междусобойчика */}
     <RouteWithSidebar exact path={Routes.EventsParty.path} component={EventsParty} />
-
     {/**Участники междусобойчика */}
     <RouteWithSidebar exact path={Routes.Participans.path} component={Participans} />
+
     <RouteWithSidebar exact path={Routes.Settings.path} component={Settings} />
     <RouteWithSidebar exact path={Routes.BootstrapTables.path} component={BootstrapTables} />
-
+    <RouteWithSidebar exact path={Routes.Upgrade.path} component={Upgrade} />
     {/* components */}
     <RouteWithSidebar exact path={Routes.Accordions.path} component={Accordion} />
     <RouteWithSidebar exact path={Routes.Alerts.path} component={Alerts} />

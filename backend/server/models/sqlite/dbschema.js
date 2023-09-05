@@ -5,6 +5,7 @@ import * as R from 'ramda';
 import { PartyDate }  from '../../lib/partyday'
 import { addRecord } from '../../lib/record'
 import { resolveShowConfigPath } from '@babel/core/lib/config/files';
+import { getParticipants } from '../tests/testdata';
 
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(':memory:');
@@ -45,6 +46,29 @@ const createPricesEvent =
 pkID integer primary key,
 name text,
 price real)`
+
+const createParticipant =
+`create table participant(
+pkID integer primary key,
+name text,
+fkParty int not null,
+num int,
+surname text,
+patronymic text,
+phone text,
+email text,
+dtReg int,
+club text,
+role text,
+price real,
+paid real,
+comment text )`
+
+
+
+const initParticipantTable = 
+`insert into participant( name, fkParty, num, surname, patronymic, phone, email, dtReg, club, role, price, paid, comment)
+values ( $name, $fkParty, $num, $surname, $patronymic, $phone, $email, $dtReg, $club, $role, $price, $paid, $comment)`
 
 /* Генерируем данные
 */
@@ -93,11 +117,21 @@ db.serialize(() => {
     db.run(createEvent)
     db.run(createTypeEvent)
     db.run(createPricesEvent)
+    db.run(createParticipant)
 
     db.run(initPartyTable)
     db.run(initTypeEventTable)
     db.run(initPricesTable)
     db.run(initEventTable)
+
+    const addParticipant = rec => {
+        let obj = {}
+        const makeProp = (value, key) => obj['$' + key]=value
+        R.forEachObjIndexed( makeProp, rec )
+        db.run( initParticipantTable, obj )
+    }
+    R.forEach( addParticipant, getParticipants() )
+
 })
 }
 initDatabase()
@@ -446,22 +480,161 @@ return Object.freeze({
 
 }
 
-export const DBParty = makeParty()
-export const DBEventParty = makeEventParty()
-export const DBTypeEventParty = makeTypeEventParty()
-
-
-function DBParticipant(){
+function makeParticipant(){
         
-    function list( ext, filter, ord,  nav ){ 
-      
-        console.log("call list"); 
+    /**
+     *  Конструирование строки запроса для получения списка участников
+     * filter={ searchStr:"вася", fkParty:1, ids:[1,2,3]}
+     */
+  function listQueryStr( filter, ord, nav ){
+    let ids = '' 
+    let searchStr = ''
+    if( R.isNotNil(filter.ids) && !R.isEmpty(filter.ids) ){   
+        if( R.length(filter.ids) === 1 ){
+            ids = `and p.pkID = ${filter.ids[0]}`
+        }else{
+            ids = `and p.pkID in ( ${filter.ids.join(',')} )`
+        }
     }
-    function read() { console.log("call read"); }
-    function remove(){ console.log("call remove");}
-    function insert() { console.log("call insrty"); }
-    function update(){console.log("call upadte");}
+    if( R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr) )       
+        filterSearchStr = `and p.name like '%${filter.searchStr}%'`
     
+    return (
+           `select p.pkID as pkID, 
+                   p.fkParty as fkParty,
+                   p.num as num,
+                   p.name as name, 
+                   p.surname as surname, 
+                   p.patronymic as patronymic, 
+                   p.club as club, 
+                   p.email as email, 
+                   p.dtReg  as dtReg,
+                   p.phone  as phone
+                   p.role as role,
+                   p.price as price,
+                   p.paid as paid,
+                   p.comment as comment
+            from participant p
+            where fkParty=${filter.fkParty} ${ids} ${searchStr}` )
+}
+
+/**
+* 
+* @param {*} ext 
+* @param {*} filter  - задает фильтрацию  списка 
+*                        { ids:[], // идентификаторы участников
+*                          fkParty: 1, // идентифкатор междусобойчика
+*                          searchStr:<подстрока поиска по имени>}
+* @param {*} ord  - задает сортировку списка
+* @param {*} nav  - задает навигацию списка 
+*                    { page: <номер страницы>, 
+*                      cnt:< кол - во записей на странице> }
+* @returns RecordSet
+*/      
+function list(rs, filter, ord, nav, respHdl ){ 
+const getRow = (err, row )=>addRecord(rs, row)
+const query  = listQueryStr(filter,ord,nav)
+db.each(query, getRow,  err=>respHdl(err,rs) )  
+}
+
+function read( rs, filter, respHdl ){ 
+const getRow = (err, row )=>{
+    addRecord(rs, row)
+    respHdl(err,rs)
+}
+const query  = 
+`select p.pkID as pkID, 
+p.fkParty as fkParty,
+p.num as num,
+p.name as name, 
+p.surname as surname, 
+p.patronymic as patronymic, 
+p.club as club, 
+p.email as email, 
+p.dtReg  as dtReg,
+p.phone  as phone
+p.role as role,
+p.price as price,
+p.paid as paid,
+p.comment as comment
+from participant p
+where fkParty=${filter.fkParty}`
+               
+db.get(query, getRow )
+}
+
+/*
+rec
+{
+ids: [ <список id на удаление> ]
+fkParty: <идентификатор междусобойчика>
+}
+* @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+*/
+function remove( {ids, fkParty}, respHdl ){
+function onSuccess(err){
+    respHdl( err, this.changes  )
+}
+const query  = `delete from participant
+                where pkID in ( ${ids.join(',')}) fkParty = ${fkParty}` 
+db.run(query, onSuccess )
+}
+
+
+
+/*    
+* @param {*} rec запись
+* @param {*} respHdl (err, res) в res будет id добавленной записи
+*/
+function insert( rec, respHdl ) { 
+if( R.isNil(rec.fkParty) ){
+    respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'fkParty'!"))
+    return
+}
+const header = ['fkParty','num','name', 'surname','patronymic','club','email','phone','dtReg','role','price','paid','comment'] 
+const flds =  R.filter( fld => fld in rec, header )
+const placeholders = R.map( fld=>'$'+fld, flds )
+const arg = {}
+R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+
+const query = `insert into participant( ${flds.join(',')} ) 
+               values ( ${placeholders.join(',')}) ` 
+
+function onSuccess (err){
+    respHdl(err, this.lastID)
+}
+db.run( query, arg, onSuccess )
+}
+
+/*    
+* @param {*} rec запись
+* @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+*/
+function update(rec,respHdl){
+if( R.isNil(rec.pkID) ){
+    respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"))
+    return
+}
+
+if( R.isNil(rec.fkParty) ){
+    respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'fkParty'!"))
+    return
+}
+const header = ['num','name', 'surname','patronymic','club','email','phone','dtReg','role','price','paid','comment'] 
+
+const flds =  R.filter( fld => fld in rec, header )
+const placeholders = R.map( fld=>fld+'=$'+fld, flds )
+const arg = {}
+R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+
+const query = `update participant
+               set ${placeholders.join(', ')} 
+               where pkID = ${rec.pkID} and fkParty = ${rec.fkParty}`
+function onSuccess (err){
+    respHdl(err, this.changes)
+}
+db.run( query, arg, onSuccess )
+}
     return Object.freeze({
         list,
         read,
@@ -473,3 +646,7 @@ function DBParticipant(){
 
 
 
+export const DBParty = makeParty()
+export const DBEventParty = makeEventParty()
+export const DBTypeEventParty = makeTypeEventParty()
+export const DBParticipant = makeParticipant()

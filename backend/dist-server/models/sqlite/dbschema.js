@@ -372,7 +372,7 @@ function makeParticipant() {
       }
     }
     if (R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr)) filterSearchStr = "and p.name like '%".concat(filter.searchStr, "%'");
-    return "select p.pkID as pkID, \n                   p.fkParty as fkParty,\n                   p.num as num,\n                   p.name as name, \n                   p.surname as surname, \n                   p.patronymic as patronymic, \n                   p.club as club, \n                   p.email as email, \n                   p.dtReg  as dtReg,\n                   p.phone  as phone\n                   p.role as role,\n                   p.price as price,\n                   p.paid as paid,\n                   p.comment as comment\n            from participant p\n            where fkParty=".concat(filter.fkParty, " ").concat(ids, " ").concat(searchStr);
+    return "select p.pkID as pkID, \n                   p.fkParty as fkParty,\n                   p.num as num,\n                   p.name as name, \n                   p.surname as surname, \n                   p.patronymic as patronymic, \n                   p.club as club, \n                   p.email as email, \n                   p.dtReg  as dtReg,\n                   p.phone  as phone,\n                   p.role as role,\n                   p.price as price,\n                   p.paid as paid,\n                   p.comment as comment\n            from participant p\n            where fkParty=".concat(filter.fkParty, " ").concat(ids, " ").concat(searchStr);
   }
 
   /**
@@ -399,10 +399,15 @@ function makeParticipant() {
   }
   function read(rs, filter, respHdl) {
     var getRow = function getRow(err, row) {
-      (0, _record.addRecord)(rs, row);
-      respHdl(err, rs);
+      if (err || R.isNil(row)) {
+        respHdl(err, null);
+      } else {
+        console.log(row);
+        (0, _record.addRecord)(rs, row);
+        respHdl(err, rs);
+      }
     };
-    var query = "select p.pkID as pkID, \np.fkParty as fkParty,\np.num as num,\np.name as name, \np.surname as surname, \np.patronymic as patronymic, \np.club as club, \np.email as email, \np.dtReg  as dtReg,\np.phone  as phone\np.role as role,\np.price as price,\np.paid as paid,\np.comment as comment\nfrom participant p\nwhere fkParty=".concat(filter.fkParty);
+    var query = "select p.pkID as pkID, \np.fkParty as fkParty,\np.num as num,\np.name as name, \np.surname as surname, \np.patronymic as patronymic, \np.club as club, \np.email as email, \np.dtReg  as dtReg,\np.phone  as phone,\np.role as role,\np.price as price,\np.paid as paid,\np.comment as comment\nfrom participant p\nwhere p.pkID = ".concat(filter.pkID, " and p.fkParty=").concat(filter.fkParty);
     db.get(query, getRow);
   }
 
@@ -420,7 +425,7 @@ function makeParticipant() {
     function onSuccess(err) {
       respHdl(err, this.changes);
     }
-    var query = "delete from participant\n                where pkID in ( ".concat(ids.join(','), ") fkParty = ").concat(fkParty);
+    var query = "delete from participant\n                where pkID in ( ".concat(ids.join(','), ") and fkParty = ").concat(fkParty);
     db.run(query, onSuccess);
   }
 
@@ -429,10 +434,6 @@ function makeParticipant() {
   * @param {*} respHdl (err, res) в res будет id добавленной записи
   */
   function insert(rec, respHdl) {
-    if (R.isNil(rec.fkParty)) {
-      respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'fkParty'!"));
-      return;
-    }
     var header = ['fkParty', 'num', 'name', 'surname', 'patronymic', 'club', 'email', 'phone', 'dtReg', 'role', 'price', 'paid', 'comment'];
     var flds = R.filter(function (fld) {
       return fld in rec;
@@ -456,14 +457,6 @@ function makeParticipant() {
   * @param {*} respHdl (err, res) в res будет кол-во обновленных записей
   */
   function update(rec, respHdl) {
-    if (R.isNil(rec.pkID)) {
-      respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"));
-      return;
-    }
-    if (R.isNil(rec.fkParty)) {
-      respHdl(new Error("Невозможно выполнить обновление записи, так как не задано поле 'fkParty'!"));
-      return;
-    }
     var header = ['num', 'name', 'surname', 'patronymic', 'club', 'email', 'phone', 'dtReg', 'role', 'price', 'paid', 'comment'];
     var flds = R.filter(function (fld) {
       return fld in rec;

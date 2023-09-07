@@ -2,6 +2,7 @@ import * as R from 'ramda'
 import {DBParticipant} from './sqlite/dbschema.js'
 import { addRecord, makeRecordSet } from '../lib/record.js'
 import { PartyDate } from '../lib/partyday.js'
+import { checkFkParty, checkRec } from './lib/utils.js'
 
 function makeParticipant(){  
 /**
@@ -16,6 +17,7 @@ function makeParticipant(){
  * @returns RecordSet
  */      
 function list( rec, respHdl ){ 
+    if( !checkFkParty(rec.filter, respHdl) ) return
     let rs = makeRecordSet( [ ['pkID','n'], ['fkParty','n'], ['num', 'n'],
                               ['name','s'],  ['surname','s'], ['patronymic','s'],
                               ['club','s'],  ['email','s'], ['phone','s'],
@@ -33,10 +35,7 @@ function list( rec, respHdl ){
 * Возвращает: запись формата метода чье имя передано в method
 */
 function  init( { initRec, method, insImmediatly }, respHdl ){   
-    if( R.isNil(initRec.fkParty) ){
-        respHdl( new Error("Невозможно выполнить инициализацию записи, так как не задано поле 'fkParty'!"))
-        return
-    }  
+    if( !checkFkParty( initRec, respHdl) ) return
     let rs = makeRecordSet( [   ['fkParty','n'], ['num', 'n'],
                                 ['name','s'],  ['surname','s'], ['patronymic','s'],
                                 ['club','s'],  ['email','s'], ['phone','s'],
@@ -51,7 +50,7 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
                 respHdl(err, null)
                 return
             }
-            console.log( `id=${id}`)
+            //console.log( `id=${id}`)
             list( {filter:{ ids:[id] }, ord:null, nav:null }, respHdl )
         }
         insert( newRec, respIns ) 
@@ -61,7 +60,6 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
     }
 }
 
-
 /**
  * Прочитать по идентификатору событие между собойчика
  * @param {*} rec запись в которой обязательно присутствует pkID  - идентификатор события и 
@@ -70,10 +68,7 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
  * * @returns RecordSet из 1 записи
  */
 function read( rec, respHdl) { 
-    if( R.isNil(rec.pkID) ){
-        respHdl(null,null)
-        return
-    }
+    if( !checkRec(rec, respHdl) ) return
     let rs = makeRecordSet([ ['pkID','n'], ['fkParty','n'], ['num', 'n'],
                              ['name','s'],  ['surname','s'], ['patronymic','s'],
                              ['club','s'],  ['email','s'], ['phone','s'],
@@ -85,17 +80,18 @@ function read( rec, respHdl) {
 /*
 * @param rec формат
 {
-    ids: [ <список id на удаление междусобойчика> ]
+    ids: [ <список id на удаление участников> ],
+    fkParty: <id междусобойчика>
 }
 * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
 */
 function remove( rec, respHdl ) { 
-if( R.isNil(rec.ids) || R.isEmpty(rec.ids) || R.isNil(rec.fkParty) ){
-    respHdl(null,0)
+if( !checkFkParty(rec, respHdl) ) return
+if( R.isNil(rec.ids) || R.isEmpty(rec.ids) ) {
+    respHdl(null,null)
     return
 }
 DBParticipant.remove( rec, respHdl )
-
 }
 
 /* Добавить запись о событии междусобойчика   
@@ -103,6 +99,7 @@ DBParticipant.remove( rec, respHdl )
 * @param {*} respHdl (err, res) в res будет id добавленной записи
 */
 function insert( rec, respHdl ) { 
+    if( !checkFkParty(rec, respHdl) ) return
     DBParticipant.insert( rec, respHdl )
 }
 
@@ -111,8 +108,8 @@ function insert( rec, respHdl ) {
 * @param {*} respHdl (err, res) в res будет кол-во обновленных записей, т.е. единица
 */
 function update(rec, respHdl ){
+    if( !checkRec(rec, respHdl) ) return
     DBParticipant.update( rec, respHdl )
-
 }
         
 return Object.freeze({

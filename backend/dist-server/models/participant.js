@@ -8,6 +8,7 @@ var R = _interopRequireWildcard(require("ramda"));
 var _dbschema = require("./sqlite/dbschema.js");
 var _record = require("../lib/record.js");
 var _partyday = require("../lib/partyday.js");
+var _utils = require("./lib/utils.js");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
@@ -29,6 +30,7 @@ function makeParticipant() {
    * @returns RecordSet
    */
   function list(rec, respHdl) {
+    if (!(0, _utils.checkFkParty)(rec.filter, respHdl)) return;
     var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 'd'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
     _dbschema.DBParticipant.list(rs, rec.filter, rec.ord, rec.nav, respHdl);
   }
@@ -45,10 +47,7 @@ function makeParticipant() {
     var initRec = _ref.initRec,
       method = _ref.method,
       insImmediatly = _ref.insImmediatly;
-    if (R.isNil(initRec.fkParty)) {
-      respHdl(new Error("Невозможно выполнить инициализацию записи, так как не задано поле 'fkParty'!"));
-      return;
-    }
+    if (!(0, _utils.checkFkParty)(initRec, respHdl)) return;
     var rs = (0, _record.makeRecordSet)([['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 'd'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
     var newRec = _objectSpread({
       name: "",
@@ -69,7 +68,7 @@ function makeParticipant() {
           respHdl(err, null);
           return;
         }
-        console.log("id=".concat(id));
+        //console.log( `id=${id}`)
         list({
           filter: {
             ids: [id]
@@ -93,10 +92,7 @@ function makeParticipant() {
    * * @returns RecordSet из 1 записи
    */
   function read(rec, respHdl) {
-    if (R.isNil(rec.pkID)) {
-      respHdl(null, null);
-      return;
-    }
+    if (!(0, _utils.checkRec)(rec, respHdl)) return;
     var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 'd'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
     _dbschema.DBParticipant.read(rs, rec, respHdl);
   }
@@ -104,13 +100,15 @@ function makeParticipant() {
   /*
   * @param rec формат
   {
-      ids: [ <список id на удаление междусобойчика> ]
+      ids: [ <список id на удаление участников> ],
+      fkParty: <id междусобойчика>
   }
   * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
   */
   function remove(rec, respHdl) {
-    if (R.isNil(rec.ids) || R.isEmpty(rec.ids) || R.isNil(rec.fkParty)) {
-      respHdl(null, 0);
+    if (!(0, _utils.checkFkParty)(rec, respHdl)) return;
+    if (R.isNil(rec.ids) || R.isEmpty(rec.ids)) {
+      respHdl(null, null);
       return;
     }
     _dbschema.DBParticipant.remove(rec, respHdl);
@@ -121,6 +119,7 @@ function makeParticipant() {
   * @param {*} respHdl (err, res) в res будет id добавленной записи
   */
   function insert(rec, respHdl) {
+    if (!(0, _utils.checkFkParty)(rec, respHdl)) return;
     _dbschema.DBParticipant.insert(rec, respHdl);
   }
 
@@ -129,6 +128,7 @@ function makeParticipant() {
   * @param {*} respHdl (err, res) в res будет кол-во обновленных записей, т.е. единица
   */
   function update(rec, respHdl) {
+    if (!(0, _utils.checkRec)(rec, respHdl)) return;
     _dbschema.DBParticipant.update(rec, respHdl);
   }
   return Object.freeze({

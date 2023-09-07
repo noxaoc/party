@@ -509,7 +509,7 @@ function makeParticipant(){
                    p.club as club, 
                    p.email as email, 
                    p.dtReg  as dtReg,
-                   p.phone  as phone
+                   p.phone  as phone,
                    p.role as role,
                    p.price as price,
                    p.paid as paid,
@@ -539,8 +539,12 @@ db.each(query, getRow,  err=>respHdl(err,rs) )
 
 function read( rs, filter, respHdl ){ 
 const getRow = (err, row )=>{
-    addRecord(rs, row)
-    respHdl(err,rs)
+    if( err || R.isNil(row)) {
+        respHdl(err,null)
+    } else { 
+        addRecord(rs, row)
+        respHdl(err,rs)
+    }
 }
 const query  = 
 `select p.pkID as pkID, 
@@ -552,13 +556,13 @@ p.patronymic as patronymic,
 p.club as club, 
 p.email as email, 
 p.dtReg  as dtReg,
-p.phone  as phone
+p.phone  as phone,
 p.role as role,
 p.price as price,
 p.paid as paid,
 p.comment as comment
 from participant p
-where fkParty=${filter.fkParty}`
+where p.pkID = ${filter.pkID} and p.fkParty=${filter.fkParty}`
                
 db.get(query, getRow )
 }
@@ -576,7 +580,7 @@ function onSuccess(err){
     respHdl( err, this.changes  )
 }
 const query  = `delete from participant
-                where pkID in ( ${ids.join(',')}) fkParty = ${fkParty}` 
+                where pkID in ( ${ids.join(',')}) and fkParty = ${fkParty}` 
 db.run(query, onSuccess )
 }
 
@@ -587,10 +591,6 @@ db.run(query, onSuccess )
 * @param {*} respHdl (err, res) в res будет id добавленной записи
 */
 function insert( rec, respHdl ) { 
-if( R.isNil(rec.fkParty) ){
-    respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'fkParty'!"))
-    return
-}
 const header = ['fkParty','num','name', 'surname','patronymic','club','email','phone','dtReg','role','price','paid','comment'] 
 const flds =  R.filter( fld => fld in rec, header )
 const placeholders = R.map( fld=>'$'+fld, flds )
@@ -611,15 +611,6 @@ db.run( query, arg, onSuccess )
 * @param {*} respHdl (err, res) в res будет кол-во обновленных записей
 */
 function update(rec,respHdl){
-if( R.isNil(rec.pkID) ){
-    respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"))
-    return
-}
-
-if( R.isNil(rec.fkParty) ){
-    respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'fkParty'!"))
-    return
-}
 const header = ['num','name', 'surname','patronymic','club','email','phone','dtReg','role','price','paid','comment'] 
 
 const flds =  R.filter( fld => fld in rec, header )

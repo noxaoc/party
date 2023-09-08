@@ -36,40 +36,73 @@ var participantRead = function participantRead(filter, rec, done) {
   // проверяем совпадение того что записали
   _participant.Participant.read(filter, resReadHdl(rec, done));
 };
-test("Participant.update(rec)", function (done) {
-  var rec = {
-    "pkID": 1,
-    "fkParty": 1,
-    "num": 12,
-    "surname": "Букин",
-    "patronymic": "Власович",
-    "name": "Святослав",
-    "phone": "+7(960)978-77-77",
-    "email": "svg@gmail.com",
-    "dtReg": _partyday.PartyDate.toTS("06.03.23 00:12:00"),
-    "club": "Savoy",
-    "role": "leader",
-    "price": 6000,
-    "paid": 3000,
-    "comment": "Обратить внимание"
-  };
-  var resUpdHdl = function resUpdHdl(err, updated) {
-    if (err) {
-      done(err);
-      return;
-    }
-    try {
+describe("Participant.update", function () {
+  // оптимистичное обновление
+  test("Participant.update(rec)", function (done) {
+    var rec = {
+      "pkID": 1,
+      "fkParty": 1,
+      "num": 12,
+      "surname": "Букин",
+      "patronymic": "Власович",
+      "name": "Святослав",
+      "phone": "+7(960)978-77-77",
+      "email": "svg@gmail.com",
+      "dtReg": _partyday.PartyDate.toTS("06.03.23 00:12:00"),
+      "club": "Savoy",
+      "role": "leader",
+      "price": 6000,
+      "paid": 3000,
+      "comment": "Обратить внимание"
+    };
+    var checkF = function checkF(updated) {
       expect(updated).toEqual(1);
       // проверяем совпадение того что записали
       participantRead({
         pkID: 1,
         fkParty: 1
       }, rec, done);
-    } catch (err) {
-      done(err);
-    }
-  };
-  _participant.Participant.update(rec, resUpdHdl);
+    };
+    _participant.Participant.update(rec, (0, _testhdl.makeHdl)(done, checkF));
+  });
+
+  // обновляем с fkParty = undefined
+  test("Participant.update({pkID:1})", function (done) {
+    var rec = {
+      "pkID": 1,
+      "num": 12
+    };
+    _participant.Participant.update(rec, (0, _testhdl.makeHdl)(done, _testhdl.notUndefinedValueHdl));
+  });
+
+  // обновляем с fkParty = null
+  test("Participant.update(fkParty:null,pkID:1)", function (done) {
+    var rec = {
+      "pkID": 1,
+      fkParty: null,
+      "num": 12
+    };
+    _participant.Participant.update(rec, (0, _testhdl.makeHdl)(done, _testhdl.notNullValueHdl));
+  });
+
+  // обновляем с pkID = null
+  test("Participant.update({pkID:null, fkParty:1})", function (done) {
+    var rec = {
+      "pkID": null,
+      fkParty: 1,
+      "num": 12
+    };
+    _participant.Participant.update(rec, (0, _testhdl.makeHdl)(done, _testhdl.notNullValueHdl));
+  });
+
+  // обновляем с pkID = undefined
+  test("Participant.update({fkParty:1})", function (done) {
+    var rec = {
+      "fkParty": 1,
+      "num": 12
+    };
+    _participant.Participant.update(rec, (0, _testhdl.makeHdl)(done, _testhdl.notUndefinedValueHdl));
+  });
 });
 describe("Participant.remove", function () {
   // Оптимистичный сценарий удаления существующей записи

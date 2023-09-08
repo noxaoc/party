@@ -29,7 +29,9 @@ const participantRead = ( filter, rec, done )=>{
     // проверяем совпадение того что записали
     Participant.read( filter, resReadHdl( rec, done) )
 }
+describe("Participant.update", ()=>{
 
+// оптимистичное обновление
 test("Participant.update(rec)", done => {
     const rec = {   "pkID": 1,
                     "fkParty": 1,
@@ -46,21 +48,38 @@ test("Participant.update(rec)", done => {
                     "paid": 3000,
                     "comment":"Обратить внимание"
                 }
-    const resUpdHdl = ( err, updated )=>{
-        if( err ){
-            done(err)
-            return
-        }
-        try{
-            expect(updated).toEqual(1)
-            // проверяем совпадение того что записали
-            participantRead( { pkID:1, fkParty:1 }, rec, done )
-        }
-        catch(err){
-            done(err)
-        }
+    const checkF =  updated =>{
+        expect(updated).toEqual(1)
+        // проверяем совпадение того что записали
+        participantRead( { pkID:1, fkParty:1 }, rec, done )
     }
-    Participant.update( rec, resUpdHdl )
+    Participant.update( rec, makeHdl( done, checkF) )
+})
+
+// обновляем с fkParty = undefined
+test("Participant.update({pkID:1})", done => {
+    const rec = {   "pkID": 1, "num": 12 }
+    Participant.update( rec, makeHdl( done, notUndefinedValueHdl )) 
+})
+
+// обновляем с fkParty = null
+test("Participant.update(fkParty:null,pkID:1)", done => {
+    const rec = { "pkID": 1, fkParty: null, "num": 12 }
+    Participant.update( rec, makeHdl( done, notNullValueHdl )) 
+})
+
+// обновляем с pkID = null
+test("Participant.update({pkID:null, fkParty:1})", done => {
+    const rec = { "pkID": null, fkParty: 1, "num": 12 }
+    Participant.update( rec, makeHdl( done, notNullValueHdl )) 
+})
+
+// обновляем с pkID = undefined
+test("Participant.update({fkParty:1})", done => {
+    const rec = { "fkParty": 1, "num": 12 }
+    Participant.update( rec, makeHdl( done, notUndefinedValueHdl )) 
+})
+
 })
 
 describe("Participant.remove", ()=>{

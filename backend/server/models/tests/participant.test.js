@@ -3,32 +3,8 @@ import * as R from "ramda"
 import { makePlainObjByIdx, makeRecordSet } from '../../lib/record.js'
 import { PartyDate } from '../../lib/partyday.js'
 import { NotUndefinedValueErr, NotEmptyValueErr, NotNullValueErr } from '../lib/errors.js'
-import { makeHdl, recordDoesNotExistHdl, notNullValueHdl, notUndefinedValueHdl, RecordDoesNotExistHdl } from './lib/testhdl.js'
+import { makeHdl, recordDoesNotExistHdl, notNullValueHdl, notUndefinedValueHdl, makeCheckReadHdl } from './lib/testhdl.js'
 
-/*
-*  Обработчик для сравнения образцовой записи rec с прочитанным результатом rSet
-*/
-const resReadHdl = ( rec, done ) => {
-    return ( err, rSet ) => {
-        if( err ){
-            done(err)
-            return
-        }
-        try{
-            const readRec = makePlainObjByIdx(rSet)
-            expect(readRec).toEqual(rec)
-            done()
-        }
-        catch(err){
-            done(err)
-        }
-    }
-}
-
-const participantRead = ( filter, rec, done )=>{
-    // проверяем совпадение того что записали
-    Participant.read( filter, resReadHdl( rec, done) )
-}
 describe("Participant.update", ()=>{
 
 // оптимистичное обновление
@@ -51,7 +27,8 @@ test("Participant.update(rec)", done => {
     const checkF =  updated =>{
         expect(updated).toEqual(1)
         // проверяем совпадение того что записали
-        participantRead( { pkID:1, fkParty:1 }, rec, done )
+        Participant.read( { pkID:1, fkParty:1 }, makeCheckReadHdl(done,rec) ) 
+
     }
     Participant.update( rec, makeHdl( done, checkF) )
 })
@@ -141,7 +118,7 @@ test("Participant.insert(rec)", done => {
                 }
     const checkF = id => {
         expect(id).toBeGreaterThan(0)
-        participantRead( { pkID: id, fkParty:1 }, { ...rec, pkID: id }, done )
+        Participant.read( { pkID: id, fkParty:1 }, makeCheckReadHdl(done, { ...rec, pkID: id })  )
     }
     Participant.insert( rec, makeHdl( done, checkF ) )
 })

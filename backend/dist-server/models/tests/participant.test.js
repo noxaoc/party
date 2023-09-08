@@ -14,28 +14,6 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
 function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-/*
-*  Обработчик для сравнения образцовой записи rec с прочитанным результатом rSet
-*/
-var resReadHdl = function resReadHdl(rec, done) {
-  return function (err, rSet) {
-    if (err) {
-      done(err);
-      return;
-    }
-    try {
-      var readRec = (0, _record.makePlainObjByIdx)(rSet);
-      expect(readRec).toEqual(rec);
-      done();
-    } catch (err) {
-      done(err);
-    }
-  };
-};
-var participantRead = function participantRead(filter, rec, done) {
-  // проверяем совпадение того что записали
-  _participant.Participant.read(filter, resReadHdl(rec, done));
-};
 describe("Participant.update", function () {
   // оптимистичное обновление
   test("Participant.update(rec)", function (done) {
@@ -58,10 +36,10 @@ describe("Participant.update", function () {
     var checkF = function checkF(updated) {
       expect(updated).toEqual(1);
       // проверяем совпадение того что записали
-      participantRead({
+      _participant.Participant.read({
         pkID: 1,
         fkParty: 1
-      }, rec, done);
+      }, (0, _testhdl.makeCheckReadHdl)(done, rec));
     };
     _participant.Participant.update(rec, (0, _testhdl.makeHdl)(done, checkF));
   });
@@ -186,12 +164,12 @@ describe("Participnat.insert", function () {
     };
     var checkF = function checkF(id) {
       expect(id).toBeGreaterThan(0);
-      participantRead({
+      _participant.Participant.read({
         pkID: id,
         fkParty: 1
-      }, _objectSpread(_objectSpread({}, rec), {}, {
+      }, (0, _testhdl.makeCheckReadHdl)(done, _objectSpread(_objectSpread({}, rec), {}, {
         pkID: id
-      }), done);
+      })));
     };
     _participant.Participant.insert(rec, (0, _testhdl.makeHdl)(done, checkF));
   });

@@ -2,6 +2,7 @@
 * Вспомогоательные обработчики
 */
 import { PartyErr, NotEmptyValueErr, NotNullValueErr, NotUndefinedValueErr, RecordDoesNotExistErr } from "../../lib/errors"
+import { makePlainObjByIdx } from "../../../lib/record"
 
 
 export const makeHdl = ( done, expectFunc )=>{
@@ -44,3 +45,15 @@ export const notEmptyValueHdl = err => expect(err).toBeInstanceOf( NotEmptyValue
 * Обработчик на проверку существования записи
 */
 export const recordDoesNotExistHdl = err => expect(err).toBeInstanceOf( RecordDoesNotExistErr) 
+
+/*
+* обработчик сравнения прочитанных записей с образцом в rec для методов типа Object.read
+*/
+export const makeCheckReadHdl = (done, rec) =>{
+    return makeHdl( done, rSet =>{
+          // проверяем совпадение того что записали
+          const readRec = makePlainObjByIdx(rSet)
+          expect(readRec).toEqual(rec)
+    } )
+ }
+ 

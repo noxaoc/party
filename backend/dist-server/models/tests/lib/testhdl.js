@@ -3,8 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.recordDoesNotExistHdl = exports.notUndefinedValueHdl = exports.notNullValueHdl = exports.notEmptyValueHdl = exports.makeHdl = void 0;
+exports.recordDoesNotExistHdl = exports.notUndefinedValueHdl = exports.notNullValueHdl = exports.notEmptyValueHdl = exports.makeHdl = exports.makeCheckReadHdl = void 0;
 var _errors = require("../../lib/errors");
+var _record = require("../../../lib/record");
 /*
 * Вспомогоательные обработчики
 */
@@ -58,4 +59,16 @@ exports.notEmptyValueHdl = notEmptyValueHdl;
 var recordDoesNotExistHdl = function recordDoesNotExistHdl(err) {
   return expect(err).toBeInstanceOf(_errors.RecordDoesNotExistErr);
 };
+
+/*
+* обработчик сравнения прочитанных записей с образцом в rec для методов типа Object.read
+*/
 exports.recordDoesNotExistHdl = recordDoesNotExistHdl;
+var makeCheckReadHdl = function makeCheckReadHdl(done, rec) {
+  return makeHdl(done, function (rSet) {
+    // проверяем совпадение того что записали
+    var readRec = (0, _record.makePlainObjByIdx)(rSet);
+    expect(readRec).toEqual(rec);
+  });
+};
+exports.makeCheckReadHdl = makeCheckReadHdl;

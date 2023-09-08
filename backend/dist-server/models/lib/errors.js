@@ -4,7 +4,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.PartyErr = exports.NotUndefinedValueErr = exports.NotNullValueErr = exports.NotEmptyValueErr = void 0;
+exports.RecordDoesNotExistErr = exports.PartyErr = exports.NotUndefinedValueErr = exports.NotNullValueErr = exports.NotEmptyValueErr = void 0;
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
@@ -82,4 +82,21 @@ var NotUndefinedValueErr = /*#__PURE__*/function (_PartyErr3) {
   }
   return _createClass(NotUndefinedValueErr);
 }(PartyErr);
+/*
+* Запись объекта не существует
+*/
 exports.NotUndefinedValueErr = NotUndefinedValueErr;
+var RecordDoesNotExistErr = /*#__PURE__*/function (_PartyErr4) {
+  _inherits(RecordDoesNotExistErr, _PartyErr4);
+  var _super5 = _createSuper(RecordDoesNotExistErr);
+  function RecordDoesNotExistErr(objName, pkID) {
+    var _this4;
+    _classCallCheck(this, RecordDoesNotExistErr);
+    _this4 = _super5.call(this, "\u0417\u0430\u043F\u0438\u0441\u044C \u043E\u0431\u044A\u0435\u043A\u0442\u0430 ".concat(objName, " \u0441 \u0438\u0434\u0435\u043D\u0442\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440\u043E\u043C ").concat(pkID, " \u043D\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442!"));
+    _this4.objName = objName;
+    _this4.pkID = pkID;
+    return _this4;
+  }
+  return _createClass(RecordDoesNotExistErr);
+}(PartyErr);
+exports.RecordDoesNotExistErr = RecordDoesNotExistErr;

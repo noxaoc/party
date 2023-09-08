@@ -11,6 +11,7 @@ var _partyday = require("../../lib/partyday");
 var _record = require("../../lib/record");
 var _files = require("@babel/core/lib/config/files");
 var _testdata = require("../tests/testdata");
+var _errors = require("../lib/errors");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /*
@@ -371,8 +372,8 @@ function makeParticipant() {
         ids = "and p.pkID in ( ".concat(filter.ids.join(','), " )");
       }
     }
-    if (R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr)) filterSearchStr = "and p.name like '%".concat(filter.searchStr, "%'");
-    return "select p.pkID as pkID, \n                   p.fkParty as fkParty,\n                   p.num as num,\n                   p.name as name, \n                   p.surname as surname, \n                   p.patronymic as patronymic, \n                   p.club as club, \n                   p.email as email, \n                   p.dtReg  as dtReg,\n                   p.phone  as phone,\n                   p.role as role,\n                   p.price as price,\n                   p.paid as paid,\n                   p.comment as comment\n            from participant p\n            where fkParty=".concat(filter.fkParty, " ").concat(ids, " ").concat(searchStr);
+    if (R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr)) searchStr = "and ( p.name like '%".concat(filter.searchStr, "%' or\n                           p.surname like '%").concat(filter.searchStr, "%' or\n                           p.patronymic like '%").concat(filter.searchStr, "%' or\n                           p.phone like '%").concat(filter.searchStr, "%' or\n                           p.email like '%").concat(filter.searchStr, "%' or \n                           p.club like '%").concat(filter.searchStr, "%' )");
+    return "select p.pkID as pkID, \n                   p.fkParty as fkParty,\n                   p.num as num,\n                   p.name as name, \n                   p.surname as surname, \n                   p.patronymic as patronymic, \n                   p.club as club, \n                   p.email as email, \n                   p.dtReg  as dtReg,\n                   p.phone  as phone,\n                   p.role as role,\n                   p.price as price,\n                   p.paid as paid,\n                   p.comment as comment\n            from participant p\n            where p.fkParty=".concat(filter.fkParty, " ").concat(ids, " ").concat(searchStr);
   }
 
   /**
@@ -400,7 +401,7 @@ function makeParticipant() {
   function read(rs, filter, respHdl) {
     var getRow = function getRow(err, row) {
       if (err || R.isNil(row)) {
-        respHdl(err, null);
+        respHdl(new _errors.RecordDoesNotExistErr("Participant", filter.pkID), null);
       } else {
         (0, _record.addRecord)(rs, row);
         respHdl(err, rs);

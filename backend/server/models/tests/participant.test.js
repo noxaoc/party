@@ -2,8 +2,8 @@ import { Participant } from '../participant.js'
 import * as R from "ramda"
 import { makePlainObjByIdx, makeRecordSet } from '../../lib/record.js'
 import { PartyDate } from '../../lib/partyday.js'
-import { PartyErr, NotUndefinedValueErr, NotEmptyValueErr, NotNullValueErr } from '../lib/errors.js'
-
+import { NotUndefinedValueErr, NotEmptyValueErr, NotNullValueErr } from '../lib/errors.js'
+import { makeHdl, recordDoesNotExistHdl, notNullValueHdl, notUndefinedValueHdl, RecordDoesNotExistHdl } from './lib/testhdl.js'
 
 /*
 *  Обработчик для сравнения образцовой записи rec с прочитанным результатом rSet
@@ -65,27 +65,6 @@ test("Participant.update(rec)", done => {
 
 describe("Participant.remove", ()=>{
 
-const makeHdl = ( done, expectFunc )=>{
-    return ( err, removed ) =>{
-        if( err ){
-            if( err instanceof PartyErr ){
-                expectFunc( err )
-                done()
-            }
-            else
-                done(err)
-            return
-        }
-        try{
-            expectFunc(removed)
-            done()
-        }
-        catch(err){
-            done(err)
-        }
-    }
-}
-
 // Оптимистичный сценарий удаления существующей записи
 test("Participant.remove({ids:[1],fkParty:1})", done => {
     const rec = { ids:[1],fkParty:1 } 
@@ -98,55 +77,34 @@ test("Participant.remove({ids:[7,8], fkParty:1})", done => {
     Participant.remove( rec, makeHdl( done, removed => expect(removed).toEqual(2) ) )
 })
 
-
 // удаление записи без fkParty
 test("Participant.remove({ids:[3]})", done => {
     const rec = { ids:[3] } 
-    Participant.remove( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotUndefinedValueErr) ) )
+    Participant.remove( rec, makeHdl(done, notUndefinedValueHdl ) ) 
 })
-/*
+
 // удаление записи c пустым ids
 test("Participant.remove({ids:[], fkParty:1})", done => {
     const rec = { ids:[],fkParty:1 } 
-    const resHdl = ( err, removed )=>{
-        if( err ){
-            done(err)
-            return
-        }
-        try{
-            expect(removed).toBeNull()
-            done()
-        }
-        catch(err){
-            done(err)
-        }
-    }
-    Participant.remove( rec, resHdl )
+    Participant.remove( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotEmptyValueErr) ) )
 })
 
 // удаление записи без ids
-test("Participant.remove(fkParty:1})", done => {
+test("Participant.remove({fkParty:1})", done => {
     const rec = { fkParty:1 } 
-    const resHdl = ( err, removed )=>{
-        if( err ){
-            done(err)
-            return
-        }
-        try{
-            expect(removed).toBeNull()
-            done()
-        }
-        catch(err){
-            done(err)
-        }
-    }
-    Participant.remove( rec, resHdl )
+    Participant.remove( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotUndefinedValueErr) ) )
+})
+// удаление записи c ids = null
+test("Participant.remove({ids:null,fkParty:1})", done => {
+    const rec = { ids: null, fkParty:1 } 
+    Participant.remove( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotNullValueErr) ) )
 })
 
-*/ 
 })
 
+describe("Participnat.insert", ()=> {
 
+// Оптимистичная вставка участника    
 test("Participant.insert(rec)", done => {
     const rec = {   "fkParty": 1,
                     "num": 22,
@@ -162,82 +120,146 @@ test("Participant.insert(rec)", done => {
                     "paid": 2000,
                     "comment":"Ничего"
                 }
-    const resInsHdl = ( err, id )=>{
-        if( err ){
-            done(err)
-            return
-        }
-        try{
-            expect(id).toBeGreaterThan(0)
-            participantRead( { pkID: id, fkParty:1 }, { ...rec, pkID: id }, done )
-        }
-        catch(err){
-            done(err)
-        }
+    const checkF = id => {
+        expect(id).toBeGreaterThan(0)
+        participantRead( { pkID: id, fkParty:1 }, { ...rec, pkID: id }, done )
     }
-    Participant.insert( rec, resInsHdl)
+    Participant.insert( rec, makeHdl( done, checkF ) )
 })
 
+    
+test("Participant.insert({ fkParty: null, name: Вася })", done => {
+    const rec = {   "fkParty": null, name: "Вася" }
+    Participant.insert( rec, makeHdl( done, notNullValueHdl ) )
+})
+
+test("Participant.insert({ name: Вася })", done => {
+    const rec = { name: "Вася" }
+    Participant.insert( rec, makeHdl( done, notUndefinedValueHdl ) )
+})
+
+})
+
+describe("Participant.init", ()=>{
+// оптимистичная инициализация    
 test("Participant.init({initRec: initRec, method:list, insImmediatly: false })", done => {
     const initRec = { initRec:{ name: "Беларусь", fkParty: 1}, method: "Participant.list" }
-    const resHdl = ( err, rSet )=>{
-        if( err ){
-            done(err)
-            return
-        }
-        try{
-            expect(R.length(rSet)).toEqual(2)
-            const rec = makePlainObjByIdx(rSet,0)
-            expect( rec.name ).toEqual("Беларусь")
-            expect( rec.fkParty ).toEqual(1)
-            expect( rec.pkID ).toBeUndefined()
-            done()
-        }
-        catch(err){
-            done(err)
-        }
+    const checkF = rSet =>{
+        expect(R.length(rSet)).toEqual(2)
+        const rec = makePlainObjByIdx(rSet,0)
+        expect( rec.name ).toEqual("Беларусь")
+        expect( rec.fkParty ).toEqual(1)
+        expect( rec.pkID ).toBeUndefined()
     }
-    Participant.init( initRec, resHdl )
+    Participant.init( initRec, makeHdl( done, checkF) )
 })
 
+// fkParty = undefined   
+test("Participant.init({initRec: initRec, method:list, insImmediatly: false })", done => {
+    const initRec = { initRec:{ name: "Беларусь"}, method: "Participant.list" }
+    Participant.init( initRec, makeHdl( done, notUndefinedValueHdl) )
+})
 
+// fkParty = null  
+test("Participant.init({initRec: initRec, method:list, insImmediatly: false })", done => {
+    const initRec = { initRec:{ name: "Беларусь", fkParty: null }, method: "Participant.list" }
+    Participant.init( initRec, makeHdl( done, notNullValueHdl) )
+})
+
+})
+
+describe("Participant.list", () => {
+
+// оптимистичный  список
 test("Participant.list({ids:[],fkParty:1})", done => {
     const filter = { filter:{ ids:[], fkParty:1 } }
-    const resHdl = ( err, rSet )=>{
-        if( err ){
-            done(err)
-            return
-        }
-        try{
-            expect(R.length(rSet)).toEqual(7) // 3 записи мы выше удалили
-            done()
-        }
-        catch(err){
-            done(err)
-        }
-    }
-   
-    Participant.list( filter, resHdl )
+    Participant.list( filter, makeHdl( done, rSet => expect(R.length(rSet)).toEqual(7) ) )
 })
 
-test("Participant.read({pkID:1,fkParty:1})", done => {
-    const resHdl = ( err, rSet )=>{
-        if( err ){
-            done(err)
-            return
-        }
-        try{
-            expect( R.isNil(rSet) ).toBeFalsy()
-            expect(R.length(rSet)).toEqual(2)
-            const partyRec = makePlainObjByIdx(rSet)
-            expect(partyRec.pkID).toEqual(3)
-            done()
-        }
-        catch(err){
-            done(err)
-        }
-    }
-
-    Participant.read( {pkID:3, fkParty: 1}, resHdl )
+test("Participant.list({ids:[]})", done => {
+    const filter = { filter:{ ids:[] } }
+    Participant.list( filter, makeHdl( done, notUndefinedValueHdl ) )
 })
 
+test("Participant.list({ids:[],fkParty:1})", done => {
+    const filter = { filter:{ ids:[], fkParty: null } }
+    Participant.list( filter, makeHdl( done, notNullValueHdl ) )
+})
+
+// чтение списка по фильтру отбирающему одну запись
+test("Participant.list({ids:[9],fkParty:1})", done => {
+    const filter = { filter:{ ids:[9], fkParty:1 } }
+    const checkF = rSet => {
+        expect(R.length(rSet)).toEqual(2)
+        const rc0 = makePlainObjByIdx(rSet,0)
+        expect(rc0.pkID).toEqual(9)
+    }
+    Participant.list( filter, makeHdl( done, checkF ) )
+})
+
+// чтение списка по фильтру отбирающему 2 записи
+test("Participant.list({ids:[9,10],fkParty:1})", done => {
+    const filter = { filter:{ ids:[9,10], fkParty:1 } }
+    const checkF = rSet => {
+        expect(R.length(rSet)).toEqual(3)
+        const rc0 = makePlainObjByIdx(rSet,0)
+        expect(rc0.pkID).toEqual(9)
+        const rc1 = makePlainObjByIdx(rSet,1)
+        expect(rc1.pkID).toEqual(10)
+    }
+    Participant.list( filter, makeHdl( done, checkF ) )
+})
+
+// чтение списка по фильтру отбирающему запись по имени
+test("Participant.list({searchStr, fkParty:1})", done => {
+    const filter = { filter:{ searchStr:"Миши", fkParty:1 } }
+    const checkF = rSet => {
+        expect(R.length(rSet)).toEqual(2)
+        const rc = makePlainObjByIdx(rSet)
+        expect(rc.surname).toEqual("Мишин")
+    }
+    Participant.list( filter, makeHdl( done, checkF) )
+})
+
+})
+
+
+describe( "Participant.read",() => {
+// оптимистичное чтение
+test("Participant.read({pkID:3,fkParty:1})", done => {
+    const checkF =  rSet =>{
+        expect( R.isNil(rSet) ).toBeFalsy()
+        expect(R.length(rSet)).toEqual(2)
+        const rc = makePlainObjByIdx(rSet)
+        expect(rc.pkID).toEqual(3)
+    }
+
+    Participant.read( {pkID:3, fkParty: 1}, makeHdl(done,checkF) )
+})
+
+// fkParty = null
+test("Participant.read({pkID:3,fkParty:null})", done => {
+    Participant.read( {pkID:3, fkParty: null}, makeHdl(done,notNullValueHdl) )
+})
+
+// fkParty = undefined
+test("Participant.read({pkID:3,})", done => {
+    Participant.read( {pkID:3}, makeHdl(done,notUndefinedValueHdl) )
+})
+
+// pkID = undefined
+test("Participant.read({ fkParty: 1})", done => {
+    Participant.read( {fkParty:1}, makeHdl(done,notUndefinedValueHdl) )
+})
+
+// pkID = null
+test("Participant.read({pkID:null,fkParty:null})", done => {
+    Participant.read( {pkID:null, fkParty: null}, makeHdl(done,notNullValueHdl) )
+})
+
+//  чтение несуществующей записи
+test("Participant.read({pkID:100})", done => {
+    Participant.read( {pkID:100, fkParty: 1}, makeHdl(done, recordDoesNotExistHdl) )
+})
+
+})

@@ -39,3 +39,14 @@ export class NotUndefinedValueErr extends  PartyErr {
         this.fldName = fldName;
     }
 }
+
+/*
+* Запись объекта не существует
+*/
+export class RecordDoesNotExistErr extends  PartyErr {
+    constructor( objName, pkID ) {
+        super(`Запись объекта ${objName} с идентификатором ${pkID} не существует!`)
+        this.objName = objName
+        this.pkID = pkID
+    }
+}

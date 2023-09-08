@@ -6,6 +6,7 @@ import { PartyDate }  from '../../lib/partyday'
 import { addRecord } from '../../lib/record'
 import { resolveShowConfigPath } from '@babel/core/lib/config/files';
 import { getParticipants } from '../tests/testdata';
+import { RecordDoesNotExistErr } from '../lib/errors';
 
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(':memory:');
@@ -497,7 +498,12 @@ function makeParticipant(){
         }
     }
     if( R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr) )       
-        filterSearchStr = `and p.name like '%${filter.searchStr}%'`
+        searchStr = `and ( p.name like '%${filter.searchStr}%' or
+                           p.surname like '%${filter.searchStr}%' or
+                           p.patronymic like '%${filter.searchStr}%' or
+                           p.phone like '%${filter.searchStr}%' or
+                           p.email like '%${filter.searchStr}%' or 
+                           p.club like '%${filter.searchStr}%' )`
     
     return (
            `select p.pkID as pkID, 
@@ -515,7 +521,7 @@ function makeParticipant(){
                    p.paid as paid,
                    p.comment as comment
             from participant p
-            where fkParty=${filter.fkParty} ${ids} ${searchStr}` )
+            where p.fkParty=${filter.fkParty} ${ids} ${searchStr}` )
 }
 
 /**
@@ -540,7 +546,7 @@ db.each(query, getRow,  err=>respHdl(err,rs) )
 function read( rs, filter, respHdl ){ 
 const getRow = (err, row )=>{
     if( err || R.isNil(row)) {
-        respHdl(err,null)
+        respHdl( new RecordDoesNotExistErr("Participant", filter.pkID),null)
     } else { 
         addRecord(rs, row)
         respHdl(err,rs)

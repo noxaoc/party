@@ -103,14 +103,15 @@ function makeParticipant() {
       ids: [ <список id на удаление участников> ],
       fkParty: <id междусобойчика>
   }
-  * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+  * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, 
+  * если удаление прошло нормально, если ничего не удалили, то 0
+  * precondition: fkParty is not null or is not undefined
+  *               ids is not null or is not undefined or is not empty
+  * если precondition не выполнены, то re
   */
   function remove(rec, respHdl) {
     if (!(0, _utils.checkFkParty)(rec, respHdl)) return;
-    if (R.isNil(rec.ids) || R.isEmpty(rec.ids)) {
-      respHdl(null, null);
-      return;
-    }
+    if (!(0, _utils.checkIds)(rec, respHdl)) return;
     _dbschema.DBParticipant.remove(rec, respHdl);
   }
 

@@ -567,7 +567,7 @@ where p.pkID = ${filter.pkID} and p.fkParty=${filter.fkParty}`
 db.get(query, getRow )
 }
 
-/*
+/* удалить участников
 rec
 {
 ids: [ <список id на удаление> ]

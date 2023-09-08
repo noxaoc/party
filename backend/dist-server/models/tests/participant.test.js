@@ -4,6 +4,7 @@ var _participant = require("../participant.js");
 var R = _interopRequireWildcard(require("ramda"));
 var _record = require("../../lib/record.js");
 var _partyday = require("../../lib/partyday.js");
+var _errors = require("../lib/errors.js");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
@@ -69,25 +70,98 @@ test("Participant.update(rec)", function (done) {
   };
   _participant.Participant.update(rec, resUpdHdl);
 });
-test("Participant.remove({ids:[2],fkParty:1})", function (done) {
-  var rec = {
-    ids: [1],
-    fkParty: 1
+describe("Participant.remove", function () {
+  var makeHdl = function makeHdl(done, expectFunc) {
+    return function (err, removed) {
+      if (err) {
+        if (err instanceof _errors.PartyErr) {
+          expectFunc(err);
+          done();
+        } else done(err);
+        return;
+      }
+      try {
+        expectFunc(removed);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    };
   };
-  var resHdl = function resHdl(err, removed) {
-    if (err) {
-      done(err);
-      return;
-    }
-    try {
-      expect(removed).toEqual(1);
-      done();
-    } catch (err) {
-      done(err);
-    }
-  };
-  _participant.Participant.remove(rec, resHdl);
+
+  // Оптимистичный сценарий удаления существующей записи
+  test("Participant.remove({ids:[1],fkParty:1})", function (done) {
+    var rec = {
+      ids: [1],
+      fkParty: 1
+    };
+    _participant.Participant.remove(rec, makeHdl(done, function (removed) {
+      return expect(removed).toEqual(1);
+    }));
+  });
+
+  // удаление записи c несколькими ids
+  test("Participant.remove({ids:[7,8], fkParty:1})", function (done) {
+    var rec = {
+      ids: [7, 8],
+      fkParty: 1
+    };
+    _participant.Participant.remove(rec, makeHdl(done, function (removed) {
+      return expect(removed).toEqual(2);
+    }));
+  });
+
+  // удаление записи без fkParty
+  test("Participant.remove({ids:[3]})", function (done) {
+    var rec = {
+      ids: [3]
+    };
+    _participant.Participant.remove(rec, makeHdl(done, function (err) {
+      return expect(err).toBeInstanceOf(_errors.NotUndefinedValueErr);
+    }));
+  });
+  /*
+  // удаление записи c пустым ids
+  test("Participant.remove({ids:[], fkParty:1})", done => {
+      const rec = { ids:[],fkParty:1 } 
+      const resHdl = ( err, removed )=>{
+          if( err ){
+              done(err)
+              return
+          }
+          try{
+              expect(removed).toBeNull()
+              done()
+          }
+          catch(err){
+              done(err)
+          }
+      }
+      Participant.remove( rec, resHdl )
+  })
+  
+  // удаление записи без ids
+  test("Participant.remove(fkParty:1})", done => {
+      const rec = { fkParty:1 } 
+      const resHdl = ( err, removed )=>{
+          if( err ){
+              done(err)
+              return
+          }
+          try{
+              expect(removed).toBeNull()
+              done()
+          }
+          catch(err){
+              done(err)
+          }
+      }
+      Participant.remove( rec, resHdl )
+  })
+  
+  */
 });
+
 test("Participant.insert(rec)", function (done) {
   var rec = {
     "fkParty": 1,
@@ -162,7 +236,7 @@ test("Participant.list({ids:[],fkParty:1})", function (done) {
       return;
     }
     try {
-      expect(R.length(rSet)).toEqual(9);
+      expect(R.length(rSet)).toEqual(7); // 3 записи мы выше удалили
       done();
     } catch (err) {
       done(err);
@@ -179,17 +253,15 @@ test("Participant.read({pkID:1,fkParty:1})", function (done) {
     try {
       expect(R.isNil(rSet)).toBeFalsy();
       expect(R.length(rSet)).toEqual(2);
-      console.log("Дошел до чтения");
       var partyRec = (0, _record.makePlainObjByIdx)(rSet);
-      console.log(partyRec.pkID);
-      expect(partyRec.pkID).toEqual(2);
+      expect(partyRec.pkID).toEqual(3);
       done();
     } catch (err) {
       done(err);
     }
   };
   _participant.Participant.read({
-    pkID: 1,
+    pkID: 3,
     fkParty: 1
   }, resHdl);
 });

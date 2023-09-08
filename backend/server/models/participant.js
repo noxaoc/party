@@ -2,7 +2,7 @@ import * as R from 'ramda'
 import {DBParticipant} from './sqlite/dbschema.js'
 import { addRecord, makeRecordSet } from '../lib/record.js'
 import { PartyDate } from '../lib/partyday.js'
-import { checkFkParty, checkRec } from './lib/utils.js'
+import { checkFkParty, checkIds, checkRec } from './lib/utils.js'
 
 function makeParticipant(){  
 /**
@@ -83,14 +83,15 @@ function read( rec, respHdl) {
     ids: [ <список id на удаление участников> ],
     fkParty: <id междусобойчика>
 }
-* @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+* @param {*} respHdl (err, res) в res будет кол-во удаленных записей, 
+* если удаление прошло нормально, если ничего не удалили, то 0
+* precondition: fkParty is not null or is not undefined
+*               ids is not null or is not undefined or is not empty
+* если precondition не выполнены, то re
 */
 function remove( rec, respHdl ) { 
 if( !checkFkParty(rec, respHdl) ) return
-if( R.isNil(rec.ids) || R.isEmpty(rec.ids) ) {
-    respHdl(null,null)
-    return
-}
+if( !checkIds(rec, respHdl) ) return
 DBParticipant.remove( rec, respHdl )
 }
 

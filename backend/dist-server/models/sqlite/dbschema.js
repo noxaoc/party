@@ -402,7 +402,6 @@ function makeParticipant() {
       if (err || R.isNil(row)) {
         respHdl(err, null);
       } else {
-        console.log(row);
         (0, _record.addRecord)(rs, row);
         respHdl(err, rs);
       }
@@ -411,7 +410,7 @@ function makeParticipant() {
     db.get(query, getRow);
   }
 
-  /*
+  /* удалить участников
   rec
   {
   ids: [ <список id на удаление> ]

@@ -3,10 +3,28 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.checkRec = exports.checkPkID = exports.checkIsNilFld = exports.checkFkParty = void 0;
+exports.checkRec = exports.checkPkID = exports.checkIsNilFld = exports.checkIsEmptyFld = exports.checkIds = exports.checkFkParty = void 0;
+var _ramda = require("ramda");
+var _errors = require("./errors");
 /*
 * Утилиты для моделей
 */
+
+/**
+ * Проверить, что свойство с именем name являющееся массивом или строкой  или объектом не пустое
+ * @param { запись } rec 
+ * @param { имя свойства } name 
+ * @param { обработчик } hdl 
+ * @returns false если свойство имеет пустое значение, а в обработчик ставится объект ошибки с текстом. 
+ * true если все нормально. 
+ */
+var checkIsEmptyFld = function checkIsEmptyFld(rec, name, hdl) {
+  if ((0, _ramda.isEmpty)(rec[name])) {
+    hdl(new _errors.NotEmptyValueErr(name));
+    return false;
+  }
+  return true;
+};
 
 /**
  * Проверить, что свойство с именем name в rec не null и не undefined
@@ -16,13 +34,14 @@ exports.checkRec = exports.checkPkID = exports.checkIsNilFld = exports.checkFkPa
  * @returns false если свойство null или undefined, а в обработчик ставится объект ошибки с текстом. 
  * true если все нормально. 
  */
+exports.checkIsEmptyFld = checkIsEmptyFld;
 var checkIsNilFld = function checkIsNilFld(rec, name, hdl) {
   if (rec[name] === undefined) {
-    hdl(new Error("\u041F\u043E\u043B\u0435 '".concat(name, "' \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C 'undefinded'!")));
+    hdl(new _errors.NotUndefinedValueErr(name));
     return false;
   }
   if (rec[name] === null) {
-    hdl(new Error("\u041F\u043E\u043B\u0435 '".concat(name, "' \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C 'null'!")));
+    hdl(new _errors.NotNullValueErr(name));
     return false;
   }
   return true;
@@ -61,4 +80,17 @@ exports.checkPkID = checkPkID;
 var checkRec = function checkRec(rec, hdl) {
   return checkPkID(rec, hdl) && checkFkParty(rec, hdl);
 };
+
+/**
+ * Проверить, что свойство с именем ids являющееся массивом не пустое и не null
+ * @param { запись } rec 
+ * @param { имя свойства } name 
+ * @param { обработчик } hdl 
+ * @returns false если свойство имеет пустое значение, а в обработчик ставится объект ошибки с текстом. 
+ * true если все нормально. 
+ */
 exports.checkRec = checkRec;
+var checkIds = function checkIds(rec, hdl) {
+  return checkIsNilFld(rec, 'ids', hdl) && checkIsEmptyFld(rec, 'ids', hdl);
+};
+exports.checkIds = checkIds;

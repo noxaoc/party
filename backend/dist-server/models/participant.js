@@ -31,7 +31,7 @@ function makeParticipant() {
    */
   function list(rec, respHdl) {
     if (!(0, _utils.checkFkParty)(rec.filter, respHdl)) return;
-    var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 'd'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
+    var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 't'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
     _dbschema.DBParticipant.list(rs, rec.filter, rec.ord, rec.nav, respHdl);
   }
 
@@ -48,7 +48,7 @@ function makeParticipant() {
       method = _ref.method,
       insImmediatly = _ref.insImmediatly;
     if (!(0, _utils.checkFkParty)(initRec, respHdl)) return;
-    var rs = (0, _record.makeRecordSet)([['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 'd'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
+    var rs = (0, _record.makeRecordSet)([['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 't'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
     var newRec = _objectSpread({
       name: "",
       suranme: "",
@@ -93,7 +93,7 @@ function makeParticipant() {
    */
   function read(rec, respHdl) {
     if (!(0, _utils.checkRec)(rec, respHdl)) return;
-    var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 'd'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
+    var rs = (0, _record.makeRecordSet)([['pkID', 'n'], ['fkParty', 'n'], ['num', 'n'], ['name', 's'], ['surname', 's'], ['patronymic', 's'], ['club', 's'], ['email', 's'], ['phone', 's'], ['dtReg', 't'], ['role', 's'], ['price', 'n'], ['paid', 'n'], ['comment', 's']]);
     _dbschema.DBParticipant.read(rs, rec, respHdl);
   }
 

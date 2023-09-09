@@ -95,24 +95,48 @@ export function mapRSet( hdl, rSet ){
     return result
 }
 
-export function makePlainObj( rec, frmt ){
-    let pobj = {}
-    const fldHdl = ( ffrmt, idx )=>{
-        switch( getFldType(ffrmt) ){
+/*
+* Сделать из записи формата RecordSet js - объект вида { name:value }
+*/
+
+export function     makePlainObj( rec, frmt, chgValue = true ){
+    const fldHdl = ( fldValue, fldName, fldType )=>{
+        switch( fldType ){
             case "t":
-                pobj[getFldName(ffrmt)] = PartyDate.fromTS(rec[idx])
-                break
+                return PartyDate.fromTS(fldValue)
             case "d":
-                pobj[getFldName(ffrmt)] = PartyDate.dateFromTS(rec[idx])
-                break
+                return PartyDate.dateFromTS(fldValue)
             default:
-                pobj[getFldName(ffrmt)] = rec[idx]
-                break
+                return fldValue
         }
     }
+   return makeJSObj( rec, frmt, fldHdl )
+   
+}
+
+/*
+* Сделать из записи формата RecordSet js - объект {name:value}
+* если valueHdl не задан значения остаются как есть
+* valueHdl = ( fldValue, fldName, fldType )=>return newFldValue
+*/
+export function  makeJSObj( rec, frmt, valueHdl ){
+    let pobj = {}
+    const fldHdl = ( ffrmt, idx )=>pobj[getFldName(ffrmt)] = valueHdl ?
+                                                             valueHdl(rec[idx], getFldName(ffrmt), getFldType(ffrmt)):
+                                                             rec[idx]
     frmt.forEach( fldHdl  )
     return pobj
 }
+
+/*
+* Сделать из по индексу запись из RecordSet и сделать из нее js - объект {name:value}
+* если valueHdl не задан значения остаются как есть
+* valueHdl = ( fldValue, fldName, fldType )=>return newFldValue
+*/
+export function  makeJSObjByIdx( rSet, idx, valueHdl ){
+    return makeJSObj( rSet[idx + 1], getFrmtRSet(rSet), valueHdl)
+}
+
 
 export function makePlainObjByIdx( rSet, idx = 0 ){
     return makePlainObj( rSet[idx + 1], getFrmtRSet(rSet))

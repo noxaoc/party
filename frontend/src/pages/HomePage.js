@@ -7,7 +7,7 @@ import Presentation from "./Presentation";
 import Upgrade from "./Upgrade";
 //import DashboardOverview from "./dashboard/DashboardOverview";
 import EventsParty from "./EventsParty";
-import Participans from "./Participants";
+import Participants from "./Participants";
 import Partys from "./Partys"
 
 //import Transactions from "./Transactions";
@@ -122,7 +122,7 @@ export default () =>{
     {/**События междусобойчика */}
     <RouteWithSidebar exact path={Routes.EventsParty.path} component={EventsParty} />
     {/**Участники междусобойчика */}
-    <RouteWithSidebar exact path={Routes.Participans.path} component={Participans} />
+    <RouteWithSidebar exact path={Routes.Participants.path} component={Participants} />
 
     <RouteWithSidebar exact path={Routes.Settings.path} component={Settings} />
     <RouteWithSidebar exact path={Routes.BootstrapTables.path} component={BootstrapTables} />

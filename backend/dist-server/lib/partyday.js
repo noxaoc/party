@@ -35,7 +35,7 @@ var PartyDate = /*#__PURE__*/function () {
     из строки в формате datetimeFormat
     */
     function toTS(ts_str) {
-      return (0, _dayjs["default"])(ts_str, datetimeFormat).unix();
+      return (0, _dayjs["default"])(ts_str, [datetimeFormat, "DD.MM.YY HH:mm"]).unix();
     }
 
     /*

@@ -21,7 +21,7 @@ function list( rec, respHdl ){
     let rs = makeRecordSet( [ ['pkID','n'], ['fkParty','n'], ['num', 'n'],
                               ['name','s'],  ['surname','s'], ['patronymic','s'],
                               ['club','s'],  ['email','s'], ['phone','s'],
-                              ['dtReg','d'], ['role','s'],
+                              ['dtReg','t'], ['role','s'],
                               ['price','n'], ['paid','n'], ['comment','s'] ] )  
     DBParticipant.list( rs, rec.filter, rec.ord, rec.nav, respHdl )
 }
@@ -39,7 +39,7 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
     let rs = makeRecordSet( [   ['fkParty','n'], ['num', 'n'],
                                 ['name','s'],  ['surname','s'], ['patronymic','s'],
                                 ['club','s'],  ['email','s'], ['phone','s'],
-                                ['dtReg','d'], ['role','s'],
+                                ['dtReg','t'], ['role','s'],
                                 ['price','n'], ['paid','n'], ['comment','s'] ] ) 
 
     const newRec = {   name:"", suranme:"", patronymic:"", dtReg: PartyDate.getCurrDate(), phone:"",
@@ -72,7 +72,7 @@ function read( rec, respHdl) {
     let rs = makeRecordSet([ ['pkID','n'], ['fkParty','n'], ['num', 'n'],
                              ['name','s'],  ['surname','s'], ['patronymic','s'],
                              ['club','s'],  ['email','s'], ['phone','s'],
-                             ['dtReg','d'], ['role','s'],
+                             ['dtReg','t'], ['role','s'],
                              ['price','n'], ['paid','n'], ['comment','s'] ] ) 
     DBParticipant.read( rs, rec, respHdl )
 }

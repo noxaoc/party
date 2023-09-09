@@ -13,7 +13,7 @@ export const Routes = {
     // Список событий междусобойчика
     EventsParty: { path: "/:partyID/ctrl/events" },
     // список участников
-    Participans: { path: "/:partyID/participans" },
+    Participants: { path: "/:partyID/participants" },
 
     Transactions: { path: "/transactions" },
     Settings: { path: "/settings" },

@@ -2,7 +2,7 @@
 * Вспомогоательные обработчики
 */
 import { PartyErr, NotEmptyValueErr, NotNullValueErr, NotUndefinedValueErr, RecordDoesNotExistErr } from "../../lib/errors"
-import { makePlainObjByIdx } from "../../../lib/record"
+import { makeJSObjByIdx } from "../../../lib/record"
 
 
 export const makeHdl = ( done, expectFunc )=>{
@@ -52,7 +52,7 @@ export const recordDoesNotExistHdl = err => expect(err).toBeInstanceOf( RecordDo
 export const makeCheckReadHdl = (done, rec) =>{
     return makeHdl( done, rSet =>{
           // проверяем совпадение того что записали
-          const readRec = makePlainObjByIdx(rSet)
+          const readRec = makeJSObjByIdx(rSet,0)
           expect(readRec).toEqual(rec)
     } )
  }

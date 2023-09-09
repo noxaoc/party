@@ -113,7 +113,7 @@ export default (props = {}) => {
               <NavItem title="События" icon={faHandHoldingUsd} 
                       link={ setPartyID(Routes.EventsParty.path) } />
               <NavItem title="Участники" icon={faHandHoldingUsd} 
-                      link={setPartyID( Routes.Participans.path) } />
+                      link={setPartyID( Routes.Participants.path) } />
               <NavItem title="Анализ" link={Routes.DashboardOverview.path} icon={faChartPie} />
 
               <NavItem title="Настройки" icon={faCog} link={Routes.Settings.path} />

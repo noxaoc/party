@@ -177,7 +177,7 @@ test("Participant.list({ids:[]})", done => {
     Participant.list( filter, makeHdl( done, notUndefinedValueHdl ) )
 })
 
-test("Participant.list({ids:[],fkParty:1})", done => {
+test("Participant.list({ids:[],fkParty:null})", done => {
     const filter = { filter:{ ids:[], fkParty: null } }
     Participant.list( filter, makeHdl( done, notNullValueHdl ) )
 })

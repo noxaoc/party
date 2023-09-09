@@ -251,7 +251,7 @@ describe("Participant.list", function () {
     };
     _participant.Participant.list(filter, (0, _testhdl.makeHdl)(done, _testhdl.notUndefinedValueHdl));
   });
-  test("Participant.list({ids:[],fkParty:1})", function (done) {
+  test("Participant.list({ids:[],fkParty:null})", function (done) {
     var filter = {
       filter: {
         ids: [],

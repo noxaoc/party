@@ -20,7 +20,7 @@ export class  PartyDate{
 из строки в формате datetimeFormat
 */
 static toTS( ts_str ){
-    return dayjs( ts_str, datetimeFormat ).unix()
+    return dayjs( ts_str, [datetimeFormat,"DD.MM.YY HH:mm"] ).unix()
 }
 
 /*

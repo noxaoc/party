@@ -5,11 +5,15 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.addRecord = addRecord;
+exports.changeNullValueToEmptyStr = changeNullValueToEmptyStr;
 exports.emptyRSet = emptyRSet;
+exports.getChgFldsRec = getChgFldsRec;
 exports.getFldName = getFldName;
 exports.getFldType = getFldType;
 exports.getFrmtRSet = getFrmtRSet;
 exports.lengthRSet = lengthRSet;
+exports.makeJSObj = makeJSObj;
+exports.makeJSObjByIdx = makeJSObjByIdx;
 exports.makeListPlainObj = makeListPlainObj;
 exports.makePlainObj = makePlainObj;
 exports.makePlainObjByIdx = makePlainObjByIdx;
@@ -105,20 +109,46 @@ function mapRSet(hdl, rSet) {
   rSet.forEach(localHdl);
   return result;
 }
+
+/*
+* Сделать из записи формата RecordSet js - объект вида { name:value }
+*/
 function makePlainObj(rec, frmt) {
+  var chgValue = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+  var fldHdl = function fldHdl(fldValue, fldName, fldType) {
+    switch (fldType) {
+      case "t":
+        return _partyday.PartyDate.fromTS(fldValue);
+      case "d":
+        return _partyday.PartyDate.dateFromTS(fldValue);
+      default:
+        return fldValue;
+    }
+  };
+  return makeJSObj(rec, frmt, fldHdl);
+}
+
+/*
+* Сделать из записи формата RecordSet js - объект {name:value}
+* если valueHdl не задан значения остаются как есть
+* valueHdl = ( fldValue, fldName, fldType )=>return newFldValue
+*/
+function makeJSObj(rec, frmt, valueHdl) {
   var pobj = {};
   var fldHdl = function fldHdl(ffrmt, idx) {
-    switch (getFldType(ffrmt)) {
-      case "t":
-        pobj[getFldName(ffrmt)] = _partyday.PartyDate.fromTS(rec[idx]);
-        break;
-      default:
-        pobj[getFldName(ffrmt)] = rec[idx];
-        break;
-    }
+    return pobj[getFldName(ffrmt)] = valueHdl ? valueHdl(rec[idx], getFldName(ffrmt), getFldType(ffrmt)) : rec[idx];
   };
   frmt.forEach(fldHdl);
   return pobj;
+}
+
+/*
+* Сделать из по индексу запись из RecordSet и сделать из нее js - объект {name:value}
+* если valueHdl не задан значения остаются как есть
+* valueHdl = ( fldValue, fldName, fldType )=>return newFldValue
+*/
+function makeJSObjByIdx(rSet, idx, valueHdl) {
+  return makeJSObj(rSet[idx + 1], getFrmtRSet(rSet), valueHdl);
 }
 function makePlainObjByIdx(rSet) {
   var idx = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
@@ -126,8 +156,50 @@ function makePlainObjByIdx(rSet) {
 }
 
 /*
+* Изменить null - значения на пустые 
+*/
+function changeNullValueToEmptyStr(rec) {
+  var chgNullValue = function chgNullValue(value) {
+    return R.isNil(value) ? "" : value;
+  };
+  return R.mapObjIndexed(chgNullValue, rec);
+}
+
+/*
 Преобразовать RecordSet в список js - объектов
 */
 function makeListPlainObj(rSet) {
   return mapRSet(makePlainObj, rSet);
+}
+
+/*
+* Получить запись, состоящую из преобразованных полей записи rec к формату frmt  
+* если поля из rec не соответствовали типам из frmt
+*/
+function getChgFldsRec(frmt, rec) {
+  var chgFlds = {};
+  var createChgFlds = function createChgFlds(fld) {
+    var name = fld[0];
+    var type = fld[1];
+    switch (type) {
+      case 't':
+        {
+          var value = rec[name];
+          if (value !== undefined && typeof value === 'string') chgFlds[name] = _partyday.PartyDate.toTS(value);
+          break;
+        }
+      case 'd':
+        {
+          var _value = rec[name];
+          if (_value !== undefined && typeof _value === 'string') chgFlds[name] = _partyday.PartyDate.dateToTS(_value);
+          break;
+        }
+      default:
+        {
+          break;
+        }
+    }
+  };
+  R.forEach(createChgFlds, frmt);
+  return chgFlds;
 }

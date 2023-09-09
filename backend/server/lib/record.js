@@ -70,7 +70,6 @@ export function lengthRSet( rSet ){
     return length < 0 ? 0 : length
  }
  
-
 /*
 Получит формат RecordSet
 */
@@ -96,20 +95,46 @@ export function mapRSet( hdl, rSet ){
     return result
 }
 
-export function makePlainObj( rec, frmt ){
-    let pobj = {}
-    const fldHdl = ( ffrmt, idx )=>{
-        switch( getFldType(ffrmt) ){
+/*
+* Сделать из записи формата RecordSet js - объект вида { name:value }
+*/
+export function     makePlainObj( rec, frmt, chgValue = true ){
+    const fldHdl = ( fldValue, fldName, fldType )=>{
+        switch( fldType ){
             case "t":
-                pobj[getFldName(ffrmt)] = PartyDate.fromTS(rec[idx])
-                break
+                return PartyDate.fromTS(fldValue)
+            case "d":
+                return PartyDate.dateFromTS(fldValue)
             default:
-                pobj[getFldName(ffrmt)] = rec[idx]
-                break
+                return fldValue
         }
     }
+   return makeJSObj( rec, frmt, fldHdl )
+   
+}
+
+
+/*
+* Сделать из записи формата RecordSet js - объект {name:value}
+* если valueHdl не задан значения остаются как есть
+* valueHdl = ( fldValue, fldName, fldType )=>return newFldValue
+*/
+export function  makeJSObj( rec, frmt, valueHdl ){
+    let pobj = {}
+    const fldHdl = ( ffrmt, idx )=>pobj[getFldName(ffrmt)] = valueHdl ?
+                                                             valueHdl(rec[idx], getFldName(ffrmt), getFldType(ffrmt)):
+                                                             rec[idx]
     frmt.forEach( fldHdl  )
     return pobj
+}
+
+/*
+* Сделать из по индексу запись из RecordSet и сделать из нее js - объект {name:value}
+* если valueHdl не задан значения остаются как есть
+* valueHdl = ( fldValue, fldName, fldType )=>return newFldValue
+*/
+export function  makeJSObjByIdx( rSet, idx, valueHdl ){
+    return makeJSObj( rSet[idx + 1], getFrmtRSet(rSet), valueHdl)
 }
 
 export function makePlainObjByIdx( rSet, idx = 0 ){
@@ -118,8 +143,47 @@ export function makePlainObjByIdx( rSet, idx = 0 ){
 }
 
 /*
+* Изменить null - значения на пустые 
+*/
+export function changeNullValueToEmptyStr( rec ){
+    const chgNullValue = value =>  R.isNil(value) ? "" : value
+    return R.mapObjIndexed(chgNullValue, rec)
+}
+
+/*
 Преобразовать RecordSet в список js - объектов
 */
 export function makeListPlainObj( rSet ){
     return mapRSet( makePlainObj, rSet )
+}
+
+/*
+* Получить запись, состоящую из преобразованных полей записи rec к формату frmt  
+* если поля из rec не соответствовали типам из frmt
+*/
+export function getChgFldsRec( frmt, rec ){
+    const chgFlds = {}
+    const createChgFlds = fld => {
+        const name = fld[0]
+        const type = fld[1]
+        switch( type ){
+            case 't':{
+                const value = rec[name]
+                if( value !== undefined && typeof(value) === 'string' )
+                    chgFlds[name] = PartyDate.toTS(value)
+                break
+            } 
+            case 'd':{
+                const value = rec[name]
+                if( value !== undefined && typeof(value) === 'string' )
+                    chgFlds[name] = PartyDate.dateToTS(value)
+                break
+            } 
+            default:{
+                break
+            }
+        } 
+    }
+    R.forEach( createChgFlds, frmt )
+    return chgFlds
 }

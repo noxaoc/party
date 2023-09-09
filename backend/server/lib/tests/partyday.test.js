@@ -1,6 +1,20 @@
 import dayjs from "dayjs"
 import { PartyDate } from "../partyday"
 
+test("PartyDate.toTS('15.01.23 00:01:03')", () => {
+    const dt_str = '15.01.23 00:01:03'
+    const ts = PartyDate.toTS(dt_str)
+    const dt = PartyDate.fromTS(ts)
+    expect(dt).toEqual(dt_str)
+})
+
+test("PartyDate.toTS('15.01.23 01:01')", () => {
+    const dt_str = '15.01.23 01:01:00'
+    const ts = PartyDate.toTS('15.01.23 01:01')
+    const dt = PartyDate.fromTS(ts)
+    expect(dt).toEqual(dt_str)
+})
+
 test("PartyDate.dateToTS('15.01.23')", () => {
     const dt_str = '15.01.23'
     const ts = PartyDate.dateToTS(dt_str)

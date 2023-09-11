@@ -1,15 +1,18 @@
 
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAngleDown, faAngleUp, faArrowDown, faArrowUp, faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import {  Col, Row, Card, Image, Button, Table, Dropdown, ProgressBar,
+import {  faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import {  Col, Row, Card, Button, Table, Dropdown, 
           Modal, ButtonGroup, Container, Form, Tab, Tabs } from '@themesberg/react-bootstrap';
+          import { Formik, Form as FormikForm, Field } from 'formik'
 
-//import { Routes } from "../routes";
-import { pageVisits, pageTraffic, pageRanking } from "../data/tables";
-//import participants from "../data/participants";
+
 import { ParticipantEvent } from "../data/participants";
 import { Participant } from "../data/participant";
+import {InputLine} from "./InputLine"
+import { InputComment } from "./InputComment"
+import { EditButton } from "./EditButton"
+
 
 import { makePlainObjByIdx, mapRSet, makePlainObj, changeNullValueToEmptyStr  } from "../lib/record"
 import { useParams } from "react-router-dom";
@@ -17,54 +20,8 @@ import { useParams } from "react-router-dom";
 //import { N } from "ts-toolbelt";
 const R = require('ramda');
 
-/*
-// получить идентификатор текущего междусобойчика
-function getPartyID(){
-  return 1;
-}
-*/
- /* формат DD.MM.YY HH:MM:SS
-  */
- const parseDateTimeStr=( datetimeStr )=>{
-  // преобразуем строку в формат DD.MM.YYHH:MM:SS
-  const dtStr = R.replace( ' ', '', R.trim(datetimeStr) )
-  const day = parseInt(dtStr.slice(0,2))
-  const month = parseInt(dtStr.slice(3,5)) - 1
-  const year = parseInt(dtStr.slice(6,8)) + 2000
-  const hour = parseInt(dtStr.slice(8,10))
-  const minute = parseInt(dtStr.slice(11,13))
-  const second = parseInt(dtStr.slice(14,16))
- return new Date(year, month, day, hour, minute, second )
-}
 
-const dateTimeToStr=( dt )=>{
-  // преобразуем дату в формат DD.MM.YY HH:MM:SS
-  // никаких проверко на то что год < 2000 или 3000 не проверяется
-  const day = dt.getDate()
-  const month = dt.getMonth() + 1
-  const year = dt.getFullYear() - 2000
-  const hour = dt.getHours()
-  const minute = dt.getMinutes()
-  const second = dt.getSeconds()
-  return `${day<10?0:''}${day}.${month<10?0:''}${month}.${year<10?0:''}${year} ${hour<10?0:''}${hour}:${minute<10?0:''}${minute}:${second<10?0:''}${second}`
-}
-
-// вычислить дополнительные поля участника
-function calcExtFldParticipant( participant ){
-  return R.mergeDeepLeft( participant, { regDateStr: dateTimeToStr(participant.regDate) } )
-}
-
-/*
-// создать пустого участника для текущего gid
-export function createParticipant(){
-  console.log("createPart")
-
-  const p = Participant.createNull( {gid:getPartyID() }  )
-  return calcExtFldParticipant(p)
-}
-*/
-
-export const readParticipant=( pid )=>{
+export const readParticipant=( )=>{
   console.log("readPart")
   alert('код для чтения участников не написан')
   /*
@@ -74,194 +31,6 @@ export const readParticipant=( pid )=>{
   return calcExtFldParticipant(p) 
   */
 }
-
-/* выводить alert - сообщение если val является null
-   если сообщение выведено, то возвращается false
-*/
-function checkAlert( [val, errMsg ] ){
-  if( R.isNil(val) ){
-    alert(errMsg)
-    return false
-  }
-  return true
-}
-
-const ValueChange = ({ value, suffix }) => {
-  const valueIcon = value < 0 ? faAngleDown : faAngleUp;
-  const valueTxtColor = value < 0 ? "text-danger" : "text-success";
-
-  return (
-    value ? <span className={valueTxtColor}>
-      <FontAwesomeIcon icon={valueIcon} />
-      <span className="fw-bold ms-1">
-        {Math.abs(value)}{suffix}
-      </span>
-    </span> : "--"
-  );
-};
-
-export const PageVisitsTable = () => {
-  const TableRow = (props) => {
-    const { pageName, views, returnValue, bounceRate } = props;
-    const bounceIcon = bounceRate < 0 ? faArrowDown : faArrowUp;
-    const bounceTxtColor = bounceRate < 0 ? "text-danger" : "text-success";
-
-    return (
-      <tr>
-        <th scope="row">{pageName}</th>
-        <td>{views}</td>
-        <td>${returnValue}</td>
-        <td>
-          <FontAwesomeIcon icon={bounceIcon} className={`${bounceTxtColor} me-3`} />
-          {Math.abs(bounceRate)}%
-        </td>
-      </tr>
-    );
-  };
-
-  return (
-    <Card border="light" className="shadow-sm">
-      <Card.Header>
-        <Row className="align-items-center">
-          <Col>
-            <h5>Page visits</h5>
-          </Col>
-          <Col className="text-end">
-            <Button variant="secondary" size="sm">See all</Button>
-          </Col>
-        </Row>
-      </Card.Header>
-      <Table responsive className="align-items-center table-flush">
-        <thead className="thead-light">
-          <tr>
-            <th scope="col">Page name</th>
-            <th scope="col">Page Views</th>
-            <th scope="col">Page Value</th>
-            <th scope="col">Bounce rate</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pageVisits.map(pv => <TableRow key={`page-visit-${pv.id}`} {...pv} />)}
-        </tbody>
-      </Table>
-    </Card>
-  );
-};
-
-export const PageTrafficTable = () => {
-  const TableRow = (props) => {
-    const { id, source, sourceIcon, sourceIconColor, sourceType, category, rank, trafficShare, change } = props;
-
-    return (
-      <tr>
-        <td>
-          <Card.Link href="#" className="text-primary fw-bold">{id}</Card.Link>
-        </td>
-        <td className="fw-bold">
-          <FontAwesomeIcon icon={sourceIcon} className={`icon icon-xs text-${sourceIconColor} w-30`} />
-          {source}
-        </td>
-        <td>{sourceType}</td>
-        <td>{category ? category : "--"}</td>
-        <td>{rank ? rank : "--"}</td>
-        <td>
-          <Row className="d-flex align-items-center">
-            <Col xs={12} xl={2} className="px-0">
-              <small className="fw-bold">{trafficShare}%</small>
-            </Col>
-            <Col xs={12} xl={10} className="px-0 px-xl-1">
-              <ProgressBar variant="primary" className="progress-lg mb-0" now={trafficShare} min={0} max={100} />
-            </Col>
-          </Row>
-        </td>
-        <td>
-          <ValueChange value={change} suffix="%" />
-        </td>
-      </tr>
-    );
-  };
-
-  return (
-    <Card border="light" className="shadow-sm mb-4">
-      <Card.Body className="pb-0">
-        <Table responsive className="table-centered table-nowrap rounded mb-0">
-          <thead className="thead-light">
-            <tr>
-              <th className="border-0">#</th>
-              <th className="border-0">Traffic Source</th>
-              <th className="border-0">Source Type</th>
-              <th className="border-0">Category</th>
-              <th className="border-0">Global Rank</th>
-              <th className="border-0">Traffic Share</th>
-              <th className="border-0">Change</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageTraffic.map(pt => <TableRow key={`page-traffic-${pt.id}`} {...pt} />)}
-          </tbody>
-        </Table>
-      </Card.Body>
-    </Card>
-  );
-};
-
-export const RankingTable = () => {
-  const TableRow = (props) => {
-    const { country, countryImage, overallRank, overallRankChange, travelRank, travelRankChange, widgetsRank, widgetsRankChange } = props;
-
-    return (
-      <tr>
-        <td className="border-0">
-          <Card.Link href="#" className="d-flex align-items-center">
-            <Image src={countryImage} className="image-small rounded-circle me-2" />
-            <div><span className="h6">{country}</span></div>
-          </Card.Link>
-        </td>
-        <td className="fw-bold border-0">
-          {overallRank ? overallRank : "-"}
-        </td>
-        <td className="border-0">
-          <ValueChange value={overallRankChange} />
-        </td>
-        <td className="fw-bold border-0">
-          {travelRank ? travelRank : "-"}
-        </td>
-        <td className="border-0">
-          <ValueChange value={travelRankChange} />
-        </td>
-        <td className="fw-bold border-0">
-          {widgetsRank ? widgetsRank : "-"}
-        </td>
-        <td className="border-0">
-          <ValueChange value={widgetsRankChange} />
-        </td>
-      </tr>
-    );
-  };
-
-  return (
-    <Card border="light" className="shadow-sm">
-      <Card.Body className="pb-0">
-        <Table responsive className="table-centered table-nowrap rounded mb-0">
-          <thead className="thead-light">
-            <tr>
-              <th className="border-0">Country</th>
-              <th className="border-0">All</th>
-              <th className="border-0">All Change</th>
-              <th className="border-0">Travel & Local</th>
-              <th className="border-0">Travel & Local Change</th>
-              <th className="border-0">Widgets</th>
-              <th className="border-0">Widgets Change</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageRanking.map(r => <TableRow key={`ranking-${r.id}`} {...r} />)}
-          </tbody>
-        </Table>
-      </Card.Body>
-    </Card>
-  );
-};
 
 /*
 Поле ввода данных на форме LLFIFld ( Label Left From Input Field )вида:  
@@ -301,20 +70,17 @@ const LLFIFld = ( { ctrlId, editMode, type, label, value, placeholder, onChange 
 принимает на вход запись формата Participant.GetSchema
 editMode - true если режим редактирования
 */
-const ParticipantRole =( {editMode, pState } )=>{
-  const form_select = <Form.Select aria-label="Default select example" {...pState.role} >
-                          <option>Не выбрано</option>
-                          <option value="follower">follower</option>
-                          <option value="leader">leader</option>
-                      </Form.Select>
-                        
-  const form_input = <Form.Control type="input" {...pState.role} readOnly />
-
+const ParticipantRole =( props )=>{
+  const {value, onChange, name } = props
   return (
     <Form.Group as={Row} className="mb-1" controlId="pForm.role">
       <Form.Label column sm={3}>Роль в паре</Form.Label>
         <Col sm={9}>
-        { editMode ? form_select : form_input }
+          <Form.Select aria-label="Default select example" name={name} value={value} onChange={onChange} >
+            <option>Не выбрано</option>
+            <option value="follower">follower</option>
+            <option value="leader">leader</option>
+          </Form.Select>
         </Col>
     </Form.Group>
   )
@@ -330,10 +96,31 @@ const ParticipantRole =( {editMode, pState } )=>{
  ---------------------------------------------------------------
  принимает на вход запись формата Participant.GetSchema
 */
+const Sums =( props )=>{
+  const { editMode } = props
+  return (
+    <Form.Group as={Row} className="mb-1" controlId="eForm.Sums">
+      <Form.Label column sm={3}>К оплате</Form.Label>
+        <Col sm={3}>
+          <Field as={Form.Control} readOnly={!editMode} name="price" placeholder="К оплате" 
+                  label="К оплате" />
+        </Col>
+        <Form.Label column sm={3}>Оплачено</Form.Label>
+        <Col sm={3}>
+          <Field as={Form.Control} readOnly={!editMode} name="paid" placeholder="Оплачено" 
+                 label="Оплачено" /> 
+        </Col>
+    </Form.Group>
+  )
+}
+
+/*
 const Sums =( { pState} )=>{
   return (
     <Form.Group as={Row} className="mb-1" controlId="ParticipantForm.Sums">
-      <Form.Label column sm={3}>К оплате</Form.Label>
+    <Field as={InputLine} editMode={editMode} name="club" placeholder="Клуб участника" ctrlId="eForm.club" label="Клуб" />
+
+        <Form.Label column sm={3}>К оплате</Form.Label>
         <Col sm={3}>
           <Form.Control type="input" {...pState.price} readOnly />
         </Col>
@@ -344,6 +131,8 @@ const Sums =( { pState} )=>{
     </Form.Group>
   )
 }
+
+*/
 
 /*
 Номер и дата регистрации в одной строке на форме
@@ -374,67 +163,6 @@ const NumAndRegistration =( { editMode, pState } )=>{
   )
 }
 
-/* 
-Пользовательский хук для связи списка элементов ключ:значение передаваемых в объекте initialValue 
-возвращает новый объект в котором каждое свойство, это свойство из объекта initialValue, а значение
-это объект состоящий из значения в которое помещается значение из поля ввода и функции обработчика
-помещающей это значение из поля ввода при какждом изменение в поле ввода
-возвращает  { initiaValue.key: {value, onChange}, }
-в onChange одновременно копируется новое значение в объект initvalue
-*/
-const useObjInput = initialValue => {
-  const useMakeState = ( val, key ) => {
-    const [value, setValue] = useState(val)
-   return { value, onChange: e => { 
-      switch( typeof(val) ){
-         case "number": 
-            const tmpInt =  parseInt(e.target.value)
-            initialValue[key] = tmpInt 
-            setValue(tmpInt)
-            break
-            /*
-         case "bigint": 
-            const tmp =  parseBigInt(e.target.value)
-            initialValue[key] = tmp 
-            setValue(tmp)
-            break
-         case "boolean": 
-            const tmpFloat =  parseFloat(e.target.value)
-            initialValue[key] = tmpFloat
-            setValue(tmpFloat)
-            break*/
-         default:
-            initialValue[key] = e.target.value
-            setValue(e.target.value)
-            break
-
-      } 
-      //if( key === 'num')
-      //  console.log( `num in onChange=${initialValue[key]} type_num=${typeof(initialValue[key])}` ) 
-    } }
-  }
-  return R.mapObjIndexed( useMakeState, initialValue ) //=> { initiaValue.key: {value, onChange}, }
-}
-
-/*
-function TabsExample() {
-  return (
-    <Nav variant="tabs" defaultActiveKey="/home">
-      <Nav.Item>
-        <Nav.Link href="/home">Active</Nav.Link>
-      </Nav.Item>
-      <Nav.Item>
-        <Nav.Link eventKey="link-1">Option 2</Nav.Link>
-      </Nav.Item>
-      <Nav.Item>
-        <Nav.Link eventKey="disabled" disabled>
-          Disabled
-        </Nav.Link>
-      </Nav.Item>
-    </Nav>
-  );
-}
-*/
 
 /* Вкладки на диалоге редактирования участников
 */
@@ -612,6 +340,68 @@ const ParticipantForm=({ editMode, pState })=>{
 *     true - режим редактирования данных, в этом режиме при нажатии кнопки сохранить данные меняются
 *   setEditMode - перевести в режим редактирования или снять его
 */
+export const ParticipantDlg = ( { hookShowDlg, hookChgParticipants } )=>{
+  const [showDlg, setShowDlg] = hookShowDlg
+  // перевод в режим редактирования диалога просмотра события
+  // false - режим просмотра, без изменения данных
+  // true - режим редактирования данных, в этом режиме при нажатии кнопки сохранить данные меняются
+  const initEditMode = R.isNil(showDlg.editRec.pkID)? true : false
+  const [editMode, setEditMode] = useState(initEditMode)
+  const [changed, setChanged] = hookChgParticipants
+
+  // обработка закрытия формы
+  const handleClose = () => {
+    setShowDlg( {showDlg:false, editRec:{}} )
+  }
+ 
+  // сохранить участника
+  const saveEvent = ( values )=>{
+    // собрать данные с формы и записать или вставить
+    console.log(values)
+    Participant.upsert(values, ()=>setChanged(!changed) )
+    handleClose()
+  }
+
+  return (
+    <Formik initialValues={ {...showDlg.editRec} }  
+            onSubmit={saveEvent} >
+     { (props)=>(
+        <Form as={FormikForm}> 
+          {/*console.log(props)*/}
+          <Modal as={Modal.Dialog} show={true} onHide={handleClose} size="md" >
+            <Modal.Header className="py-1" as={Row} >
+              <Col sm={8}>
+                <Modal.Title className="h5">Карточка участника</Modal.Title>
+              </Col>
+              <Col sm={3} className="d-flex justify-content-end" >
+                <EditButton hookEdit={[editMode, setEditMode]} onSubmit={props.handleSubmit}/>
+              </Col>
+              <Col sm={1} className="d-flex justify-content-end" >
+                <Button className="m-0 py-2" variant="close" aria-label="Close" onClick={handleClose} />
+              </Col>
+            </Modal.Header>
+            <Modal.Body className="py-1">
+                <Field as={InputLine} editMode={editMode} name="surname" placeholder="Фамилия участника" ctrlId="eForm.surname" label="Фамилия" />
+                <Field as={InputLine} editMode={editMode} name="name" placeholder="Имя участника" ctrlId="eForm.name" label="Имя" />
+                <Field as={InputLine} editMode={editMode} name="patronymic" placeholder="Отчество участника" ctrlId="eForm.patronymic" label="Отчество" />
+                <Field as={InputLine} editMode={editMode} name="club" placeholder="Клуб участника" ctrlId="eForm.club" label="Клуб" />
+                <Field as={InputLine} editMode={editMode} name="phone" placeholder="Телефон участника" ctrlId="eForm.phone" label="Телефон" />
+                <Field as={InputLine} editMode={editMode} name="email" placeholder="email участника" ctrlId="eForm.email" label="email" />
+                { !editMode && <Field as={InputLine} editMode={editMode} name="role" placeholder="Роль участника" ctrlId="eForm.role" label="Роль в паре" /> }
+                { editMode && <Field as={ParticipantRole} editMode={editMode} name="role" /> }
+                <Sums editMode={editMode} ctrlId="eForm.sums"/>
+                
+                <Field as={InputComment} editMode={editMode} name="comment" />
+            </Modal.Body>
+          </Modal>
+        </Form>
+      )}     
+    </Formik>
+
+    )
+
+}
+/*
 export const ParticipantDlg = ( { hookShowDlg, hookEdit, participant } )=>{
   const [, setShowDlg] = hookShowDlg
   const [editMode, setEditMode] = hookEdit
@@ -660,12 +450,13 @@ return (
   </Modal.Header>
   <Modal.Body className="py-1">
     <ControlledTabsParticipant  editMode={editMode} pState={pState} />
-    {/*<ParticipantForm editMode={editMode} pState={pState}/>*/}
+    {/*<ParticipantForm editMode={editMode} pState={pState}/>*
   </Modal.Body>
 </Modal>
 )
 
 }
+*/
 
 /*
 Получение списка участников
@@ -677,8 +468,6 @@ price - сумма оплаты, paid - оплачено
 состояние оплаты(status) - success - полностью оплачено, 
 */
 export const ParticipantTable = ( props ) => {
-  console.log("перерисовываю participantы table")
-
   const { partyID } = useParams()
   console.log("перерисовываю participantы table partyID=" + partyID)
 
@@ -693,7 +482,7 @@ export const ParticipantTable = ( props ) => {
   const [participants, setParticipants] = useState([])
 
   useEffect(() => {
-    console.log("вызываю Participant.lisе с partyID=" + partyID)
+    //console.log("вызываю Participant.lisе с partyID=" + partyID)
 
     // получить список  участников в соответствии с фильтрацией
     const filter = { searchStr : props.searchStr, fkParty: partyID }
@@ -710,7 +499,7 @@ export const ParticipantTable = ( props ) => {
     }
   }
 
-  //удалить междусобойчик по id и вызвать обновление списка  междусобойчиков
+  //удалить участника по id и вызвать обновление списка
   const doRemoveByID = id =>{
     return ()=>{
       Participant.remove( { ids:[id], fkParty: partyID }, 
@@ -846,9 +635,8 @@ const recHdl = ( rec, frmt  )=>{
 
   return (
     <Card border="light" className="table-wrapper table-responsive shadow-sm">
-      {/* showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]} 
-                                           hookEdit={[editMode,setEditMode]}
-  participant={readParticipant(showDlg.currPid)} /> */} 
+      {showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]}
+                                          hookChgParticipants={[changed, setChanged]} /> }
       <Card.Body className="pt-0 pb-1 px-2">
         <Table hover className="user-table align-items-center">
             <thead>

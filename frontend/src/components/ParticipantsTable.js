@@ -4,66 +4,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {  faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import {  Col, Row, Card, Button, Table, Dropdown, 
           Modal, ButtonGroup, Container, Form, Tab, Tabs } from '@themesberg/react-bootstrap';
-          import { Formik, Form as FormikForm, Field } from 'formik'
+import { Formik, Form as FormikForm, Field } from 'formik'
+import { useParams } from "react-router-dom";
+import * as R from 'ramda'
 
-
-import { ParticipantEvent } from "../data/participants";
-import { Participant } from "../data/participant";
-import {InputLine} from "./InputLine"
+import { ParticipantEvent } from "../data/participants"
+import { Participant } from "../data/participant"
+import { InputLine } from "./InputLine"
 import { InputComment } from "./InputComment"
 import { EditButton } from "./EditButton"
-
-
 import { makePlainObjByIdx, mapRSet, makePlainObj, changeNullValueToEmptyStr  } from "../lib/record"
-import { useParams } from "react-router-dom";
-//import { placeholder } from "@babel/types";
-//import { N } from "ts-toolbelt";
-const R = require('ramda');
-
-
-export const readParticipant=( )=>{
-  console.log("readPart")
-  alert('код для чтения участников не написан')
-  /*
-  let p = Participant.read(getPartyID(), pid )
-  if( R.isNil(p) )
-    return createParticipant()
-  return calcExtFldParticipant(p) 
-  */
-}
-
-/*
-Поле ввода данных на форме LLFIFld ( Label Left From Input Field )вида:  
- ______________форма _____________
-|   ________     _____________    |
-|  | Label  |   | Input Field |   |
-|   --------     -------------    |
-|  | Label  |   | Input Field |   |
-|   --------     -------------    |
-|                                 |
- ---------------------------------
-ctrlId - уникальный идентификатор поля ввод
-label - заголовок поля ввода
-type - html тип поля ввода
-value - значение поля ввода
-placehiledr - подсказка в поле ввода
-*/
-const LLFIFld = ( { ctrlId, editMode, type, label, value, placeholder, onChange } )=>{
-  const type_elem = R.isNil(type) ? "input" : type;
-  return (
-    <Form.Group as={Row} className="mb-1" controlId={ctrlId}>
-      <Form.Label column sm={3}>{label}</Form.Label>
-      <Col sm={9}>
-        <Form.Control type={type_elem} value={value} 
-                  placeholder={placeholder} readOnly={!editMode} onChange={onChange}/>
-{/*}
-        <Form.Control type={type_elem} defaultValue={value} 
-                  placeholder={placeholder} readOnly={!editMode}  onChange={onChange}/>
-  */}
-      </Col>
-    </Form.Group>
-  )
-}
 
 /*
 Поле для редактирования роли участника
@@ -71,7 +21,7 @@ const LLFIFld = ( { ctrlId, editMode, type, label, value, placeholder, onChange 
 editMode - true если режим редактирования
 */
 const ParticipantRole =( props )=>{
-  const {value, onChange, name } = props
+  const { value, onChange, name } = props
   return (
     <Form.Group as={Row} className="mb-1" controlId="pForm.role">
       <Form.Label column sm={3}>Роль в паре</Form.Label>
@@ -115,26 +65,6 @@ const Sums =( props )=>{
 }
 
 /*
-const Sums =( { pState} )=>{
-  return (
-    <Form.Group as={Row} className="mb-1" controlId="ParticipantForm.Sums">
-    <Field as={InputLine} editMode={editMode} name="club" placeholder="Клуб участника" ctrlId="eForm.club" label="Клуб" />
-
-        <Form.Label column sm={3}>К оплате</Form.Label>
-        <Col sm={3}>
-          <Form.Control type="input" {...pState.price} readOnly />
-        </Col>
-        <Form.Label column sm={3}>Оплачено</Form.Label>
-        <Col sm={3}>
-          <Form.Control type="input" {...pState.paid} readOnly />
-        </Col>
-    </Form.Group>
-  )
-}
-
-*/
-
-/*
 Номер и дата регистрации в одной строке на форме
  ________________форма _______________
 |   ________         ________         |
@@ -148,21 +78,21 @@ const Sums =( { pState} )=>{
  editMode - true - элемент в режиме редактирования
 */
 
-const NumAndRegistration =( { editMode, pState } )=>{
+const NumAndRegistration =( props )=>{
+  const { editMode } = props
   return (
-    <Form.Group as={Row} className="mb-1" controlId="ParticipantForm.Num">
+    <Form.Group as={Row} className="mb-1" controlId="eForm.num">
       <Form.Label column sm={3}>Номер</Form.Label>
         <Col sm={2}>
-          <Form.Control type="input" {...pState.num} readOnly={!editMode} pattern="\d*" />
+          <Field as={Form.Control} readOnly={!editMode} name="num" pattern="\d*" />
         </Col>
         <Form.Label  column sm={2}>Регистр.</Form.Label>
         <Col sm={5}>
-          <Form.Control type="datetime" {...pState.regDateStr}  readOnly={!editMode} />
+          <Field as={Form.Control} readOnly={!editMode} name="dtReg" type="datetime" />
         </Col>
     </Form.Group>
   )
 }
-
 
 /* Вкладки на диалоге редактирования участников
 */
@@ -272,15 +202,8 @@ const ListEventOfParticipant=( props )=>{
  * editMode = true - форма в режиме редактирования
  * curPid - идентификатор текущей записи, может быть null 
  */
-const ParticipantForm=({ editMode, pState })=>{
-  const data = [ ["pForm.surname", "input", "Фамилия", "Фамилия участника", pState.surname ],
-                 ["pForm.name","input","Имя","Имя участника", pState.name ],
-                 ["pForm.patronymic","input","Отчество","Отчество участника", pState.patronymic ],
-                 ["pForm.club","input","Клуб","Клуб участника", pState.club ],
-                 ["pForm.phone","tel","Телефон","Телефон участника", pState.phone ],
-                 ["pForm.email","email","email","email участника", pState.email ],
-               ]
-/*
+const ParticipantForm=()=>{
+  /*
   return (
       <Form>
         <Form.Group as={Row} >
@@ -304,21 +227,6 @@ const ParticipantForm=({ editMode, pState })=>{
   )
 */
 
-
-  return (
-    <Form>
-      <NumAndRegistration editMode={editMode} pState={pState} />
-      { data.map( arr => { return ( <LLFIFld editMode={editMode} key={arr[0]} ctrlId={arr[0]} type={arr[1]} 
-                                     label={arr[2]} placeholder={arr[3]} {...arr[4]} />) }  ) }
-    
-      <ParticipantRole  editMode={editMode} pState={pState} />
-      <Sums pState={pState}/>
-      <Form.Group className="mb-2" controlId="pForm.comment">
-        <Form.Control as="textarea" rows={3} placeholder="Комментарий" 
-        {...pState.comment} readOnly={!editMode} />
-      </Form.Group>
-    </Form>
-)
 
 }
 
@@ -381,6 +289,7 @@ export const ParticipantDlg = ( { hookShowDlg, hookChgParticipants } )=>{
               </Col>
             </Modal.Header>
             <Modal.Body className="py-1">
+                <NumAndRegistration editMode={editMode} />
                 <Field as={InputLine} editMode={editMode} name="surname" placeholder="Фамилия участника" ctrlId="eForm.surname" label="Фамилия" />
                 <Field as={InputLine} editMode={editMode} name="name" placeholder="Имя участника" ctrlId="eForm.name" label="Имя" />
                 <Field as={InputLine} editMode={editMode} name="patronymic" placeholder="Отчество участника" ctrlId="eForm.patronymic" label="Отчество" />
@@ -390,7 +299,6 @@ export const ParticipantDlg = ( { hookShowDlg, hookChgParticipants } )=>{
                 { !editMode && <Field as={InputLine} editMode={editMode} name="role" placeholder="Роль участника" ctrlId="eForm.role" label="Роль в паре" /> }
                 { editMode && <Field as={ParticipantRole} editMode={editMode} name="role" /> }
                 <Sums editMode={editMode} ctrlId="eForm.sums"/>
-                
                 <Field as={InputComment} editMode={editMode} name="comment" />
             </Modal.Body>
           </Modal>
@@ -508,34 +416,12 @@ export const ParticipantTable = ( props ) => {
     }
   }
 
-
-  /*
-  // changed = true если данные участников поменялись
-  const [ changed, setState ] = useState(false)
-  // показывать или нет диалог просмотра участника
-  // showDlg - показать диалог редактирования, currPid - pid участника для редактирования
-  const [showDlg, setShowDlg] = useState({showDlg:false,currPid:null});
-  // перевод в режим редактирования диалог просмотра участника
-  const [editMode, setEditMode] = useState(false);
-  // получить список участников в соответствии с фильтрацией
-  const filter = { searchStr : props.searchStr }
-  const participants = Participant.listMain(getPartyID(), filter)
-  */
   const totalParticipants = participants.length
 
-/*
-  //удалить участника по pid и вызвать обновление списка участников
-  const doRemoveParticipant = (pid)=>{
-    return (_)=>{
-      Participant.remove(getPartyID(),pid);
-      setState(!changed);
-    }
+  const recHdl = ( rec, frmt  )=>{
+      const pobj = makePlainObj(rec,frmt)
+      return <TableRow key={`participant-${pobj.pkID}`} {...pobj} />
   }
-*/
-const recHdl = ( rec, frmt  )=>{
-    const pobj = makePlainObj(rec,frmt)
-    return <TableRow key={`participant-${pobj.pkID}`} {...pobj} />
-}
 
   const TableRow = (props) => {
     const { pkID, num, surname, patronymic, name, club, dtReg, role, phone, email, price, paid } = props;

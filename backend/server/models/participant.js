@@ -42,22 +42,86 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
                                 ['dtReg','t'], ['role','s'],
                                 ['price','n'], ['paid','n'], ['comment','s'] ] ) 
 
-    const newRec = {   name:"", suranme:"", patronymic:"", dtReg: PartyDate.getCurrDate(), phone:"",
-                club: "", email: "", role: "leader", price:0, paid: 0, comment:"", ...initRec }
-    if( R.isNotNil(insImmediatly) && insImmediatly === true ){
-        const respIns = ( err, id )=>{
-            if( R.isNotNil(err) ){
-                respHdl(err, null)
-                return
+    const nextNumWrapper = ( err, nextNum )=>{
+        const newRec = { num: nextNum, name:"", surname:"", patronymic:"", dtReg: PartyDate.getCurrDate(), phone:"",
+                         club: "", email: "", role: "leader", price:0, paid: 0, comment:"", ...initRec }
+
+        if( R.isNotNil(insImmediatly) && insImmediatly === true ){
+            const respIns = ( err, id )=>{
+                if( R.isNotNil(err) ){
+                    respHdl(err, null)
+                    return
+                }
+                //console.log( `id=${id}`)
+                list( {filter:{ ids:[id] }, ord:null, nav:null }, respHdl )
             }
-            //console.log( `id=${id}`)
-            list( {filter:{ ids:[id] }, ord:null, nav:null }, respHdl )
+            insert( newRec, respIns ) 
+        } else {
+            addRecord( rs, newRec )
+            respHdl(null, rs)
         }
-        insert( newRec, respIns ) 
-    } else {
-        addRecord( rs, newRec )
-        respHdl(null, rs)
     }
+    getNextNum( initRec.fkParty, nextNumWrapper )
+}
+
+/*
+* Каждый участник может иметь уникальный номер, необходимый для выступлений. Кто - то может и не хотеть.
+* все номера в пределах междусобойчика уникальный т.е. уникальность соблюдается при одном и том же fkParty
+* так как участников всегда немного обычно менее сотни, то вполне генерацию номера можно делать на стороне клиента
+* единственная проблема, можно сформировать один и тот же номер
+* свободныt незанятых отсортированных в порядке возрастания номеров участников для каждого междусобойчика
+   междусобойчики различаются gid - ом
+   номера - положительные числа начинающиеся с 1
+формат:
+{
+    <gid>: [список свободных номеров междусобойчика],
+}
+ элемент списка свободных номеров междусобойчика это следующий номер после максимального используемого участником
+в междусобойчике
+*
+// минимальный стартовый номер участника междусобойчика
+const startNum = () => 1
+function initNum( gid ){
+    return R.compose( R.reduce( R.max, startNum()), R.map((elem)=>elem.num),
+                     R.filter( R.whereEq({ gid: gid} ) ) ) (participants) + 1
+}
+// так как номера ограничены, их могут вообще печатать заранее, мы не можем ими разбрасываться
+let gFreeNums = {}
+// следующий максимальный номер после максимального уже используемого участником
+function getFreeNum(gid){
+    if( R.isNil(gid) )
+        return null;
+    let freeNums = gFreeNums[gid]
+    if( R.isNil(freeNums) )
+    {
+        freeNums=[initNum(gid)]
+        gFreeNums[gid]=freeNums
+    }
+    const freeNum = freeNums.shift()
+    if( R.isEmpty(freeNums) )
+        freeNums.push(freeNum + 1)
+    console.log(`freeNum=${freeNum}`)
+    return freeNum
+}
+
+// вернуть неиспользумый номер в список свободных номеров
+function addUnusedNum( gid, num ){
+    if( R.isNil(gid) || R.isNil(num) || num <= 0 )
+        return
+    let freeNums = gFreeNums[gid]
+    if( R.isNil(freeNums) )
+        gFreeNums[gid]=[num]
+    else
+        freeNums.unshift(num)
+}
+
+*/
+
+/*
+* Получить следующий номер участника
+*/
+function getNextNum ( fkParty, respHdl ){
+    DBParticipant.getNextNum( fkParty, respHdl )
 }
 
 /**

@@ -15,6 +15,7 @@ function makePostResponseOK(result) {
   };
 }
 function makePostResponseError(msg, error_uuid) {
+  console.log(msg);
   return {
     r: null,
     e: {

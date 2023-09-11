@@ -24,7 +24,7 @@ var createParty = "create table party(\npkID integer primary key,\nfkClient int,
 var createEvent = "create table event_party(\npkID integer primary key,\nfkTypeEvent int,\nfkParty int not null,\ndtStart int,\nfree int,\nname text,\ndescription text)";
 var createTypeEvent = "create table type_event(\npkID integer primary key,\nid text,\nname text,\ndescription text)";
 var createPricesEvent = "create table price_event(\npkID integer primary key,\nname text,\nprice real)";
-var createParticipant = "create table participant(\npkID integer primary key,\nname text,\nfkParty int not null,\nnum int,\nsurname text,\npatronymic text,\nphone text,\nemail text,\ndtReg int,\nclub text,\nrole text,\nprice real,\npaid real,\ncomment text )";
+var createParticipant = "create table participant(\npkID integer primary key,\nname text,\nfkParty int not null,\nnum int,\nsurname text,\npatronymic text,\nphone text,\nemail text,\ndtReg int,\nclub text,\nrole text,\nprice real,\npaid real,\ncomment text,\nunique (fkParty,num) )";
 var initParticipantTable = "insert into participant( name, fkParty, num, surname, patronymic, phone, email, dtReg, club, role, price, paid, comment)\nvalues ( $name, $fkParty, $num, $surname, $patronymic, $phone, $email, $dtReg, $club, $role, $price, $paid, $comment)";
 
 /* Генерируем данные
@@ -474,12 +474,27 @@ function makeParticipant() {
     }
     db.run(query, arg, onSuccess);
   }
+
+  /* Получить следующий свободный номер для участника междусобойчика, наивная реализация, но отработает в 99%
+  */
+  function getNextNum(fkParty, respHdl) {
+    var getRow = function getRow(err, row) {
+      if (err) {
+        respHdl(err, null);
+      } else {
+        respHdl(err, R.isNotNil(row) ? row.num : 1);
+      }
+    };
+    var query = "select max(num) + 1 as num\n                    from participant\n                    where fkParty = ".concat(fkParty);
+    db.get(query, getRow);
+  }
   return Object.freeze({
     list: list,
     read: read,
     remove: remove,
     insert: insert,
-    update: update
+    update: update,
+    getNextNum: getNextNum
   });
 }
 var DBParty = makeParty();

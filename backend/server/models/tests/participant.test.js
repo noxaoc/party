@@ -146,6 +146,7 @@ test("Participant.init({initRec: initRec, method:list, insImmediatly: false })",
         expect( rec.name ).toEqual("Беларусь")
         expect( rec.fkParty ).toEqual(1)
         expect( rec.pkID ).toBeUndefined()
+        expect( rec.num).toEqual(23)
     }
     Participant.init( initRec, makeHdl( done, checkF) )
 })

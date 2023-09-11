@@ -9,6 +9,7 @@ function  makePartyService(){
     
     function post( method,  rec, setResult, setError ){
         console.log(method)
+        console.log( rec )
         const defaultErrHdl = ( err ) => {
             console.log( `Ошибка ${err.message} вызова ${method}`)
         }

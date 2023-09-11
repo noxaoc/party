@@ -32,7 +32,7 @@ filter = {
 
 */    
 function  list( filter, ord, nav, setResult, setError  ){     
-PartyService.post( "/Participant/list",{ "filter": filter, "ord":ord,"nav":nav}, setResult, setError)
+PartyService.post( "/participant/list",{ "filter": filter, "ord":ord,"nav":nav}, setResult, setError)
 }
 
 /* Получит информацию о конкретном участнике
@@ -42,7 +42,7 @@ PartyService.post( "/Participant/list",{ "filter": filter, "ord":ord,"nav":nav},
 }
 */
 function read( filter, setResult, setError ){
-    PartyService.post( "/Participant/read",{ "filter": filter}, setResult, setError)
+    PartyService.post( "/participant/read",{ "filter": filter}, setResult, setError)
 }
 
 /*
@@ -54,7 +54,7 @@ function read( filter, setResult, setError ){
 * Возвращает: запись формата метода чье имя передано в method
 */
 function  init( rec, setResult, setError  ){     
-    PartyService.post( "/Participant/init",{ ...rec }, setResult, setError)
+    PartyService.post( "/participant/init",{ ...rec }, setResult, setError)
 }
     
 
@@ -69,7 +69,7 @@ function  init( rec, setResult, setError  ){
 curl -i -H 'Content-Type: application/json;charset=utf-8' -d '{"filter":{"pid":1, "ids":[1,2]}}' http://localhost:3333/party/Participant/list
 */  
 function remove( rec, setResult, setError ){
-    PartyService.post( "/Participant/remove", rec, setResult, setError)
+    PartyService.post( "/participant/remove", rec, setResult, setError)
 }
 
 /* Добавить запись об участнике междусобойчика   
@@ -77,7 +77,7 @@ function remove( rec, setResult, setError ){
 * @param {*}  setResult будет передан pkID добавленной записи
 */ 
 function insert( rec, setResult, setError ){
-    PartyService.post( "/Participant/insert",  { ...rec, ...getChgFlds(rec) }, setResult, setError)
+    PartyService.post( "/participant/insert",  { ...rec, ...getChgFlds(rec) }, setResult, setError)
 }
 
 /* Обновить запись о событии междусобойчика   
@@ -85,7 +85,7 @@ function insert( rec, setResult, setError ){
 * @param {*} setResult будет передано ко-во обновленных записей, т.е. единица
 */ 
 function update( rec, setResult, setError ){
-    PartyService.post( "/Participant/update",  { ...rec, ...getChgFlds(rec) } , setResult, setError)
+    PartyService.post( "/participant/update",  { ...rec, ...getChgFlds(rec) } , setResult, setError)
 }
 
 /**

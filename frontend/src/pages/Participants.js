@@ -11,12 +11,14 @@ import { Button, ButtonGroup, Dropdown } from '@themesberg/react-bootstrap';
 import { ParticipantTable } from "../components/ParticipantsTable";
 import { Participant } from "../data/participant"
 import { makePlainObjByIdx } from "../lib/record";
+import { useParams } from "react-router-dom";
 
 export default ( props ) => {
   // showDlg - показать диалог создания междусобойчика, editRec - редактируемая запись
+  const { partyID } = useParams()
   const [showDlg, setShowDlg] = useState({showDlg:false,editRec:{}});
   const onClickCreateParticipant = ()=>{
-      Participant.init( { initRec:{}, method: "Participant.list" }, 
+      Participant.init( { initRec:{fkParty:partyID}, method: "Participant.list" }, 
                       result =>setShowDlg( {showDlg:true, editRec:makePlainObjByIdx(result) } ) )
   }
    /*

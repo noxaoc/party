@@ -63,7 +63,8 @@ club text,
 role text,
 price real,
 paid real,
-comment text )`
+comment text,
+unique (fkParty,num) )`
 
 
 
@@ -632,12 +633,30 @@ function onSuccess (err){
 }
 db.run( query, arg, onSuccess )
 }
+
+/* Получить следующий свободный номер для участника междусобойчика, наивная реализация, но отработает в 99%
+*/
+function getNextNum( fkParty, respHdl ){
+    const getRow = (err, row )=>{
+        if( err ) {
+            respHdl( err, null )
+        } else { 
+            respHdl( err, R.isNotNil(row) ? row.num : 1 )
+        }
+    }
+    const query  = `select max(num) + 1 as num
+                    from participant
+                    where fkParty = ${fkParty}` 
+    db.get(query, getRow )
+}
+    
     return Object.freeze({
         list,
         read,
         remove,
         insert,
-        update
+        update,
+        getNextNum
     });
 }
 

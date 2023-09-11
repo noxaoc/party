@@ -203,6 +203,7 @@ describe("Participant.init", function () {
       expect(rec.name).toEqual("Беларусь");
       expect(rec.fkParty).toEqual(1);
       expect(rec.pkID).toBeUndefined();
+      expect(rec.num).toEqual(23);
     };
     _participant.Participant.init(initRec, (0, _testhdl.makeHdl)(done, checkF));
   });

@@ -8,7 +8,7 @@ import { PartyDate } from '../../lib/partyday.js'
 
 
 test("DBEventParty.update(rec}", done => {
-    const rec = { pkID:1, name:"Cултаны Свинга 2025", dtStart: PartyDate.toTS('13.09.23 11:00:00'), 
+    const rec = { pkID:1, name:"Cултаны Свинга 2025", dtStart: PartyDate.toTS('13.09.23 11:00:00'), fkParty: 1,
                   description: "Супер соревнования" }
     const resHdl = ( err, updated )=>{
         if( err ){

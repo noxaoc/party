@@ -4,12 +4,11 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DBTypeEventParty = exports.DBParty = exports.DBParticipant = exports.DBEventParty = void 0;
+exports.DBTypeEventParty = exports.DBTest = exports.DBParty = exports.DBParticipantEvent = exports.DBParticipant = exports.DBEventParty = void 0;
 exports.doTestSQL = doTestSQL;
 var R = _interopRequireWildcard(require("ramda"));
 var _partyday = require("../../lib/partyday");
 var _record = require("../../lib/record");
-var _files = require("@babel/core/lib/config/files");
 var _testdata = require("../tests/testdata");
 var _errors = require("../lib/errors");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -18,13 +17,16 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 Создание схемы базы "Междусобойчика" в sqlite
 */
 
+//import { resolveShowConfigPath } from '@babel/core/lib/config/files';
+
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(':memory:');
 var createParty = "create table party(\npkID integer primary key,\nfkClient int,\ndtStart int,\ndtEnd int,\nname text,\ndescription text,\nplace text,\noutgoing float,\npayment float,\nprofit float\n)";
-var createEvent = "create table event_party(\npkID integer primary key,\nfkTypeEvent int,\nfkParty int not null,\ndtStart int,\nfree int,\nname text,\ndescription text)";
+var createEvent = "create table event_party(\npkID integer primary key,\nfkTypeEvent int,\nfkParty int not null,\ndtStart int,\nfree int,\nname text,\ndescription text,\nforeign key ( fkParty ) references Party ( pkID ))";
 var createTypeEvent = "create table type_event(\npkID integer primary key,\nid text,\nname text,\ndescription text)";
 var createPricesEvent = "create table price_event(\npkID integer primary key,\nname text,\nprice real)";
-var createParticipant = "create table participant(\npkID integer primary key,\nname text,\nfkParty int not null,\nnum int,\nsurname text,\npatronymic text,\nphone text,\nemail text,\ndtReg int,\nclub text,\nrole text,\nprice real,\npaid real,\ncomment text,\nunique (fkParty,num) )";
+var createParticipant = "create table participant(\npkID integer primary key,\nname text,\nfkParty int not null,\nnum int,\nsurname text,\npatronymic text,\nphone text,\nemail text,\ndtReg int,\nclub text,\nrole text,\nprice real,\npaid real,\ncomment text,\nunique ( fkParty, num ),\nforeign key ( fkParty ) references Party ( pkID ) )";
+var createParticipantEvent = "create table participant_event(\npkID integer primary key,\nfkEvent int,\nfkParticipant int,\nfkParty int,\nprice real,\nrole text,\ncomment text,\nforeign key ( fkParty ) references party ( pkID ),\nforeign key ( fkEvent, fkParty ) references event_party ( pkID, fkParty ),\nforeign key ( fkParticipant, fkParty ) references participant ( pkID, fkParty ) )";
 var initParticipantTable = "insert into participant( name, fkParty, num, surname, patronymic, phone, email, dtReg, club, role, price, paid, comment)\nvalues ( $name, $fkParty, $num, $surname, $patronymic, $phone, $email, $dtReg, $club, $role, $price, $paid, $comment)";
 
 /* Генерируем данные
@@ -33,33 +35,77 @@ var initPartyTable = "insert into party( name, place, dtStart, dtEnd, outgoing, 
 var initTypeEventTable = "insert into type_event( id, name ) \nvalues ( 'party', '\u0412\u0435\u0447\u0435\u0440\u0438\u043D\u043A\u0430' ),\n       ( 'lesson', '\u041B\u0435\u043A\u0446\u0438\u044F' ),\n       ( 'competition', 'C\u043E\u0440\u0435\u0432\u043D\u043E\u0432\u0430\u043D\u0438\u0435'),\n       ( 'masterClass', '\u041C\u0430\u0441\u0442\u0435\u0440-\u043A\u043B\u0430\u0441\u0441')";
 var initPricesTable = "insert into price_event( 'name', 'price' ) \nvalues ( '\u0411\u0430\u0437\u043E\u0432\u0430\u044F \u0434\u043E 12.02.23', 20000 ),\n       ( \"\u0411\u0430\u0437\u043E\u0432\u0430\u044F \u043F\u043E\u0441\u043B\u0435 12.02.23\", 23000 )";
 var initEventTable = "insert into event_party( 'name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty' ) \n        values ( 'Mix&Match Kids', '\u0422\u0435\u043C\u043F 32-38 bpm', \n                 ".concat(_partyday.PartyDate.toTS('13.06.23 11:00:00'), ", \n                 (select pkID from type_event where id = 'competition'), \n                 (select pkID from party where name = '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' )),\n               ( 'Strictly Kids', '\u0422\u0435\u043C\u043F 40-42 bpm', \n                ").concat(_partyday.PartyDate.toTS('13.06.23 13:00:00'), ", \n                (select pkID from type_event where id = 'competition'),\n                (select pkID from party where name = '\u0418\u0441\u043A\u0440\u044B \u0434\u0436\u0430\u0437\u0430' )),\n                ( 'Strictly Kids', '\u0422\u0435\u043C\u043F 40-42 bpm', \n                ").concat(_partyday.PartyDate.toTS('13.06.22 15:00:00'), ", \n                (select pkID from type_event where id = 'competition'),\n                (select pkID from party where name = 'Swingtown Little Cup 2023' ))");
+var initParticipantEventTable = "insert into participant_event( 'fkParticipant', 'fkEvent', 'comment', 'role', 'price', 'fkParty' ) \n        values ( (select pkID from participant where name = $name limit 1 ),\n                 (select pkID from event_party where name = $eventName limit 1), \n                 $comment,\n                 $role,\n                 $price,\n                 (select pkID from party where name = $partyName limit 1 ) )";
+function delTables() {
+  var tbls = ['participant_event', 'participant', 'price_event', 'type_event', 'event_party'];
+  var delTbl = function delTbl(name) {
+    return db.run("delete from ".concat(name));
+  };
+  R.forEach(delTbl, tbls);
+}
+function makeTestDB() {
+  function reInitDatabase(done) {
+    db.serialize(function () {
+      delTables();
+      initData();
+      db.run("select * from event_party limit 1", function (err, row) {
+        return done();
+      });
+    });
+  }
+  return Object.freeze({
+    reInitDatabase: reInitDatabase
+  });
+}
 
 /*
-Создаем таблицы
+    Создаем таблицы
+*/
+function createDatabase() {
+  var stmts = [createParty, createEvent, createTypeEvent, createPricesEvent, createParticipant, createParticipantEvent];
+  var createTbl = function createTbl(stmt) {
+    return db.run(stmt);
+  };
+  R.forEach(createTbl, stmts);
+}
+
+/*
+    Проинициализировать базу данными
+*/
+function initData() {
+  db.run(initPartyTable);
+  db.run(initTypeEventTable);
+  db.run(initPricesTable);
+  db.run(initEventTable);
+  var addParticipant = function addParticipant(rec) {
+    var obj = {};
+    var makeProp = function makeProp(value, key) {
+      return obj['$' + key] = value;
+    };
+    R.forEachObjIndexed(makeProp, rec);
+    db.run(initParticipantTable, obj);
+  };
+  R.forEach(addParticipant, (0, _testdata.getParticipants)());
+  var addParticipantEvent = function addParticipantEvent(rec) {
+    var obj = {};
+    var makeProp = function makeProp(value, key) {
+      return obj['$' + key] = value;
+    };
+    R.forEachObjIndexed(makeProp, rec);
+    db.run(initParticipantEventTable, obj);
+  };
+  R.forEach(addParticipantEvent, (0, _testdata.getParticipantEvents)());
+}
+
+/*
+   Инициализируем всю базу данных
 */
 function initDatabase() {
   db.serialize(function () {
-    db.run(createParty);
-    db.run(createEvent);
-    db.run(createTypeEvent);
-    db.run(createPricesEvent);
-    db.run(createParticipant);
-    db.run(initPartyTable);
-    db.run(initTypeEventTable);
-    db.run(initPricesTable);
-    db.run(initEventTable);
-    var addParticipant = function addParticipant(rec) {
-      var obj = {};
-      var makeProp = function makeProp(value, key) {
-        return obj['$' + key] = value;
-      };
-      R.forEachObjIndexed(makeProp, rec);
-      db.run(initParticipantTable, obj);
-    };
-    R.forEach(addParticipant, (0, _testdata.getParticipants)());
+    createDatabase();
+    initData();
   });
 }
-initDatabase();
 function doTestSQL() {
   /*
   db.serialize(() => {
@@ -407,7 +453,7 @@ function makeParticipant() {
         respHdl(err, rs);
       }
     };
-    var query = "select p.pkID as pkID, \np.fkParty as fkParty,\np.num as num,\np.name as name, \np.surname as surname, \np.patronymic as patronymic, \np.club as club, \np.email as email, \np.dtReg  as dtReg,\np.phone  as phone,\np.role as role,\np.price as price,\np.paid as paid,\np.comment as comment\nfrom participant p\nwhere p.pkID = ".concat(filter.pkID, " and p.fkParty=").concat(filter.fkParty);
+    var query = "select p.pkID as pkID, \n    p.fkParty as fkParty,\n    p.num as num,\n    p.name as name, \n    p.surname as surname, \n    p.patronymic as patronymic, \n    p.club as club, \n    p.email as email, \n    p.dtReg  as dtReg,\n    p.phone  as phone,\n    p.role as role,\n    p.price as price,\n    p.paid as paid,\n    p.comment as comment\n    from participant p\n    where p.pkID = ".concat(filter.pkID, " and p.fkParty=").concat(filter.fkParty);
     db.get(query, getRow);
   }
 
@@ -425,7 +471,7 @@ function makeParticipant() {
     function onSuccess(err) {
       respHdl(err, this.changes);
     }
-    var query = "delete from participant\n                where pkID in ( ".concat(ids.join(','), ") and fkParty = ").concat(fkParty);
+    var query = "delete from participant\n                    where pkID in ( ".concat(ids.join(','), ") and fkParty = ").concat(fkParty);
     db.run(query, onSuccess);
   }
 
@@ -445,7 +491,7 @@ function makeParticipant() {
     R.forEach(function (fld) {
       return arg['$' + fld] = rec[fld];
     }, flds);
-    var query = "insert into participant( ".concat(flds.join(','), " ) \n               values ( ").concat(placeholders.join(','), ") ");
+    var query = "insert into participant( ".concat(flds.join(','), " ) \n                values ( ").concat(placeholders.join(','), ") ");
     function onSuccess(err) {
       respHdl(err, this.lastID);
     }
@@ -468,7 +514,7 @@ function makeParticipant() {
     R.forEach(function (fld) {
       return arg['$' + fld] = rec[fld];
     }, flds);
-    var query = "update participant\n               set ".concat(placeholders.join(', '), " \n               where pkID = ").concat(rec.pkID, " and fkParty = ").concat(rec.fkParty);
+    var query = "update participant\n                set ".concat(placeholders.join(', '), " \n                where pkID = ").concat(rec.pkID, " and fkParty = ").concat(rec.fkParty);
     function onSuccess(err) {
       respHdl(err, this.changes);
     }
@@ -497,6 +543,130 @@ function makeParticipant() {
     getNextNum: getNextNum
   });
 }
+function makeParticipantEvent() {
+  /**
+   *  Конструирование строки запроса для получения списка событий в которых зарегистрировался участник
+   * filter={ fkParty:1, fkParticipant:1, ids:[1,2,3] }
+   */
+  function listQueryStr(filter, ord, nav) {
+    var ids = '';
+    if (R.isNotNil(filter.ids) && !R.isEmpty(filter.ids)) {
+      if (R.length(filter.ids) === 1) {
+        ids = "and pe.pkID = ".concat(filter.ids[0]);
+      } else {
+        ids = "and pe.pkID in ( ".concat(filter.ids.join(','), " )");
+      }
+    }
+    return "select pe.pkID as pkID, \n                   pe.fkParty as fkParty,\n                   pe.fkEvent as fkEvent,\n                   pe.fkParticipant as fkParticipant, \n                   pe.price as price, \n                   pe.role as role, \n                   pe.comment as comment,\n                   ep.name as nameEvent\n            from \n                participant_event pe\n                join event_party ep\n                on pe.fkEvent = ep.pkID\n            where pe.fkParty=".concat(filter.fkParty, " and pe.fkParticipant=").concat(filter.fkParticipant, " ").concat(ids);
+  }
+
+  /**
+  * 
+  * @param {*} ext 
+  * @param {*} filter  - задает фильтрацию  списка 
+  *                        { ids:[], // идентификаторы событий участника
+  *                          fkParty: 1, // идентификатор междусобойчика
+  *                          fkParticipant } // идентификатор участника
+  * @param {*} ord  - задает сортировку списка
+  * @param {*} nav  - задает навигацию списка 
+  *                    { page: <номер страницы>, 
+  *                      cnt:< кол - во записей на странице> }
+  * @returns RecordSet
+  */
+  function list(rs, filter, ord, nav, respHdl) {
+    var getRow = function getRow(err, row) {
+      return (0, _record.addRecord)(rs, row);
+    };
+    var query = listQueryStr(filter, ord, nav);
+    db.each(query, getRow, function (err) {
+      return respHdl(err, rs);
+    });
+  }
+  function read(rs, filter, respHdl) {
+    var getRow = function getRow(err, row) {
+      if (err || R.isNil(row)) {
+        respHdl(new _errors.RecordDoesNotExistErr("ParticipantEvent", filter.pkID), null);
+      } else {
+        (0, _record.addRecord)(rs, row);
+        respHdl(err, rs);
+      }
+    };
+    var query = "select pe.pkID as pkID, \n            pe.fkParty as fkParty,\n            pe.fkEvent as fkEvent,\n            pe.fkParticipant as fkParticipant, \n            pe.price as price, \n            pe.role as role,\n            pe.comment as comment\n    from \n        participant_event pe\n    where \n        pe.fkParty=".concat(filter.fkParty, " and pe.pkID=").concat(filter.pkID);
+    db.get(query, getRow);
+  }
+
+  /* удалить связи
+  rec
+  {
+  ids: [ <список id на удаление> ]
+  fkParty: <идентификатор междусобойчика>
+  }
+  * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+  */
+  function remove(_ref4, respHdl) {
+    var ids = _ref4.ids,
+      fkParty = _ref4.fkParty;
+    function onSuccess(err) {
+      respHdl(err, this.changes);
+    }
+    var query = "delete from participant_event\n                    where pkID in ( ".concat(ids.join(','), ") and fkParty = ").concat(fkParty);
+    db.run(query, onSuccess);
+  }
+
+  /*    
+  * @param {*} rec запись
+  * @param {*} respHdl (err, res) в res будет id добавленной записи
+  */
+  function insert(rec, respHdl) {
+    var header = ['fkParty', 'fkParticipant', 'fkEvent', 'price', 'role', 'comment'];
+    var flds = R.filter(function (fld) {
+      return fld in rec;
+    }, header);
+    var placeholders = R.map(function (fld) {
+      return '$' + fld;
+    }, flds);
+    var arg = {};
+    R.forEach(function (fld) {
+      return arg['$' + fld] = rec[fld];
+    }, flds);
+    var query = "insert into participant_event( ".concat(flds.join(','), " ) \n                values ( ").concat(placeholders.join(','), ") ");
+    function onSuccess(err) {
+      respHdl(err, this.lastID);
+    }
+    db.run(query, arg, onSuccess);
+  }
+
+  /*    
+  * @param {*} rec запись
+  * @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+  */
+  function update(rec, respHdl) {
+    var header = ['fkParticipant', 'fkEvent', 'price', 'role', 'comment'];
+    var flds = R.filter(function (fld) {
+      return fld in rec;
+    }, header);
+    var placeholders = R.map(function (fld) {
+      return fld + '=$' + fld;
+    }, flds);
+    var arg = {};
+    R.forEach(function (fld) {
+      return arg['$' + fld] = rec[fld];
+    }, flds);
+    var query = "update participant_event\n               set ".concat(placeholders.join(', '), " \n               where pkID = ").concat(rec.pkID, " and fkParty = ").concat(rec.fkParty);
+    function onSuccess(err) {
+      respHdl(err, this.changes);
+    }
+    db.run(query, arg, onSuccess);
+  }
+  return Object.freeze({
+    list: list,
+    read: read,
+    remove: remove,
+    insert: insert,
+    update: update
+  });
+}
+initDatabase();
 var DBParty = makeParty();
 exports.DBParty = DBParty;
 var DBEventParty = makeEventParty();
@@ -505,3 +675,7 @@ var DBTypeEventParty = makeTypeEventParty();
 exports.DBTypeEventParty = DBTypeEventParty;
 var DBParticipant = makeParticipant();
 exports.DBParticipant = DBParticipant;
+var DBParticipantEvent = makeParticipantEvent();
+exports.DBParticipantEvent = DBParticipantEvent;
+var DBTest = makeTestDB();
+exports.DBTest = DBTest;

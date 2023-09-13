@@ -15,6 +15,7 @@ test("DBEventParty.update(rec}", function (done) {
     pkID: 1,
     name: "Cултаны Свинга 2025",
     dtStart: _partyday.PartyDate.toTS('13.09.23 11:00:00'),
+    fkParty: 1,
     description: "Супер соревнования"
   };
   var resHdl = function resHdl(err, updated) {

@@ -4,8 +4,8 @@
 import * as R from 'ramda';
 import { PartyDate }  from '../../lib/partyday'
 import { addRecord } from '../../lib/record'
-import { resolveShowConfigPath } from '@babel/core/lib/config/files';
-import { getParticipants } from '../tests/testdata';
+//import { resolveShowConfigPath } from '@babel/core/lib/config/files';
+import { getParticipants, getParticipantEvents } from '../tests/testdata';
 import { RecordDoesNotExistErr } from '../lib/errors';
 
 const sqlite3 = require('sqlite3').verbose();
@@ -33,7 +33,8 @@ fkParty int not null,
 dtStart int,
 free int,
 name text,
-description text)`
+description text,
+foreign key ( fkParty ) references Party ( pkID ))`
 
 const createTypeEvent =
 `create table type_event(
@@ -64,8 +65,21 @@ role text,
 price real,
 paid real,
 comment text,
-unique (fkParty,num) )`
+unique ( fkParty, num ),
+foreign key ( fkParty ) references Party ( pkID ) )`
 
+const createParticipantEvent =
+`create table participant_event(
+pkID integer primary key,
+fkEvent int,
+fkParticipant int,
+fkParty int,
+price real,
+role text,
+comment text,
+foreign key ( fkParty ) references party ( pkID ),
+foreign key ( fkEvent, fkParty ) references event_party ( pkID, fkParty ),
+foreign key ( fkParticipant, fkParty ) references participant ( pkID, fkParty ) )`
 
 
 const initParticipantTable = 
@@ -110,17 +124,49 @@ const initEventTable =
                 (select pkID from type_event where id = 'competition'),
                 (select pkID from party where name = 'Swingtown Little Cup 2023' ))`
 
-/*
-Создаем таблицы
-*/
-function initDatabase(){
-db.serialize(() => {
-    db.run(createParty)
-    db.run(createEvent)
-    db.run(createTypeEvent)
-    db.run(createPricesEvent)
-    db.run(createParticipant)
+const initParticipantEventTable =
+`insert into participant_event( 'fkParticipant', 'fkEvent', 'comment', 'role', 'price', 'fkParty' ) 
+        values ( (select pkID from participant where name = $name limit 1 ),
+                 (select pkID from event_party where name = $eventName limit 1), 
+                 $comment,
+                 $role,
+                 $price,
+                 (select pkID from party where name = $partyName limit 1 ) )`
 
+function delTables(){
+    const tbls = [ 'participant_event', 'participant', 'price_event', 'type_event', 'event_party' ]
+    const delTbl = name => db.run( `delete from ${name}` )
+    R.forEach( delTbl, tbls )
+}
+
+function makeTestDB(){
+    
+    function reInitDatabase( done ){
+        db.serialize(() => {
+           delTables()
+           initData()
+           db.run( "select * from event_party limit 1", ( err, row )=> done() )
+        })  
+    }
+
+    return Object.freeze({
+        reInitDatabase
+    });
+}
+
+/*
+    Создаем таблицы
+*/
+function createDatabase(){
+    const stmts = [ createParty, createEvent, createTypeEvent, createPricesEvent, createParticipant, createParticipantEvent ]
+    const createTbl = stmt => db.run( stmt )
+    R.forEach( createTbl, stmts )
+}
+
+/*
+    Проинициализировать базу данными
+*/
+function  initData(){
     db.run(initPartyTable)
     db.run(initTypeEventTable)
     db.run(initPricesTable)
@@ -134,9 +180,24 @@ db.serialize(() => {
     }
     R.forEach( addParticipant, getParticipants() )
 
-})
+    const addParticipantEvent = rec => {
+        let obj = {}
+        const makeProp = (value, key) => obj['$' + key]=value
+        R.forEachObjIndexed( makeProp, rec )
+        db.run( initParticipantEventTable, obj )
+    }
+    R.forEach( addParticipantEvent, getParticipantEvents() )
 }
-initDatabase()
+
+/*
+   Инициализируем всю базу данных
+*/
+function initDatabase(){
+    db.serialize(() => {
+        createDatabase()
+        initData()
+    })
+}
 
 export function doTestSQL(){
 /*
@@ -484,10 +545,10 @@ return Object.freeze({
 
 function makeParticipant(){
         
-    /**
-     *  Конструирование строки запроса для получения списка участников
-     * filter={ searchStr:"вася", fkParty:1, ids:[1,2,3]}
-     */
+/**
+ *  Конструирование строки запроса для получения списка участников
+ * filter={ searchStr:"вася", fkParty:1, ids:[1,2,3]}
+ */
   function listQueryStr( filter, ord, nav ){
     let ids = '' 
     let searchStr = ''
@@ -539,39 +600,39 @@ function makeParticipant(){
 * @returns RecordSet
 */      
 function list(rs, filter, ord, nav, respHdl ){ 
-const getRow = (err, row )=>addRecord(rs, row)
-const query  = listQueryStr(filter,ord,nav)
-db.each(query, getRow,  err=>respHdl(err,rs) )  
+    const getRow = (err, row )=>addRecord(rs, row)
+    const query  = listQueryStr(filter,ord,nav)
+    db.each(query, getRow,  err=>respHdl(err,rs) )  
 }
 
 function read( rs, filter, respHdl ){ 
-const getRow = (err, row )=>{
-    if( err || R.isNil(row)) {
-        respHdl( new RecordDoesNotExistErr("Participant", filter.pkID),null)
-    } else { 
-        addRecord(rs, row)
-        respHdl(err,rs)
+    const getRow = (err, row )=>{
+        if( err || R.isNil(row)) {
+            respHdl( new RecordDoesNotExistErr("Participant", filter.pkID),null)
+        } else { 
+            addRecord(rs, row)
+            respHdl(err,rs)
+        }
     }
-}
-const query  = 
-`select p.pkID as pkID, 
-p.fkParty as fkParty,
-p.num as num,
-p.name as name, 
-p.surname as surname, 
-p.patronymic as patronymic, 
-p.club as club, 
-p.email as email, 
-p.dtReg  as dtReg,
-p.phone  as phone,
-p.role as role,
-p.price as price,
-p.paid as paid,
-p.comment as comment
-from participant p
-where p.pkID = ${filter.pkID} and p.fkParty=${filter.fkParty}`
-               
-db.get(query, getRow )
+    const query  = 
+    `select p.pkID as pkID, 
+    p.fkParty as fkParty,
+    p.num as num,
+    p.name as name, 
+    p.surname as surname, 
+    p.patronymic as patronymic, 
+    p.club as club, 
+    p.email as email, 
+    p.dtReg  as dtReg,
+    p.phone  as phone,
+    p.role as role,
+    p.price as price,
+    p.paid as paid,
+    p.comment as comment
+    from participant p
+    where p.pkID = ${filter.pkID} and p.fkParty=${filter.fkParty}`
+                
+    db.get(query, getRow )
 }
 
 /* удалить участников
@@ -583,12 +644,12 @@ fkParty: <идентификатор междусобойчика>
 * @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
 */
 function remove( {ids, fkParty}, respHdl ){
-function onSuccess(err){
-    respHdl( err, this.changes  )
-}
-const query  = `delete from participant
-                where pkID in ( ${ids.join(',')}) and fkParty = ${fkParty}` 
-db.run(query, onSuccess )
+    function onSuccess(err){
+        respHdl( err, this.changes  )
+    }
+    const query  = `delete from participant
+                    where pkID in ( ${ids.join(',')}) and fkParty = ${fkParty}` 
+    db.run(query, onSuccess )
 }
 
 
@@ -598,19 +659,19 @@ db.run(query, onSuccess )
 * @param {*} respHdl (err, res) в res будет id добавленной записи
 */
 function insert( rec, respHdl ) { 
-const header = ['fkParty','num','name', 'surname','patronymic','club','email','phone','dtReg','role','price','paid','comment'] 
-const flds =  R.filter( fld => fld in rec, header )
-const placeholders = R.map( fld=>'$'+fld, flds )
-const arg = {}
-R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+    const header = ['fkParty','num','name', 'surname','patronymic','club','email','phone','dtReg','role','price','paid','comment'] 
+    const flds =  R.filter( fld => fld in rec, header )
+    const placeholders = R.map( fld=>'$'+fld, flds )
+    const arg = {}
+    R.forEach( fld => arg['$'+fld]=rec[fld], flds )
 
-const query = `insert into participant( ${flds.join(',')} ) 
-               values ( ${placeholders.join(',')}) ` 
+    const query = `insert into participant( ${flds.join(',')} ) 
+                values ( ${placeholders.join(',')}) ` 
 
-function onSuccess (err){
-    respHdl(err, this.lastID)
-}
-db.run( query, arg, onSuccess )
+    function onSuccess (err){
+        respHdl(err, this.lastID)
+    }
+    db.run( query, arg, onSuccess )
 }
 
 /*    
@@ -618,20 +679,20 @@ db.run( query, arg, onSuccess )
 * @param {*} respHdl (err, res) в res будет кол-во обновленных записей
 */
 function update(rec,respHdl){
-const header = ['num','name', 'surname','patronymic','club','email','phone','dtReg','role','price','paid','comment'] 
+    const header = ['num','name', 'surname','patronymic','club','email','phone','dtReg','role','price','paid','comment'] 
 
-const flds =  R.filter( fld => fld in rec, header )
-const placeholders = R.map( fld=>fld+'=$'+fld, flds )
-const arg = {}
-R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+    const flds =  R.filter( fld => fld in rec, header )
+    const placeholders = R.map( fld=>fld+'=$'+fld, flds )
+    const arg = {}
+    R.forEach( fld => arg['$'+fld]=rec[fld], flds )
 
-const query = `update participant
-               set ${placeholders.join(', ')} 
-               where pkID = ${rec.pkID} and fkParty = ${rec.fkParty}`
-function onSuccess (err){
-    respHdl(err, this.changes)
-}
-db.run( query, arg, onSuccess )
+    const query = `update participant
+                set ${placeholders.join(', ')} 
+                where pkID = ${rec.pkID} and fkParty = ${rec.fkParty}`
+    function onSuccess (err){
+        respHdl(err, this.changes)
+    }
+    db.run( query, arg, onSuccess )
 }
 
 /* Получить следующий свободный номер для участника междусобойчика, наивная реализация, но отработает в 99%
@@ -660,9 +721,152 @@ function getNextNum( fkParty, respHdl ){
     });
 }
 
+function makeParticipantEvent(){
+        
+    /**
+     *  Конструирование строки запроса для получения списка событий в которых зарегистрировался участник
+     * filter={ fkParty:1, fkParticipant:1, ids:[1,2,3] }
+     */
+  function listQueryStr( filter, ord, nav ){
+    let ids = '' 
+    if( R.isNotNil(filter.ids) && !R.isEmpty(filter.ids) ){   
+        if( R.length(filter.ids) === 1 ){
+            ids = `and pe.pkID = ${filter.ids[0]}`
+        }else{
+            ids = `and pe.pkID in ( ${filter.ids.join(',')} )`
+        }
+    }
+    
+    return (
+           `select pe.pkID as pkID, 
+                   pe.fkParty as fkParty,
+                   pe.fkEvent as fkEvent,
+                   pe.fkParticipant as fkParticipant, 
+                   pe.price as price, 
+                   pe.role as role, 
+                   pe.comment as comment,
+                   ep.name as nameEvent
+            from 
+                participant_event pe
+                join event_party ep
+                on pe.fkEvent = ep.pkID
+            where pe.fkParty=${filter.fkParty} and pe.fkParticipant=${filter.fkParticipant} ${ids}` )
+}
 
+/**
+* 
+* @param {*} ext 
+* @param {*} filter  - задает фильтрацию  списка 
+*                        { ids:[], // идентификаторы событий участника
+*                          fkParty: 1, // идентификатор междусобойчика
+*                          fkParticipant } // идентификатор участника
+* @param {*} ord  - задает сортировку списка
+* @param {*} nav  - задает навигацию списка 
+*                    { page: <номер страницы>, 
+*                      cnt:< кол - во записей на странице> }
+* @returns RecordSet
+*/      
+function list(rs, filter, ord, nav, respHdl ){ 
+    const getRow = (err, row )=>addRecord(rs, row)
+    const query  = listQueryStr(filter,ord,nav)
+    db.each(query, getRow,  err=>respHdl(err,rs) )  
+}
 
+function read( rs, filter, respHdl ){ 
+    const getRow = (err, row )=>{
+        if( err || R.isNil(row)) {
+            respHdl( new RecordDoesNotExistErr("ParticipantEvent", filter.pkID),null)
+        } else { 
+            addRecord(rs, row)
+            respHdl(err,rs)
+        }
+    }
+    const query  = 
+    `select pe.pkID as pkID, 
+            pe.fkParty as fkParty,
+            pe.fkEvent as fkEvent,
+            pe.fkParticipant as fkParticipant, 
+            pe.price as price, 
+            pe.role as role,
+            pe.comment as comment
+    from 
+        participant_event pe
+    where 
+        pe.fkParty=${filter.fkParty} and pe.pkID=${filter.pkID}`                
+    db.get(query, getRow )
+}
+
+/* удалить связи
+rec
+{
+ids: [ <список id на удаление> ]
+fkParty: <идентификатор междусобойчика>
+}
+* @param {*} respHdl (err, res) в res будет кол-во удаленных записей, если удаление прошло нормально
+*/
+function remove( {ids, fkParty}, respHdl ){
+    function onSuccess(err){
+        respHdl( err, this.changes  )
+    }
+    const query  = `delete from participant_event
+                    where pkID in ( ${ids.join(',')}) and fkParty = ${fkParty}` 
+    db.run(query, onSuccess )
+}
+
+/*    
+* @param {*} rec запись
+* @param {*} respHdl (err, res) в res будет id добавленной записи
+*/
+function insert( rec, respHdl ) { 
+    const header = ['fkParty', 'fkParticipant', 'fkEvent', 'price', 'role', 'comment'] 
+    const flds =  R.filter( fld => fld in rec, header )
+    const placeholders = R.map( fld=>'$'+fld, flds )
+    const arg = {}
+    R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+
+    const query = `insert into participant_event( ${flds.join(',')} ) 
+                values ( ${placeholders.join(',')}) ` 
+
+    function onSuccess (err){
+        respHdl(err, this.lastID)
+    }
+    db.run( query, arg, onSuccess )
+}
+
+/*    
+* @param {*} rec запись
+* @param {*} respHdl (err, res) в res будет кол-во обновленных записей
+*/
+function update(rec,respHdl){
+const header = ['fkParticipant', 'fkEvent', 'price', 'role', 'comment'] 
+
+const flds =  R.filter( fld => fld in rec, header )
+const placeholders = R.map( fld=>fld+'=$'+fld, flds )
+const arg = {}
+R.forEach( fld => arg['$'+fld]=rec[fld], flds )
+
+const query = `update participant_event
+               set ${placeholders.join(', ')} 
+               where pkID = ${rec.pkID} and fkParty = ${rec.fkParty}`
+function onSuccess (err){
+    respHdl(err, this.changes)
+}
+db.run( query, arg, onSuccess )
+}
+
+    return Object.freeze({
+        list,
+        read,
+        remove,
+        insert,
+        update
+    });
+}
+
+initDatabase()
 export const DBParty = makeParty()
 export const DBEventParty = makeEventParty()
 export const DBTypeEventParty = makeTypeEventParty()
 export const DBParticipant = makeParticipant()
+export const DBParticipantEvent = makeParticipantEvent()
+export const DBTest = makeTestDB()

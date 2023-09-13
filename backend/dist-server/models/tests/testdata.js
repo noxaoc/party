@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.getParticipantEvents = getParticipantEvents;
 exports.getParticipants = getParticipants;
 var _partyday = require("../../lib/partyday");
 /*
@@ -27,9 +28,9 @@ var participants = [{
 }, {
   "fkParty": 2,
   "num": 1,
-  "surname": "Пупкин2",
+  "surname": "Пупкин",
   "patronymic": "Владленович",
-  "name": "Валерий",
+  "name": "Вениамин",
   "phone": "+7(980)678-90-99",
   "email": "pups@gmail.com",
   "dtReg": _partyday.PartyDate.toTS("01.02.23 02:45"),
@@ -151,6 +152,38 @@ var participants = [{
   "paid": 5000,
   "comment": null
 }];
+
+/*
+* События в которых заинтересован участник
+*/
+var participantEvents = [{
+  partyName: 'Swingtown Little Cup 2023',
+  eventName: 'Mix&Match Kids',
+  name: 'Валерий',
+  price: 500,
+  role: ''
+}, {
+  partyName: 'Swingtown Little Cup 2023',
+  name: 'Валерий',
+  eventName: 'Strictly Kids',
+  price: 1000,
+  role: ''
+}, {
+  partyName: 'Swingtown Little Cup 2023',
+  name: 'Александра',
+  eventName: 'Mix&Match Kids',
+  price: 500,
+  role: ''
+}, {
+  partyName: 'Swingtown Little Cup 2023',
+  name: 'Александра',
+  eventName: 'Strictly Kids',
+  price: 1000,
+  role: ''
+}];
 function getParticipants() {
   return participants;
+}
+function getParticipantEvents() {
+  return participantEvents;
 }

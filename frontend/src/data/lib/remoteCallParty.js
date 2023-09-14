@@ -1,11 +1,11 @@
 /**
- * Утилиты для вызова backend "Междусобойчика"
- */
+* Утилиты для вызова backend "Междусобойчика"
+*/
 import * as R from  "ramda"
 
 function  makePartyService(){
 
-    const  partyURL = ()=> "http://localhost:3333/party"     
+    const  partyURL = () => "http://localhost:3333/party"     
     
     function post( method,  rec, setResult, setError ){
         console.log(method)
@@ -13,7 +13,7 @@ function  makePartyService(){
         const defaultErrHdl = ( err ) => {
             console.log( `Ошибка ${err.message} вызова ${method}`)
         }
-        const defaultSetResult = (  ) => {
+        const defaultSetResult = () => {
         }
         const setRes =  R.isNil(setResult) ? defaultSetResult : setResult
         const getResult = ( { r, e } )=>{

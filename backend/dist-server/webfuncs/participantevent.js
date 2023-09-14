@@ -4,14 +4,14 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.update = exports.remove = exports.read = exports.list = exports.insert = exports.init = void 0;
-var _participant = require("../models/participant");
+var _participant_event = require("../models/participant_event");
 var _response = require("../lib/response");
 /*
-{ "filter":{ "ids":[1,2]} }     
+{ "filter":{ "searchStr": "подстрока для поиска", "ids":[1,2]} }     
 */
 var list = function list(req, res, next) {
   console.log(req.body);
-  (0, _response.getResult)(_participant.Participant.list, req.body, res);
+  (0, _response.getResult)(_participant_event.ParticipantEvent.list, req.body, res);
 };
 
 /*
@@ -20,7 +20,7 @@ var list = function list(req, res, next) {
 exports.list = list;
 var read = function read(req, res, next) {
   console.log(req.body);
-  (0, _response.getResult)(_participant.Participant.read, req.body, res);
+  (0, _response.getResult)(_participant_event.ParticipantEvent.read, req.body, res);
 };
 
 /*
@@ -30,25 +30,25 @@ var read = function read(req, res, next) {
 exports.read = read;
 var remove = function remove(req, res, next) {
   console.log(req.body);
-  (0, _response.getResult)(_participant.Participant.remove, req.body, res);
+  (0, _response.getResult)(_participant_event.ParticipantEvent.remove, req.body, res);
 };
 
 /*
-{rec:{ "fkParty":"1", ...}}
+{rec:{ "name":"", ...}}
 */
 exports.remove = remove;
 var insert = function insert(req, res, next) {
   console.log(req.body);
-  (0, _response.getResult)(_participant.Participant.insert, req.body, res);
+  (0, _response.getResult)(_participant_event.ParticipantEvent.insert, req.body, res);
 };
 
 /*
-{rec:{"pkID":1, "fkParty":"1", ...}}
+{rec:{"pkID":1, "name":"", ...}}
 */
 exports.insert = insert;
 var update = function update(req, res, next) {
   console.log(req.body);
-  (0, _response.getResult)(_participant.Participant.update, req.body, res);
+  (0, _response.getResult)(_participant_event.ParticipantEvent.update, req.body, res);
 };
 
 /*
@@ -62,6 +62,6 @@ var update = function update(req, res, next) {
 exports.update = update;
 var init = function init(req, res, next) {
   console.log(req.body);
-  (0, _response.getResult)(_participant.Participant.init, req.body, res);
+  (0, _response.getResult)(_participant_event.ParticipantEvent.init, req.body, res);
 };
 exports.init = init;

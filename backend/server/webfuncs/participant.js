@@ -2,7 +2,7 @@ import { Participant } from '../models/participant'
 import { getResult } from '../lib/response'
 
 /*
-{ "filter":{ "searchStr": "подстрока для поиска", "ids":[1,2]} }     
+{ "filter":{ "ids":[1,2]} }     
 */
 export const list = ( req, res, next )=>{
     console.log(req.body)
@@ -27,7 +27,7 @@ export const remove = ( req, res, next )=>{
 }
 
 /*
-{rec:{ "name":"", ...}}
+{rec:{ "fkParty":"1", ...}}
 */
 export const insert = ( req, res, next )=>{
     console.log(req.body)
@@ -35,7 +35,7 @@ export const insert = ( req, res, next )=>{
 }
 
 /*
-{rec:{"pkID":1, "name":"", ...}}
+{rec:{"pkID":1, "fkParty":"1", ...}}
 */
 export const update = ( req, res, next )=>{
     console.log(req.body)

@@ -159,7 +159,6 @@ describe("ParticipantEvent.init", function () {
 });
 describe("ParticipantEvent.list", function () {
   beforeEach(function (done) {
-    console.log("Очищаю");
     _dbschema.DBTest.reInitDatabase(done);
   });
 
@@ -264,7 +263,15 @@ describe("ParticipantEvent.read", function () {
       expect(R.length(rSet)).toEqual(2);
       var rc = (0, _record.makePlainObjByIdx)(rSet);
       expect(rc.pkID).toEqual(1);
+      /*
+      const flds = ['pkID', 'fkParty', 'fkEvent', 'fkParticipant', 'role', 'price', 'comment' ] 
+      const findNull = fld =>{
+          rec
+      }  
+      R.find( findNull , flds )
+      */
     };
+
     _participant_event.ParticipantEvent.read({
       pkID: 1,
       fkParty: 2

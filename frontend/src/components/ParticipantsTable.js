@@ -8,7 +8,7 @@ import { Formik, Form as FormikForm, Field } from 'formik'
 import { useParams } from "react-router-dom";
 import * as R from 'ramda'
 
-import { ParticipantEvent } from "../data/participants"
+import { ParticipantEvent } from "../data/participantevent"
 import { Participant } from "../data/participant"
 import { InputLine } from "./InputLine"
 import { InputComment } from "./InputComment"
@@ -94,34 +94,12 @@ const NumAndRegistration =( props )=>{
   )
 }
 
-/* Вкладки на диалоге редактирования участников
-*/
-function ControlledTabsParticipant( {editMode, pState } ) {
-  // по-умолчанию активная вкладка общей информации об участнике
-  const [key, setKey] = useState("participant");
-
-  return (
-    <Tabs
-      id="controlled-tab-participant"
-      activeKey={key}
-      onSelect={(k) => setKey(k)}
-      className="mb-1 justify-content-end"
-    >
-      <Tab eventKey="participant" tabClassName="py-1" title="Общее">
-        <ParticipantForm editMode={editMode} pState={pState}/>
-      </Tab>
-      <Tab eventKey="events" tabClassName="py-1" title="Участвует">
-        <ListEventOfParticipant editMode={editMode} pid={pState.pid.value} />
-      </Tab>
-    </Tabs>
-  );
-}
 /*
 name название события
 */
-const EventOfParticipant=( props )=>{
+const EventOfParticipant=( props ) => {
     const { editMode, id, name, price, role } = props;
-    const doRemoveEventOfP=()=> ParticipantEvent.remove(id)
+    const doRemoveEventOfP=() => ParticipantEvent.remove(id)
     return (
       <tr>
         <td className="p-1">
@@ -164,9 +142,48 @@ const EventOfParticipant=( props )=>{
 /*
 События в которых заинтересован участник
 */
-const ListEventOfParticipant=( props )=>{
-  const { editMode, pid } = props
-  const events = []//Participant.events( getPartyID(), pid )
+const ListEventOfParticipant = ( props ) => {
+  const { editMode, editRec }   = props
+  const [ events, setEvents ]   = useState([])
+  const [ changed, setChanged ] = useState(false)
+
+  useEffect(() => {
+    console.log("вызываю ParticipanEvent.list ")
+    // получить список  событий участника
+    if(  R.isNotNil(editRec.pkID) ){
+      const filter = { fkParty: editRec.fkParty, fkParticipant: editRec.pkID }
+      ParticipantEvent.list( filter, null, null,  result =>{ if( R.isNotNil(result) ) setEvents(result) }  )
+    }
+    return ()=>{}
+  },[ changed,  editRec.fkParty, editRec.pkID ])
+
+/*
+  // создать обработчик на редактирование записи
+  const makeOnEditHdl = id =>{
+    return () => {
+      ParticipantEvent.list( {ids:[id], fkParty: editRec.fkParty }, null, null, 
+                     result => setShowDlg( {showDlg:true, 
+                                           editRec:changeNullValueToEmptyStr(makePlainObjByIdx(result)) } ) )
+    }
+  }
+  */
+
+  //удалить участника по id и вызвать обновление списка
+  const doRemoveByID = id =>{
+    return ()=>{
+      ParticipantEvent.remove( { ids:[id], fkParty: editRec.fkParty }, 
+                    result => { R.isNil(result) ? alert("Произошла неизвестная ошибка") : setChanged(!changed); }, 
+                    error => console.log(error.message) ) 
+    }
+  }
+
+  const totalEvents = events.length ? events.length - 1 : 0
+
+  const recHdl = ( rec, frmt  )=>{
+      const pobj = makePlainObj(rec,frmt)
+      return <EventOfParticipant key={`event-${pobj.pkID}`} editMode={editMode} {...pobj} />
+  }
+
   return (
     <Card border="light" className="table-wrapper table-responsive shadow-sm">
       {/*showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]} 
@@ -184,50 +201,17 @@ const ListEventOfParticipant=( props )=>{
             </tr>
           </thead>
           <tbody>
-            {events.map(t => <EventOfParticipant key={`event-${t.id}`} editMode={editMode} {...t} />)}
+            {mapRSet( recHdl, events )}
           </tbody>
         </Table>
         <Card.Footer className="px-1 py-2 border-0 d-flex justify-content-start">
           <small className="fw-bold">
-            Всего событий <b>{0}</b>
+            Всего событий <b>{totalEvents}</b>
           </small>
         </Card.Footer>
       </Card.Body>
     </Card>
   )
-}
-
-/**
- * Форма данных участника междусобойчика
- * editMode = true - форма в режиме редактирования
- * curPid - идентификатор текущей записи, может быть null 
- */
-const ParticipantForm=()=>{
-  /*
-  return (
-      <Form>
-        <Form.Group as={Row} >
-          <Col sm={7}>
-            <NumAndRegistration editMode={editMode} pState={pState} />
-            { data.map( arr => { return ( <LLFIFld editMode={editMode} key={arr[0]} ctrlId={arr[0]} type={arr[1]} 
-                                          label={arr[2]} placeholder={arr[3]} {...arr[4]} />) }  ) }
-          
-            <ParticipantRole  editMode={editMode} pState={pState} />
-            <Sums pState={pState}/>
-            <Form.Group className="mb-2" controlId="pForm.comment">
-              <Form.Control as="textarea" rows={3} placeholder="Комментарий" 
-              {...pState.comment} readOnly={!editMode} />
-            </Form.Group>
-          </Col>
-          <Col sm={5}>
-            <ListEventOfParticipant pid={pState.pid.value} />
-          </Col>
-        </Form.Group>
-      </Form>
-  )
-*/
-
-
 }
 
 /*
@@ -256,6 +240,8 @@ export const ParticipantDlg = ( { hookShowDlg, hookChgParticipants } )=>{
   const initEditMode = R.isNil(showDlg.editRec.pkID)? true : false
   const [editMode, setEditMode] = useState(initEditMode)
   const [changed, setChanged] = hookChgParticipants
+  // состояние для установки текущей активной вкладки
+  const [key, setKey] = useState('participant')
 
   // обработка закрытия формы
   const handleClose = () => {
@@ -289,17 +275,25 @@ export const ParticipantDlg = ( { hookShowDlg, hookChgParticipants } )=>{
               </Col>
             </Modal.Header>
             <Modal.Body className="py-1">
-                <NumAndRegistration editMode={editMode} />
-                <Field as={InputLine} editMode={editMode} name="surname" placeholder="Фамилия участника" ctrlId="eForm.surname" label="Фамилия" />
-                <Field as={InputLine} editMode={editMode} name="name" placeholder="Имя участника" ctrlId="eForm.name" label="Имя" />
-                <Field as={InputLine} editMode={editMode} name="patronymic" placeholder="Отчество участника" ctrlId="eForm.patronymic" label="Отчество" />
-                <Field as={InputLine} editMode={editMode} name="club" placeholder="Клуб участника" ctrlId="eForm.club" label="Клуб" />
-                <Field as={InputLine} editMode={editMode} name="phone" placeholder="Телефон участника" ctrlId="eForm.phone" label="Телефон" />
-                <Field as={InputLine} editMode={editMode} name="email" placeholder="email участника" ctrlId="eForm.email" label="email" />
-                { !editMode && <Field as={InputLine} editMode={editMode} name="role" placeholder="Роль участника" ctrlId="eForm.role" label="Роль в паре" /> }
-                { editMode && <Field as={ParticipantRole} editMode={editMode} name="role" /> }
-                <Sums editMode={editMode} ctrlId="eForm.sums"/>
-                <Field as={InputComment} editMode={editMode} name="comment" />
+              <Tabs id="controlled-tab-participant" activeKey={key}
+                    onSelect={ k => setKey(k) } className="mb-1 justify-content-end">
+                <Tab eventKey="participant" tabClassName="py-1" title="Общее">
+                  <NumAndRegistration editMode={editMode} />
+                  <Field as={InputLine} editMode={editMode} name="surname" placeholder="Фамилия участника" ctrlId="eForm.surname" label="Фамилия" />
+                  <Field as={InputLine} editMode={editMode} name="name" placeholder="Имя участника" ctrlId="eForm.name" label="Имя" />
+                  <Field as={InputLine} editMode={editMode} name="patronymic" placeholder="Отчество участника" ctrlId="eForm.patronymic" label="Отчество" />
+                  <Field as={InputLine} editMode={editMode} name="club" placeholder="Клуб участника" ctrlId="eForm.club" label="Клуб" />
+                  <Field as={InputLine} editMode={editMode} name="phone" placeholder="Телефон участника" ctrlId="eForm.phone" label="Телефон" />
+                  <Field as={InputLine} editMode={editMode} name="email" placeholder="email участника" ctrlId="eForm.email" label="email" />
+                  { !editMode && <Field as={InputLine} editMode={editMode} name="role" placeholder="Роль участника" ctrlId="eForm.role" label="Роль в паре" /> }
+                  { editMode && <Field as={ParticipantRole} editMode={editMode} name="role" /> }
+                  <Sums editMode={editMode} ctrlId="eForm.sums"/>
+                  <Field as={InputComment} editMode={editMode} name="comment" />
+                </Tab>
+                <Tab eventKey="events" tabClassName="py-1" title="Участвует">
+                  <ListEventOfParticipant { ... showDlg } />
+                </Tab>
+              </Tabs>
             </Modal.Body>
           </Modal>
         </Form>
@@ -309,62 +303,6 @@ export const ParticipantDlg = ( { hookShowDlg, hookChgParticipants } )=>{
     )
 
 }
-/*
-export const ParticipantDlg = ( { hookShowDlg, hookEdit, participant } )=>{
-  const [, setShowDlg] = hookShowDlg
-  const [editMode, setEditMode] = hookEdit
- 
-  //console.log(`pid= ${showDlg.currPid} showDlg= ${showDlg.showDlg}`)
- // let participant = Participant.read(getPartyID(), showDlg.currPid )
-  //if( R.isNil(participant ) )
-  //  participant = Participant.createNull({gid:getPartyID()})
-  const pState = useObjInput(participant)
-  console.log("render participantdlg")
-
-  // обработка закрытия формы
-  const handleClose = () => {
-    setShowDlg( {showDlg:false,currPid:null} )
-    setEditMode(false)
-  }
- 
-  // сохранить участника
-  const saveParticipant = ()=>{
-    // собрать данные с формы и записать
-    // console.log(participant.name)
-    participant.regDate = parseDateTimeStr( participant.regDateStr )
-    if( R.isNil( participant.pid ) ){
-      if( !checkAlert( Participant.create(participant)) )
-        return
-    }
-    else if( !checkAlert(Participant.update(participant)) )
-        return
-    handleClose()
-  }
- 
-return (
-<Modal as={Modal.Dialog} show={true} onHide={handleClose} size="md" >
-  <Modal.Header className="py-1" as={Row} >
-    <Col sm={8}>
-      <Modal.Title className="h5">Карточка участника</Modal.Title>
-    </Col>
-    <Col sm={3} className="d-flex justify-content-end" >
-      <Button className="border-0" variant="link" onClick={ editMode ? saveParticipant : ()=>setEditMode(true) }>
-        { editMode ?  "Сохранить": "Изменить" }
-      </Button>
-    </Col>
-    <Col sm={1} className="d-flex justify-content-end" >
-      <Button className="m-0 py-2" variant="close" aria-label="Close" onClick={handleClose} />
-    </Col>
-  </Modal.Header>
-  <Modal.Body className="py-1">
-    <ControlledTabsParticipant  editMode={editMode} pState={pState} />
-    {/*<ParticipantForm editMode={editMode} pState={pState}/>*
-  </Modal.Body>
-</Modal>
-)
-
-}
-*/
 
 /*
 Получение списка участников
@@ -416,7 +354,7 @@ export const ParticipantTable = ( props ) => {
     }
   }
 
-  const totalParticipants = participants.length
+  const totalParticipants = participants.length - 1
 
   const recHdl = ( rec, frmt  )=>{
       const pobj = makePlainObj(rec,frmt)

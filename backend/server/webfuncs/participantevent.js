@@ -6,7 +6,7 @@ import { getResult } from '../lib/response'
 */
 export const list = ( req, res, next )=>{
     console.log(req.body)
-    getResult(Participant.list, req.body, res )
+    getResult(ParticipantEvent.list, req.body, res )
 }
 
 /*

@@ -176,7 +176,7 @@ test("ParticipantEvent.list({ids:[1,2],fkParty:2, fkParticipant:1})", done => {
 
 })
 
-describe( "ParticipantEvent.read",() => {
+describe( "ParticipantEvent.read", () => {
 // оптимистичное чтение
 test("ParticipantEvent.read({pkID:1,fkParty:2})", done => {
     const checkF =  rSet =>{
@@ -184,7 +184,13 @@ test("ParticipantEvent.read({pkID:1,fkParty:2})", done => {
         expect(R.length(rSet)).toEqual(2)
         const rc = makePlainObjByIdx(rSet)
         expect(rc.pkID).toEqual(1)
-        
+        /*
+        const flds = ['pkID', 'fkParty', 'fkEvent', 'fkParticipant', 'role', 'price', 'comment' ] 
+        const findNull = fld =>{
+            rec
+        }  
+        R.find( findNull , flds )
+        */
     }
 
     ParticipantEvent.read( {pkID:1, fkParty: 2}, makeHdl(done,checkF) )

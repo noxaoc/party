@@ -56,7 +56,7 @@ let participants = [
         "num": 2,
         "surname": "Хреновая",
         "patronymic": "Михайловна",
-        "name":"Александра",
+        "name":"Александрина",
         "phone": "+7(981)678-77-99",
         "email": "pups@gmail.com",
         "dtReg": PartyDate.toTS( "01.02.23 01:23" ), 

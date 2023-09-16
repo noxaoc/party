@@ -4,7 +4,6 @@ var _participant_event = require("../participant_event.js");
 var R = _interopRequireWildcard(require("ramda"));
 var _dbschema = require("../sqlite/dbschema.js");
 var _record = require("../../lib/record.js");
-var _partyday = require("../../lib/partyday.js");
 var _errors = require("../lib/errors.js");
 var _testhdl = require("./lib/testhdl.js");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -20,7 +19,7 @@ describe("ParticipantEvent.update", function () {
   test("ParticipantEvent.update(rec)", function (done) {
     var rec = {
       pkID: 1,
-      fkParty: 2,
+      fkParty: 1,
       fkParticipant: 1,
       fkEvent: 1,
       comment: "test",
@@ -32,7 +31,7 @@ describe("ParticipantEvent.update", function () {
       // проверяем совпадение того что записали
       _participant_event.ParticipantEvent.read({
         pkID: 1,
-        fkParty: 2
+        fkParty: 1
       }, (0, _testhdl.makeCheckReadHdl)(done, rec));
     };
     _participant_event.ParticipantEvent.update(rec, (0, _testhdl.makeHdl)(done, checkF));
@@ -76,11 +75,11 @@ describe("ParticipantEvent.update", function () {
     _participant_event.ParticipantEvent.update(rec, (0, _testhdl.makeHdl)(done, _testhdl.notUndefinedValueHdl));
   });
 });
-describe("Participnat.insert", function () {
+describe("Participant.insert", function () {
   // Оптимистичная вставка участника    
   test("ParticipantEvent.insert(rec)", function (done) {
     var rec = {
-      fkParty: 2,
+      fkParty: 1,
       fkParticipant: 1,
       fkEvent: 2,
       price: 333,
@@ -89,9 +88,10 @@ describe("Participnat.insert", function () {
     };
     var checkF = function checkF(id) {
       expect(id).toBeGreaterThan(0);
+      console.log("id=" + id);
       _participant_event.ParticipantEvent.read({
         pkID: id,
-        fkParty: 2
+        fkParty: 1
       }, (0, _testhdl.makeCheckReadHdl)(done, _objectSpread(_objectSpread({}, rec), {}, {
         pkID: id
       })));
@@ -163,11 +163,11 @@ describe("ParticipantEvent.list", function () {
   });
 
   // оптимистичный  список
-  test("ParticipantEvent.list({ ids:[], fkParty:2, fkParticipant:1 })", function (done) {
+  test("ParticipantEvent.list({ ids:[], fkParty:1, fkParticipant:1 })", function (done) {
     var filter = {
       filter: {
         ids: [],
-        fkParty: 2,
+        fkParty: 1,
         fkParticipant: 1
       }
     };
@@ -197,11 +197,11 @@ describe("ParticipantEvent.list", function () {
   });
 
   // чтение списка по фильтру отбирающему одну запись
-  test("ParticipantEvent.list({ids:[1],fkParty:2, fkParticipant:1})", function (done) {
+  test("ParticipantEvent.list({ids:[1],fkParty:1, fkParticipant:1})", function (done) {
     var filter = {
       filter: {
         ids: [1],
-        fkParty: 2,
+        fkParty: 1,
         fkParticipant: 1
       }
     };
@@ -214,11 +214,11 @@ describe("ParticipantEvent.list", function () {
   });
 
   // чтение списка по фильтру c fkParticipant = null
-  test("ParticipantEvent.list({ids:[],fkParty:2, fkParticipant:null})", function (done) {
+  test("ParticipantEvent.list({ids:[],fkParty:1, fkParticipant:null})", function (done) {
     var filter = {
       filter: {
         ids: [],
-        fkParty: 2,
+        fkParty: 1,
         fkParticipant: null
       }
     };
@@ -226,22 +226,22 @@ describe("ParticipantEvent.list", function () {
   });
 
   // чтение списка по фильтру c fkParticipant = undefined
-  test("ParticipantEvent.list({ids:[],fkParty:2 })", function (done) {
+  test("ParticipantEvent.list({ids:[],fkParty:1 })", function (done) {
     var filter = {
       filter: {
         ids: [],
-        fkParty: 2
+        fkParty: 1
       }
     };
     _participant_event.ParticipantEvent.list(filter, (0, _testhdl.makeHdl)(done, _testhdl.notUndefinedValueHdl));
   });
 
   // чтение списка по фильтру отбирающему 2 записи
-  test("ParticipantEvent.list({ids:[1,2],fkParty:2, fkParticipant:1})", function (done) {
+  test("ParticipantEvent.list({ids:[1,2],fkParty:1, fkParticipant:1})", function (done) {
     var filter = {
       filter: {
         ids: [1, 2],
-        fkParty: 2,
+        fkParty: 1,
         fkParticipant: 1
       }
     };
@@ -257,24 +257,22 @@ describe("ParticipantEvent.list", function () {
 });
 describe("ParticipantEvent.read", function () {
   // оптимистичное чтение
-  test("ParticipantEvent.read({pkID:1,fkParty:2})", function (done) {
+  test("ParticipantEvent.read({pkID:1,fkParty:1})", function (done) {
     var checkF = function checkF(rSet) {
       expect(R.isNil(rSet)).toBeFalsy();
       expect(R.length(rSet)).toEqual(2);
       var rc = (0, _record.makePlainObjByIdx)(rSet);
       expect(rc.pkID).toEqual(1);
-      /*
-      const flds = ['pkID', 'fkParty', 'fkEvent', 'fkParticipant', 'role', 'price', 'comment' ] 
-      const findNull = fld =>{
-          rec
-      }  
-      R.find( findNull , flds )
-      */
+      var flds = ['pkID', 'fkParty', 'fkEvent', 'fkParticipant', 'role', 'price', 'comment'];
+      var findNull = function findNull(fld) {
+        return fld in rc ? false : true;
+      };
+      var arr = R.filter(findNull, flds);
+      expect(R.length(arr)).toEqual(0);
     };
-
     _participant_event.ParticipantEvent.read({
       pkID: 1,
-      fkParty: 2
+      fkParty: 1
     }, (0, _testhdl.makeHdl)(done, checkF));
   });
 
@@ -296,7 +294,7 @@ describe("ParticipantEvent.read", function () {
   // pkID = undefined
   test("ParticipantEvent.read({ fkParty: 1})", function (done) {
     _participant_event.ParticipantEvent.read({
-      fkParty: 2
+      fkParty: 1
     }, (0, _testhdl.makeHdl)(done, _testhdl.notUndefinedValueHdl));
   });
 
@@ -312,7 +310,7 @@ describe("ParticipantEvent.read", function () {
   test("ParticipantEvent.read({pkID:100})", function (done) {
     _participant_event.ParticipantEvent.read({
       pkID: 100,
-      fkParty: 2
+      fkParty: 1
     }, (0, _testhdl.makeHdl)(done, _testhdl.recordDoesNotExistHdl));
   });
 });
@@ -321,7 +319,7 @@ describe("ParticipantEvent.remove", function () {
   test("ParticipantEvent.remove({ids:[2],fkParty:1})", function (done) {
     var rec = {
       ids: [2],
-      fkParty: 2
+      fkParty: 1
     };
     _participant_event.ParticipantEvent.remove(rec, (0, _testhdl.makeHdl)(done, function (removed) {
       return expect(removed).toEqual(1);
@@ -332,7 +330,7 @@ describe("ParticipantEvent.remove", function () {
   test("ParticipantEvent.remove({ids:[3,4], fkParty:1})", function (done) {
     var rec = {
       ids: [3, 4],
-      fkParty: 2
+      fkParty: 1
     };
     _participant_event.ParticipantEvent.remove(rec, (0, _testhdl.makeHdl)(done, function (removed) {
       return expect(removed).toEqual(2);
@@ -351,7 +349,7 @@ describe("ParticipantEvent.remove", function () {
   test("ParticipantEvent.remove({ids:[], fkParty:1})", function (done) {
     var rec = {
       ids: [],
-      fkParty: 2
+      fkParty: 1
     };
     _participant_event.ParticipantEvent.remove(rec, (0, _testhdl.makeHdl)(done, function (err) {
       return expect(err).toBeInstanceOf(_errors.NotEmptyValueErr);
@@ -361,7 +359,7 @@ describe("ParticipantEvent.remove", function () {
   // удаление записи без ids
   test("ParticipantEvent.remove({fkParty:1})", function (done) {
     var rec = {
-      fkParty: 2
+      fkParty: 1
     };
     _participant_event.ParticipantEvent.remove(rec, (0, _testhdl.makeHdl)(done, function (err) {
       return expect(err).toBeInstanceOf(_errors.NotUndefinedValueErr);
@@ -371,7 +369,7 @@ describe("ParticipantEvent.remove", function () {
   test("ParticipantEvent.remove({ids:null,fkParty:1})", function (done) {
     var rec = {
       ids: null,
-      fkParty: 2
+      fkParty: 1
     };
     _participant_event.ParticipantEvent.remove(rec, (0, _testhdl.makeHdl)(done, function (err) {
       return expect(err).toBeInstanceOf(_errors.NotNullValueErr);

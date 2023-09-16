@@ -67,6 +67,10 @@ exports.recordDoesNotExistHdl = recordDoesNotExistHdl;
 var makeCheckReadHdl = function makeCheckReadHdl(done, rec) {
   return makeHdl(done, function (rSet) {
     // проверяем совпадение того что записали
+    expect(rSet).toBeDefined();
+    expect(rSet).not.toBeNull();
+    expect(rSet.length).toBeGreaterThan(1);
+    //console.log( rSet )
     var readRec = (0, _record.makeJSObjByIdx)(rSet, 0);
     expect(readRec).toEqual(rec);
   });

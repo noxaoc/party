@@ -90,12 +90,12 @@ values ( $name, $fkParty, $num, $surname, $patronymic, $phone, $email, $dtReg, $
 */
 const initPartyTable = 
 `insert into party( name, place, dtStart, dtEnd, outgoing, payment, profit, fkClient ) 
-values ( 'Искры джаза', 'Ярославль',  
-         ${ PartyDate.dateToTS('13.06.23') }, 
-         ${ PartyDate.dateToTS('16.06.23') },0,0,0,1 ),
-       ( 'Swingtown Little Cup 2023', 'Москва', 
+values ( 'Swingtown Little Cup 2023', 'Москва', 
          ${ PartyDate.dateToTS('20.06.23') }, 
-         ${ PartyDate.dateToTS('26.06.23') }, 0,0,0,1 )`
+         ${ PartyDate.dateToTS('26.06.23') }, 0,0,0,1 ),
+        ( 'Искры джаза', 'Ярославль',  
+         ${ PartyDate.dateToTS('13.06.23') }, 
+         ${ PartyDate.dateToTS('16.06.23') },0,0,0,1 )`
     
 const initTypeEventTable = 
 `insert into type_event( id, name ) 

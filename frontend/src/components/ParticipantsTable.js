@@ -10,6 +10,7 @@ import * as R from 'ramda'
 
 import { ParticipantEvent } from "../data/participantevent"
 import { Participant } from "../data/participant"
+import { EventParty } from "../data/eventParty";
 import { InputLine } from "./InputLine"
 import { InputComment } from "./InputComment"
 import { EditButton } from "./EditButton"
@@ -94,21 +95,102 @@ const NumAndRegistration =( props )=>{
   )
 }
 
+
+const SelectEvent = ( props ) => {
+  const { mainRec } = props
+  const [ events, setEvents ]   = useState([])
+
+  useEffect(() => {
+    // получить список событий в соответствии с фильтрацией
+    const filter = { fkParty: mainRec.fkParty, pid: mainRec.fkParty  }
+    EventParty.list( filter, null, null,  result => setEvents(result) )
+    return ()=>{}
+  },[ mainRec.fkParty])
+  
+  const recHdl = ( rec, frmt  ) => {
+    const pobj = makePlainObj(rec,frmt)
+    return <EventRow key={`event-${pobj.pkID}`} {...pobj} />
+  }
+
+  const EventRow = props => {
+    const { pkID, name, evTypeName, dtStart } = props;
+    let dt_arr = R.split(' ', dtStart )
+    return (
+      <tr>
+        <td className="p-1">
+          <span className="fw-normal">
+            { name }
+          </span>          
+        </td>
+        <td className="p-1">
+            <span className="fw-normal">
+              { evTypeName }
+            </span>
+        </td>
+        <td className="p-1">
+          <Container className="d-flex flex-column px-0">
+            <span className="fw-normal">
+                {dt_arr[0]}
+            </span>
+            <span className="fw-normal">
+                {dt_arr[1]}
+            </span>
+          </Container>
+        </td>
+      </tr>
+    );
+  };
+  
+
+  return (
+    <Card border="light" className="table-wrapper table-responsive shadow-sm">
+      {/*showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]} 
+                                           hookEdit={[editMode,setEditMode]}
+                                           participant={readParticipant(showDlg.currPid)} /> */} 
+      <Card.Header className="p-1">
+      </Card.Header>
+      <Card.Body className="pt-0 pb-1 px-2">
+        <Table hover className="user-table align-items-center">
+            <thead>
+            <tr>
+              <th className="border-bottom px-1">Событие</th>
+              <th className="border-bottom px-1">Вид</th>
+              <th className="border-bottom px-1">Дата</th>
+              <th className="border-bottom px-1">Стоимость, руб</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mapRSet( recHdl, events )}
+          </tbody>
+        </Table>
+        <Card.Footer className="px-1 py-2 border-0 d-flex justify-content-start">
+          <small className="fw-bold">
+            Всего событий: <b>{R.empty(events) ? 0 : ( R.length(events) - 1 ) }</b>
+          </small>
+        </Card.Footer>
+      </Card.Body>
+    </Card>
+  )
+}
+
+
+
 /*
-name название события
+* События участника
 */
-const EventOfParticipant=( props ) => {
-    const { editMode, id, name, price, role } = props;
-    const doRemoveEventOfP=() => ParticipantEvent.remove(id)
+const EventOfParticipant = ( props ) => {
+    console.log(props)
+    const { editMode, pkID, nameEvent, price, role, participantRole, doRemoveByID } = props;
+    
     return (
       <tr>
         <td className="p-1">
           <Container className="d-flex flex-column px-0">
             <span className="fw-normal">
-              {name}
+              {nameEvent}
             </span>
             <span className="fw-normal text-muted">
-              {role}
+              { R.isEmpty(role) ? participantRole : role }
             </span>
           </Container>
         </td>
@@ -124,19 +206,18 @@ const EventOfParticipant=( props ) => {
               </Dropdown.Toggle>
               {/** выпадающее меню из пунктов при нажатии переключателя */}
                 <Dropdown.Menu>
-                  <Dropdown.Item onClick={()=>alert("Ok")/*(_)=>setShowDlg( {showDlg:true,currEventID:eventID} )*/}>
+                  <Dropdown.Item onClick={()=>alert("нет")}>
                     <FontAwesomeIcon icon={faEdit} className="me-2" /> Редактировать
                   </Dropdown.Item>
-                  <Dropdown.Item className="text-danger" onClick={doRemoveEventOfP}>
-                    <FontAwesomeIcon icon={faTrashAlt} className="me-2"  /> Удалить
+                  <Dropdown.Item className="text-danger" onClick={doRemoveByID(pkID)}>
+                    <FontAwesomeIcon icon={faTrashAlt} className="me-2" /> Удалить
                   </Dropdown.Item>
                 </Dropdown.Menu> 
-            </Dropdown> :   <span className="fw-normal"> {price}</span>
+            </Dropdown> : <span className="fw-normal">{price}</span>
           }
         </td>
       </tr>
     )
-
 }
 
 /*
@@ -150,15 +231,16 @@ const ListEventOfParticipant = ( props ) => {
   useEffect(() => {
     console.log("вызываю ParticipanEvent.list ")
     // получить список  событий участника
-    if(  R.isNotNil(editRec.pkID) ){
+    if( R.isNotNil(editRec.pkID) ){
       const filter = { fkParty: editRec.fkParty, fkParticipant: editRec.pkID }
-      ParticipantEvent.list( filter, null, null,  result =>{ if( R.isNotNil(result) ) setEvents(result) }  )
+      ParticipantEvent.list( filter, null, null,  result => { if( R.isNotNil(result) ) setEvents(result) }  )
     }
     return ()=>{}
   },[ changed,  editRec.fkParty, editRec.pkID ])
 
-/*
+
   // создать обработчик на редактирование записи
+  /*
   const makeOnEditHdl = id =>{
     return () => {
       ParticipantEvent.list( {ids:[id], fkParty: editRec.fkParty }, null, null, 
@@ -167,6 +249,7 @@ const ListEventOfParticipant = ( props ) => {
     }
   }
   */
+
 
   //удалить участника по id и вызвать обновление списка
   const doRemoveByID = id =>{
@@ -179,9 +262,12 @@ const ListEventOfParticipant = ( props ) => {
 
   const totalEvents = events.length ? events.length - 1 : 0
 
-  const recHdl = ( rec, frmt  )=>{
-      const pobj = makePlainObj(rec,frmt)
-      return <EventOfParticipant key={`event-${pobj.pkID}`} editMode={editMode} {...pobj} />
+  const recHdl = ( rec, frmt  ) => {
+      const pobj = makePlainObj( rec, frmt )
+
+      return <EventOfParticipant key={`event-${pobj.pkID}`} editMode={editMode} 
+                                doRemoveByID={doRemoveByID} 
+                                     participantRole={editRec.role} {...pobj} />
   }
 
   return (
@@ -206,7 +292,7 @@ const ListEventOfParticipant = ( props ) => {
         </Table>
         <Card.Footer className="px-1 py-2 border-0 d-flex justify-content-start">
           <small className="fw-bold">
-            Всего событий <b>{totalEvents}</b>
+            Всего событий: <b>{totalEvents}</b>
           </small>
         </Card.Footer>
       </Card.Body>
@@ -291,7 +377,7 @@ export const ParticipantDlg = ( { hookShowDlg, hookChgParticipants } )=>{
                   <Field as={InputComment} editMode={editMode} name="comment" />
                 </Tab>
                 <Tab eventKey="events" tabClassName="py-1" title="Участвует">
-                  <ListEventOfParticipant { ... showDlg } />
+                  <ListEventOfParticipant editMode={editMode}  editRec={showDlg.editRec} />
                 </Tab>
               </Tabs>
             </Modal.Body>

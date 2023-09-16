@@ -52,6 +52,10 @@ export const recordDoesNotExistHdl = err => expect(err).toBeInstanceOf( RecordDo
 export const makeCheckReadHdl = (done, rec) =>{
     return makeHdl( done, rSet =>{
           // проверяем совпадение того что записали
+          expect( rSet).toBeDefined()
+          expect( rSet).not.toBeNull()
+          expect( rSet.length ).toBeGreaterThan(1)
+          //console.log( rSet )
           const readRec = makeJSObjByIdx(rSet,0)
           expect(readRec).toEqual(rec)
     } )

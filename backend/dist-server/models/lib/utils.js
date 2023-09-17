@@ -70,10 +70,10 @@ var checkPkID = function checkPkID(rec, hdl) {
   return checkIsNilFld(rec, 'pkID', hdl);
 };
 /**
- * Проверить, что pkID и fkID в rec не null и не undefined
+ * Проверить, что pkID и fkParty в rec не null и не undefined
  * @param { запись } rec 
  * @param { обработчик } hdl 
- * @returns false если pkID или fkID null или undefined, а в обработчик ставится объект ошибки с текстом. 
+ * @returns false если pkID или fkParty null или undefined, а в обработчик ставится объект ошибки с текстом. 
  * true если все нормально. 
  */
 exports.checkPkID = checkPkID;

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.update = exports.remove = exports.read = exports.list = exports.insert = exports.init = void 0;
+exports.update = exports.remove = exports.read = exports.list = exports.insertselected = exports.insert = exports.init = void 0;
 var _participant_event = require("../models/participant_event");
 var _response = require("../lib/response");
 /*
@@ -64,4 +64,14 @@ var init = function init(req, res, next) {
   console.log(req.body);
   (0, _response.getResult)(_participant_event.ParticipantEvent.init, req.body, res);
 };
+
+/**
+ * Добавить события в которых хочет участвовать участник, если событие уже было добавлено ранее
+ * то его добавление будет пропущено
+*/
 exports.init = init;
+var insertselected = function insertselected(req, res, next) {
+  console.log(req.body);
+  (0, _response.getResult)(_participant_event.ParticipantEvent.insertSelected, req.body, res);
+};
+exports.insertselected = insertselected;

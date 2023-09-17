@@ -74,6 +74,20 @@ function update( rec, setResult, setError ){
 }
 
 /**
+ * Добавить события в которых хочет участвовать участник, если событие уже было добавлено ранее
+ * то его добавление будет пропущено
+ * @param {*} rec объект формата { ids, fkParty, fkParticipant }
+ * ids - список идентифкаторов событий которые надо связать с участником fkParticipant
+ * ids и fkParticipant должны принадлежать междусобойчику fkParty
+ * @param {*} setResult 
+ * @param {*} setError 
+ */
+function insertSelected( rec , setResult, setError){
+    PartyService.post( "/participantevent/insertselected",  { ...rec } , setResult, setError)
+}
+
+
+/**
  * Список полей которые могут меняться
  * @param {*} rec 
  * @returns 
@@ -99,7 +113,8 @@ return Object.freeze({
     insert,
     update,
     upsert,
-    init
+    init,
+    insertSelected
 })
 
 }

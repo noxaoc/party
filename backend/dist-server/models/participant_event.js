@@ -124,13 +124,33 @@ function makeParticipantEvent() {
     if (!(0, _utils.checkRec)(rec, respHdl)) return;
     _dbschema.DBParticipantEvent.update(rec, respHdl);
   }
+
+  /**
+   * Добавить события в которых хочет участвовать участник, если событие уже было добавлено ранее
+   * то его добавление будет пропущено
+   * @param {*} rec объект формата { ids, fkParty, fkParticipant }
+   * ids - список идентифкаторов событий которые надо связать с участником fkParticipant
+   * ids и fkParticipant должны принадлежать междусобойчику fkParty
+   * @param {*} callback respHdl( err, true ) true если все хорошо
+   */
+  function insertSelected(rec, respHdl) {
+    if (!(0, _utils.checkFkParty)(rec, respHdl)) return;
+    if (!(0, _utils.checkIsNilFld)(rec, 'fkParticipant', respHdl)) return;
+    if (!(0, _utils.checkIsNilFld)(rec, 'ids', respHdl)) return;
+    if (R.isEmpty(rec.ids)) {
+      respHdl(null, true);
+      return;
+    }
+    _dbschema.DBParticipantEvent.insertSelected(rec, respHdl);
+  }
   return Object.freeze({
     list: list,
     read: read,
     remove: remove,
     insert: insert,
     update: update,
-    init: init
+    init: init,
+    insertSelected: insertSelected
   });
 }
 var ParticipantEvent = makeParticipantEvent();

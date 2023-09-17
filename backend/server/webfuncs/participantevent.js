@@ -54,3 +54,12 @@ export const init = (  req, res, next )=>{
     console.log(req.body)
     getResult(ParticipantEvent.init, req.body, res )
 }
+
+/**
+ * Добавить события в которых хочет участвовать участник, если событие уже было добавлено ранее
+ * то его добавление будет пропущено
+*/
+export const insertselected = ( req, res, next )=>{
+    console.log(req.body)
+    getResult(ParticipantEvent.insertSelected, req.body, res )
+}

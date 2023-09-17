@@ -111,16 +111,28 @@ values ( 'Базовая до 12.02.23', 20000 ),
 
 const initEventTable =
 `insert into event_party( 'name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty' ) 
-        values ( 'Mix&Match Kids', 'Темп 32-38 bpm', 
+        values ( 'Mix&Match Kinders', 'Темп 32-38 bpm', 
                  ${ PartyDate.toTS('13.06.23 11:00:00') }, 
                  (select pkID from type_event where id = 'competition'), 
                  (select pkID from party where name = 'Искры джаза' )),
-               ( 'Strictly Kids', 'Темп 40-42 bpm', 
+               ( 'Strictly Kinders', 'Темп 40-42 bpm', 
                 ${ PartyDate.toTS('13.06.23 13:00:00') }, 
                 (select pkID from type_event where id = 'competition'),
                 (select pkID from party where name = 'Искры джаза' )),
                 ( 'Strictly Kids', 'Темп 40-42 bpm', 
                 ${ PartyDate.toTS('13.06.22 15:00:00') }, 
+                (select pkID from type_event where id = 'competition'),
+                (select pkID from party where name = 'Swingtown Little Cup 2023' )),
+                ( 'Big Little', 'Темп 40-42 bpm', 
+                ${ PartyDate.toTS('14.06.22 16:00:00') }, 
+                (select pkID from type_event where id = 'competition'),
+                (select pkID from party where name = 'Swingtown Little Cup 2023' )),
+                ( 'Mix&Match Kids', 'Темп 40-42 bpm', 
+                ${ PartyDate.toTS('13.06.22 17:00:00') }, 
+                (select pkID from type_event where id = 'competition'),
+                (select pkID from party where name = 'Swingtown Little Cup 2023' )),
+                ( 'Mix&Match Junior', 'Темп 40-42 bpm', 
+                ${ PartyDate.toTS('13.06.22 18:00:00') }, 
                 (select pkID from type_event where id = 'competition'),
                 (select pkID from party where name = 'Swingtown Little Cup 2023' ))`
 
@@ -743,13 +755,15 @@ function makeParticipantEvent(){
                    pe.fkEvent as fkEvent,
                    pe.fkParticipant as fkParticipant, 
                    pe.price as price, 
-                   pe.role as role, 
+                   coalesce( pe.role, pt.role) as role, 
                    pe.comment as comment,
                    ep.name as nameEvent
             from 
                 participant_event pe
                 join event_party ep
                 on pe.fkEvent = ep.pkID
+                join participant pt
+                on pe.fkParticipant = pt.pkID
             where pe.fkParty=${filter.fkParty} and pe.fkParticipant=${filter.fkParticipant} ${ids}` )
 }
 
@@ -854,12 +868,44 @@ function onSuccess (err){
 db.run( query, arg, onSuccess )
 }
 
+/**
+ * Добавить события в которых хочет участвовать участник, если событие уже было добавлено ранее
+ * то его добавление будет пропущено
+ * @param {*} rec объект формата { ids, fkParty, fkParticipant }
+ * ids - список идентифкаторов событий которые надо связать с участником fkParticipant
+ * ids и fkParticipant должны принадлежать междусобойчику fkParty
+ * @param {*} callback respHdl( err, true ) - если вставка прошла
+ */
+function insertSelected( { ids, fkParty, fkParticipant }, respHdl ){
+    const startStr = 'with T(fkParty, fkParticipant, fkEvent, price ) as ( values '
+    const endStr = `)  insert into participant_event( fkParty, fkParticipant, fkEvent, price )
+                    select 
+                        fkParty, fkParticipant, fkEvent, price
+                    from T
+                    where T.fkEvent not in ( select fkEvent 
+                                             from participant_event 
+                                             where fkParty=${fkParty} and fkParticipant=${fkParticipant})`
+    
+    const createQuery = ( q, id ) => {
+        const comma = R.last(q) === ')' ? ',' : ''
+        return q +  comma + `( ${fkParty}, ${fkParticipant}, ${id},  0 )`
+    }
+    const query = R.reduce( createQuery, startStr, ids ) + endStr
+    console.log(query)
+    function onSuccess (err){
+        respHdl(err, err ? null : true  )
+    }
+    db.run( query, [], onSuccess )
+}
+
+
     return Object.freeze({
         list,
         read,
         remove,
         insert,
-        update
+        update,
+        insertSelected
     });
 }
 

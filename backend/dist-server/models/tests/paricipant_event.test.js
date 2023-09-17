@@ -88,7 +88,6 @@ describe("Participant.insert", function () {
     };
     var checkF = function checkF(id) {
       expect(id).toBeGreaterThan(0);
-      console.log("id=" + id);
       _participant_event.ParticipantEvent.read({
         pkID: id,
         fkParty: 1
@@ -172,7 +171,6 @@ describe("ParticipantEvent.list", function () {
       }
     };
     _participant_event.ParticipantEvent.list(filter, (0, _testhdl.makeHdl)(done, function (rSet) {
-      console.log(rSet);
       expect(R.length(rSet)).toEqual(3);
     }));
   });
@@ -372,6 +370,129 @@ describe("ParticipantEvent.remove", function () {
       fkParty: 1
     };
     _participant_event.ParticipantEvent.remove(rec, (0, _testhdl.makeHdl)(done, function (err) {
+      return expect(err).toBeInstanceOf(_errors.NotNullValueErr);
+    }));
+  });
+});
+describe("ParticipantEvent.insertSelected", function () {
+  // Оптимистичный сценарий вставки выбранных записей
+  test("ParticipantEvent.insertSelected({ids:[2],fkParty:1, fkParticipant: 1})", function (done) {
+    var rec = {
+      ids: [3, 4],
+      fkParty: 1,
+      fkParticipant: 1
+    };
+    _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, function (res) {
+      return expect(res).toBeTruthy();
+    }));
+  });
+
+  // Оптимистичный сценарий вставки выбранных записей которые уже есть,
+  // т.е. они не должны добавиться
+  test("repeat ParticipantEvent.insertSelected({ids:[3,4],fkParty:1, fkParticipant: 1})", function (done) {
+    var rec = {
+      ids: [3, 4],
+      fkParty: 1,
+      fkParticipant: 1
+    };
+    var filter = {
+      filter: {
+        fkParty: 1,
+        fkParticipant: 1
+      }
+    };
+    var makeAfterInsert = function makeAfterInsert(count) {
+      return function (err, res) {
+        var cntList = function cntList(rSet) {
+          expect(rSet).not.toBeNull();
+          expect(count).toEqual(R.length(rSet)); // количество записей до вставки и после должно совпадать    
+        };
+
+        _participant_event.ParticipantEvent.list(filter, (0, _testhdl.makeHdl)(done, cntList));
+      };
+    };
+
+    // читаем список до
+    var countList = function countList(err, rSet) {
+      expect(rSet).not.toBeNull();
+      var count = R.length(rSet); // количество записей до вставки
+      _participant_event.ParticipantEvent.insertSelected(rec, makeAfterInsert(count));
+    };
+    _participant_event.ParticipantEvent.list(filter, countList);
+  });
+
+  // вставка с пустым ids
+  test("ParticipantEvent.insertSelected({ids:[], fkParty:1, fkParticipant: 1})", function (done) {
+    var rec = {
+      ids: [],
+      fkParty: 1,
+      fkParticipant: 1
+    };
+    _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, function (res) {
+      return expect(res).toBeTruthy();
+    }));
+  });
+
+  // вставка без fkParty
+  test("ParticipantEvent.insertSelected({ids:[1], fkParticipant: 1})", function (done) {
+    var rec = {
+      ids: [1],
+      fkParticipant: 1
+    };
+    _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, _testhdl.notUndefinedValueHdl));
+  });
+
+  // вставка  fkParty: null
+  test("ParticipantEvent.insertSelected({ids:[1], fkParticipant: 1, fkParty: null})", function (done) {
+    var rec = {
+      ids: [1],
+      fkParticipant: 1,
+      fkParty: null
+    };
+    _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, function (err) {
+      return expect(err).toBeInstanceOf(_errors.NotNullValueErr);
+    }));
+  });
+
+  // вставка без fkParticipant
+  test("ParticipantEvent.insertSelected({ids:[1], fkParticipant: 1})", function (done) {
+    var rec = {
+      ids: [1],
+      fkParty: 1
+    };
+    _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, _testhdl.notUndefinedValueHdl));
+  });
+
+  // вставка  fkParticipant: null
+  test("ParticipantEvent.insertSelected({ids:[1], fkParticipant: null, fkParty: 1})", function (done) {
+    var rec = {
+      ids: [1],
+      fkParticipant: null,
+      fkParty: 1
+    };
+    _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, function (err) {
+      return expect(err).toBeInstanceOf(_errors.NotNullValueErr);
+    }));
+  });
+
+  // вставка без ids
+  test("ParticipantEvent.insertSelected({fkParty:1, fkParticipant: 1})", function (done) {
+    var rec = {
+      fkParty: 1,
+      fkParticipant: 1
+    };
+    _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, function (err) {
+      return expect(err).toBeInstanceOf(_errors.NotUndefinedValueErr);
+    }));
+  });
+  // вставка c ids = null
+  test("ParticipantEvent.insertSelected({ ids:null, fkParty:1, fkParticipant:1 })", function (done) {
+    var rec = {
+      ids: null,
+      fkParty: 1,
+      fkParticipant: 1
+    };
+    _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, function (err) {
       return expect(err).toBeInstanceOf(_errors.NotNullValueErr);
     }));
   });

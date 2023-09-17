@@ -95,28 +95,62 @@ const NumAndRegistration =( props )=>{
   )
 }
 
-
+/*
+* Окно выбора события
+* Cценарий:
+* При нажатии на кнопку в зависимости от условия фильтрации filter
+* строится список событий.
+* Мы отмечаем одно и более событий, жмем кнопку выбрать, 
+* окно закрывается записи добавлются  к списку событий с суммами по умолчанию
+* ранее добавленные не добавляются
+* filter - условия фильтрации
+* setSelectData - хук для установки выбранных данных
+* showWindowSelectHook - хук показа и закрытия окна
+*/ 
 const SelectEvent = ( props ) => {
-  const { mainRec } = props
+  const { filter, setSelectData, showWindowSelectHook, onPressSelectHdl } = props
+  const [, setShowWindowSelectEvents] = showWindowSelectHook
   const [ events, setEvents ]   = useState([])
+  // список идентифкаторв выбранных событий
+  //const [checked, setChecked ] = useState([])
+  const [ ids, setIds ] = useState([])
+
 
   useEffect(() => {
     // получить список событий в соответствии с фильтрацией
-    const filter = { fkParty: mainRec.fkParty, pid: mainRec.fkParty  }
-    EventParty.list( filter, null, null,  result => setEvents(result) )
+    const flt = { fkParty: filter.fkParty, pid: filter.fkParty  }
+    EventParty.list( flt, null, null,  result => setEvents(result), err => alert(err.message) )
     return ()=>{}
-  },[ mainRec.fkParty])
+  },[ filter ])
+
+   // обработка закрытия окна
+  const handleClose = () => setShowWindowSelectEvents( false )
+  
+  // обработчик выбора событий
+  const pressSelectHdl = () => {
+      onPressSelectHdl(ids)
+      handleClose()
+  }
   
   const recHdl = ( rec, frmt  ) => {
     const pobj = makePlainObj(rec,frmt)
     return <EventRow key={`event-${pobj.pkID}`} {...pobj} />
   }
-
+  // 
+  const makeOnClickHdl = ( id ) => {
+    return () => setIds( R.includes( id, ids ) ? R.dropWhile( elem => elem === id, ids) : R.append(id, ids)  ) 
+    
+  }
   const EventRow = props => {
-    const { pkID, name, evTypeName, dtStart } = props;
+    const { pkID, name, evTypeName, dtStart, price } = props;
     let dt_arr = R.split(' ', dtStart )
     return (
       <tr>
+        <td className="p-1">
+          <Form.Check aria-label={ "option-" + pkID} 
+                    checked={R.includes(pkID,ids)}
+                    onChange={makeOnClickHdl(pkID)} />  
+        </td>
         <td className="p-1">
           <span className="fw-normal">
             { name }
@@ -137,39 +171,64 @@ const SelectEvent = ( props ) => {
             </span>
           </Container>
         </td>
+        <td className="p-1">
+            <span className="fw-normal">
+              { price ? price : 0 }
+            </span>
+        </td>
       </tr>
     );
   };
   
 
+
   return (
-    <Card border="light" className="table-wrapper table-responsive shadow-sm">
-      {/*showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]} 
-                                           hookEdit={[editMode,setEditMode]}
-                                           participant={readParticipant(showDlg.currPid)} /> */} 
-      <Card.Header className="p-1">
-      </Card.Header>
-      <Card.Body className="pt-0 pb-1 px-2">
-        <Table hover className="user-table align-items-center">
-            <thead>
-            <tr>
-              <th className="border-bottom px-1">Событие</th>
-              <th className="border-bottom px-1">Вид</th>
-              <th className="border-bottom px-1">Дата</th>
-              <th className="border-bottom px-1">Стоимость, руб</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mapRSet( recHdl, events )}
-          </tbody>
-        </Table>
-        <Card.Footer className="px-1 py-2 border-0 d-flex justify-content-start">
-          <small className="fw-bold">
-            Всего событий: <b>{R.empty(events) ? 0 : ( R.length(events) - 1 ) }</b>
-          </small>
-        </Card.Footer>
-      </Card.Body>
-    </Card>
+    <Modal as={Modal.Dialog} show={true} onHide={handleClose} size="md" >
+      <Modal.Header className="py-1" as={Row} >
+        <Col sm={8}>
+          <Modal.Title className="h5">Выбор событий</Modal.Title>
+        </Col>
+        <Col sm={3} className="d-flex justify-content-end" >
+          <Button className="border-0" variant="outline-success" type='submit' onClick={pressSelectHdl}>
+            Выбрать
+          </Button>
+        </Col>
+        <Col sm={1} className="d-flex justify-content-end" >
+          <Button className="m-0 py-2" variant="close" aria-label="Close" onClick={handleClose} />
+        </Col>
+      </Modal.Header>
+      <Modal.Body className="py-1">
+        <Card border="light" className="table-wrapper table-responsive shadow-sm">
+          {/*showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]} 
+                                              hookEdit={[editMode,setEditMode]}
+                                              participant={readParticipant(showDlg.currPid)} /> */} 
+          <Card.Header className="p-1">
+          </Card.Header>
+          <Card.Body className="pt-0 pb-1 px-2">
+            <Table hover className="user-table align-items-center">
+                <thead>
+                <tr>
+                  <th className="border-bottom px-1">Отметить</th>
+                  <th className="border-bottom px-1">Событие</th>
+                  <th className="border-bottom px-1">Вид</th>
+                  <th className="border-bottom px-1">Дата</th>
+                  <th className="border-bottom px-1">Стоимость, руб</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mapRSet( recHdl, events )}
+              </tbody>
+            </Table>
+            <Card.Footer className="px-1 py-2 border-0 d-flex justify-content-start">
+              <small className="fw-bold">
+                Всего событий: <b>{R.isEmpty(events) ? 0 : ( R.length(events) - 1 ) }</b>
+              </small>
+            </Card.Footer>
+          </Card.Body>
+        </Card>
+      </Modal.Body>
+    </Modal >
+
   )
 }
 
@@ -227,6 +286,8 @@ const ListEventOfParticipant = ( props ) => {
   const { editMode, editRec }   = props
   const [ events, setEvents ]   = useState([])
   const [ changed, setChanged ] = useState(false)
+  // хук показа окна выбора события
+  const [ showWindowSelectEvents, setShowWindowSelectEvents] = useState(false)
 
   useEffect(() => {
     console.log("вызываю ParticipanEvent.list ")
@@ -250,6 +311,16 @@ const ListEventOfParticipant = ( props ) => {
   }
   */
 
+  /* обработчик выбора событий
+  *  при выборе события мы добавляем те которые ранее не были добавлены
+  */
+  const onPressSelectHdl =  ids  => {
+    ParticipantEvent.insertSelected( { ids, fkParty: editRec.fkParty, fkParticipant: editRec.pkID} ,
+                                     () => setChanged(!changed), err => alert(err.message) )
+
+  }
+
+
 
   //удалить участника по id и вызвать обновление списка
   const doRemoveByID = id =>{
@@ -272,11 +343,11 @@ const ListEventOfParticipant = ( props ) => {
 
   return (
     <Card border="light" className="table-wrapper table-responsive shadow-sm">
-      {/*showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]} 
-                                           hookEdit={[editMode,setEditMode]}
-                                           participant={readParticipant(showDlg.currPid)} /> */} 
+      { showWindowSelectEvents && <SelectEvent filter={ {fkParty:editRec.fkParty} } 
+        onPressSelectHdl={onPressSelectHdl}
+       showWindowSelectHook ={[ showWindowSelectEvents, setShowWindowSelectEvents] }/> } 
       <Card.Header className="p-1">
-        { editMode && <Button variant="outline-primary" size="sm" onClick={()=>alert("Тут надо добавлять событие")}>+</Button> }
+        { editMode && <Button variant="outline-primary" size="sm" onClick={()=>setShowWindowSelectEvents(true)}>+</Button> }
       </Card.Header>
       <Card.Body className="pt-0 pb-1 px-2">
         <Table hover className="user-table align-items-center">

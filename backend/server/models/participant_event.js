@@ -103,6 +103,25 @@ function update(rec, respHdl ){
     if( !checkRec(rec, respHdl) ) return
     DBParticipantEvent.update( rec, respHdl )
 }
+
+/**
+ * Добавить события в которых хочет участвовать участник, если событие уже было добавлено ранее
+ * то его добавление будет пропущено
+ * @param {*} rec объект формата { ids, fkParty, fkParticipant }
+ * ids - список идентифкаторов событий которые надо связать с участником fkParticipant
+ * ids и fkParticipant должны принадлежать междусобойчику fkParty
+ * @param {*} callback respHdl( err, true ) true если все хорошо
+ */
+function insertSelected( rec, respHdl ){
+    if( !checkFkParty(rec, respHdl) ) return
+    if( !checkIsNilFld(rec, 'fkParticipant', respHdl) ) return
+    if( !checkIsNilFld(rec, 'ids', respHdl) ) return
+    if( R.isEmpty(rec.ids) ){
+        respHdl(null,true)
+        return
+    }
+    DBParticipantEvent.insertSelected(rec,respHdl)
+}
         
 return Object.freeze({
     list,
@@ -110,7 +129,8 @@ return Object.freeze({
     remove,
     insert,
     update,
-    init
+    init,
+    insertSelected
 })
 
 }

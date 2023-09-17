@@ -67,7 +67,6 @@ test("ParticipantEvent.insert(rec)", done => {
                 }
     const checkF = id => {
         expect(id).toBeGreaterThan(0)
-        console.log( "id="+id)
         ParticipantEvent.read( { pkID: id, fkParty:1 }, makeCheckReadHdl(done, { ...rec, pkID: id })  )
     }
     ParticipantEvent.insert( rec, makeHdl( done, checkF ) )
@@ -127,7 +126,7 @@ beforeEach( done  => {
 // оптимистичный  список
 test("ParticipantEvent.list({ ids:[], fkParty:1, fkParticipant:1 })", done => {
     const filter = { filter:{ ids:[], fkParty:1, fkParticipant:1 } }
-    ParticipantEvent.list( filter, makeHdl( done, rSet => { console.log(rSet);expect(R.length(rSet)).toEqual(3)} ) )
+    ParticipantEvent.list( filter, makeHdl( done, rSet => { expect(R.length(rSet)).toEqual(3)} ) )
 })
 
 test("ParticipantEvent.list({ids:[]})", done => {
@@ -261,6 +260,83 @@ test("ParticipantEvent.remove({ids:null,fkParty:1})", done => {
     const rec = { ids: null, fkParty:1 } 
     ParticipantEvent.remove( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotNullValueErr) ) )
 })
+
+})
+
+describe("ParticipantEvent.insertSelected", ()=>{
+
+    // Оптимистичный сценарий вставки выбранных записей
+    test("ParticipantEvent.insertSelected({ids:[2],fkParty:1, fkParticipant: 1})", done => {
+        const rec = { ids:[3,4],fkParty:1, fkParticipant: 1 } 
+        ParticipantEvent.insertSelected( rec, makeHdl( done, res => expect(res).toBeTruthy() ) )
+    })
+
+     // Оптимистичный сценарий вставки выбранных записей которые уже есть,
+     // т.е. они не должны добавиться
+     test("repeat ParticipantEvent.insertSelected({ids:[3,4],fkParty:1, fkParticipant: 1})", done => {
+        const rec = { ids:[3,4],fkParty:1, fkParticipant: 1 } 
+        const filter = { filter:{ fkParty:1, fkParticipant:1 } }
+        const  makeAfterInsert = count => {
+            return (err, res) => {
+                const cntList = rSet => {
+                    expect(rSet).not.toBeNull()
+                    expect( count).toEqual(R.length(rSet)) // количество записей до вставки и после должно совпадать    
+                }
+                ParticipantEvent.list( filter, makeHdl( done, cntList ) )
+            }
+        }
+
+        // читаем список до
+        const countList = (err, rSet) => {
+            expect(rSet).not.toBeNull()
+            const count = R.length(rSet) // количество записей до вставки
+            ParticipantEvent.insertSelected( rec,  makeAfterInsert(count) )
+        }
+        ParticipantEvent.list( filter, countList ) 
+    })
+    
+    // вставка с пустым ids
+    test("ParticipantEvent.insertSelected({ids:[], fkParty:1, fkParticipant: 1})", done => {
+        const rec = { ids:[], fkParty:1, fkParticipant: 1 } 
+        ParticipantEvent.insertSelected( rec, makeHdl( done, res => expect(res).toBeTruthy() ) )
+    })
+    
+    // вставка без fkParty
+    test("ParticipantEvent.insertSelected({ids:[1], fkParticipant: 1})", done => {
+        const rec = { ids:[1], fkParticipant: 1 } 
+        ParticipantEvent.insertSelected( rec, makeHdl(done, notUndefinedValueHdl ) ) 
+    })
+
+     // вставка  fkParty: null
+     test("ParticipantEvent.insertSelected({ids:[1], fkParticipant: 1, fkParty: null})", done => {
+        const rec = { ids:[1], fkParticipant: 1, fkParty: null } 
+        ParticipantEvent.insertSelected( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotNullValueErr) ) ) 
+    })
+
+    // вставка без fkParticipant
+    test("ParticipantEvent.insertSelected({ids:[1], fkParticipant: 1})", done => {
+        const rec = { ids:[1], fkParty: 1 } 
+        ParticipantEvent.insertSelected( rec, makeHdl(done, notUndefinedValueHdl ) ) 
+    })
+
+     // вставка  fkParticipant: null
+     test("ParticipantEvent.insertSelected({ids:[1], fkParticipant: null, fkParty: 1})", done => {
+        const rec = { ids:[1], fkParticipant: null, fkParty: 1 } 
+        ParticipantEvent.insertSelected( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotNullValueErr) ) ) 
+    })
+    
+    // вставка без ids
+    test("ParticipantEvent.insertSelected({fkParty:1, fkParticipant: 1})", done => {
+        const rec = { fkParty:1, fkParticipant: 1} 
+        ParticipantEvent.insertSelected( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotUndefinedValueErr) ) )
+    })
+    // вставка c ids = null
+    test("ParticipantEvent.insertSelected({ ids:null, fkParty:1, fkParticipant:1 })", done => {
+        const rec = { ids: null, fkParty:1, fkParticipant: 1 } 
+        ParticipantEvent.insertSelected( rec, makeHdl(done, err => expect(err).toBeInstanceOf(NotNullValueErr) ) )
+    })
+    
+    
 
 })
 

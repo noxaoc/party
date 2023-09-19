@@ -33,7 +33,16 @@ fkParty int not null,
 dtStart int,
 free int,
 name text,
+price real,
 description text,
+foreign key ( fkParty ) references Party ( pkID ) )`
+
+const createChangePrice =
+`create table change_price(
+pkID integer primary key,
+fkParty int,
+percent int,
+date int, 
 foreign key ( fkParty ) references Party ( pkID ))`
 
 const createTypeEvent =
@@ -43,9 +52,11 @@ id text,
 name text,
 description text)`
 
-const createPricesEvent =
+const createPriceEvent =
 `create table price_event(
 pkID integer primary key,
+fkParty int,
+fkEvent int,
 name text,
 price real)`
 
@@ -104,10 +115,15 @@ values ( 'party', 'Вечеринка' ),
        ( 'competition', 'Cоревнование'),
        ( 'masterClass', 'Мастер-класс')`
 
-const initPricesTable =
+const initPriceTable =
 `insert into price_event( 'name', 'price' ) 
 values ( 'Базовая до 12.02.23', 20000 ),
        ( "Базовая после 12.02.23", 23000 )`
+
+const initChangePriceTable =
+`insert into change_price( 'date', 'percent', 'fkParty' ) 
+values ( ${ PartyDate.toTS('13.06.23 11:00:00')}, 10, (select pkID from party where name = 'Swingtown Little Cup 2023' ) ),
+       ( ${ PartyDate.toTS('13.06.23 11:00:00')}, 15, (select pkID from party where name = 'Swingtown Little Cup 2023' ) )`
 
 const initEventTable =
 `insert into event_party( 'name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty' ) 
@@ -170,7 +186,8 @@ function makeTestDB(){
     Создаем таблицы
 */
 function createDatabase(){
-    const stmts = [ createParty, createEvent, createTypeEvent, createPricesEvent, createParticipant, createParticipantEvent ]
+    const stmts = [ createParty, createEvent, createTypeEvent, createPriceEvent, createParticipant, 
+                    createParticipantEvent, createChangePrice ]
     const createTbl = stmt => db.run( stmt )
     R.forEach( createTbl, stmts )
 }
@@ -181,8 +198,9 @@ function createDatabase(){
 function  initData(){
     db.run(initPartyTable)
     db.run(initTypeEventTable)
-    db.run(initPricesTable)
+    db.run(initPriceTable)
     db.run(initEventTable)
+    db.run(initChangePriceTable)
 
     const addParticipant = rec => {
         let obj = {}
@@ -275,6 +293,13 @@ function makeEventParty(){
                 eventIdsFilter = `and event_party.pkID in ( ${filter.ids.join(',')} )`
             }
         }
+        let excludeStr = ''
+        if( R.isNotNil(filter.exclude) ){
+            excludeStr =   `and pkID not in ( select fkEvent 
+                           from participant_event 
+                           where fkParty = ${filter.pid} and
+                                 fkParticipant = ${filter.exclude} )`
+        }
         if( R.isNotNil(filter.searchStr) && !R.isEmpty(filter.searchStr) )       
             filterSearchStr = `and event_party.name like '%${filter.searchStr}%'`
         
@@ -289,7 +314,7 @@ function makeEventParty(){
                 from event_party 
                      join type_event 
                      on type_event.pkID = event_party.fkTypeEvent
-                where fkParty = ${filter.pid} ${eventIdsFilter} ${filterSearchStr}` )
+                where fkParty = ${filter.pid} ${eventIdsFilter} ${filterSearchStr} ${excludeStr}` )
     }
   
   /**
@@ -297,7 +322,8 @@ function makeEventParty(){
    * @param {*} ext 
    * @param {*} filter  - задает фильтрацию  списка 
    *                        { pid:<pkParty>, // идентификатор междусобойчика
-   *                          searchStr:<подстрока поиска по имени>}
+   *                          exclude:<fkParticipant>, // исключить события которые указанный участник уже выбирал, необязательное
+   *                          searchStr:<подстрока поиска по имени> }
    * @param {*} ord  - задает сортировку списка
    * @param {*} nav  - задает навигацию списка 
    *                    { page: <номер страницы>, 
@@ -763,7 +789,7 @@ function makeParticipantEvent(){
                 join event_party ep
                 on pe.fkEvent = ep.pkID
                 join participant pt
-                on pe.fkParticipant = pt.pkID
+                on pe.fkParticipant = pt.pkID and pt.fkParty = pe.fkParty
             where pe.fkParty=${filter.fkParty} and pe.fkParticipant=${filter.fkParticipant} ${ids}` )
 }
 

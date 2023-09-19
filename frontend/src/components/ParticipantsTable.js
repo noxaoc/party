@@ -118,7 +118,7 @@ const SelectEvent = ( props ) => {
 
   useEffect(() => {
     // получить список событий в соответствии с фильтрацией
-    const flt = { fkParty: filter.fkParty, pid: filter.fkParty  }
+    const flt = { fkParty: filter.fkParty, pid: filter.fkParty, exclude: filter.fkParticipant  }
     EventParty.list( flt, null, null,  result => setEvents(result), err => alert(err.message) )
     return ()=>{}
   },[ filter ])
@@ -239,19 +239,19 @@ const SelectEvent = ( props ) => {
 */
 const EventOfParticipant = ( props ) => {
     console.log(props)
-    const { editMode, pkID, nameEvent, price, role, participantRole, doRemoveByID } = props;
+    const { editMode, pkID, nameEvent, price, role, doRemoveByID } = props;
     
     return (
       <tr>
         <td className="p-1">
-          <Container className="d-flex flex-column px-0">
-            <span className="fw-normal">
-              {nameEvent}
-            </span>
-            <span className="fw-normal text-muted">
-              { R.isEmpty(role) ? participantRole : role }
-            </span>
-          </Container>
+          <span className="fw-normal">
+            {nameEvent}
+          </span>
+        </td>
+        <td>
+          <span className="fw-normal text-muted">
+            { role }
+          </span>
         </td>
         <td className="p-1">
           { /**выпадающий список */
@@ -335,15 +335,21 @@ const ListEventOfParticipant = ( props ) => {
 
   const recHdl = ( rec, frmt  ) => {
       const pobj = makePlainObj( rec, frmt )
+      let pe_rc = pobj
+      if( R.isNil(pobj.role ) || R.isEmpty(pobj.role)){
+        // если роль не задана берем ее с участника
+        const roleLens = R.lens(R.prop('role'), R.assoc('role'))
+        const rc = R.set(roleLens, editRec.role, pobj )
+        pe_rc = rc
+      }
 
       return <EventOfParticipant key={`event-${pobj.pkID}`} editMode={editMode} 
-                                doRemoveByID={doRemoveByID} 
-                                     participantRole={editRec.role} {...pobj} />
+                                doRemoveByID={doRemoveByID}  {...pe_rc} />
   }
 
   return (
     <Card border="light" className="table-wrapper table-responsive shadow-sm">
-      { showWindowSelectEvents && <SelectEvent filter={ {fkParty:editRec.fkParty} } 
+      { showWindowSelectEvents && <SelectEvent filter={ {fkParty:editRec.fkParty, fkParticipant:editRec.fkParticipant} } 
         onPressSelectHdl={onPressSelectHdl}
        showWindowSelectHook ={[ showWindowSelectEvents, setShowWindowSelectEvents] }/> } 
       <Card.Header className="p-1">
@@ -353,7 +359,8 @@ const ListEventOfParticipant = ( props ) => {
         <Table hover className="user-table align-items-center">
             <thead>
             <tr>
-              <th className="border-bottom px-1">Событие<br/>Роль</th>
+              <th className="border-bottom px-1">Событие</th>
+              <th className="border-bottom px-1">Роль</th>
               <th className="border-bottom px-1">Стоимость, руб</th>
             </tr>
           </thead>

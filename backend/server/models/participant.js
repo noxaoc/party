@@ -53,7 +53,7 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
                     return
                 }
                 //console.log( `id=${id}`)
-                list( {filter:{ ids:[id] }, ord:null, nav:null }, respHdl )
+                list( {filter:{ ids:[id], fkParty:initRec.fkParty }, ord:null, nav:null }, respHdl )
             }
             insert( newRec, respIns ) 
         } else {

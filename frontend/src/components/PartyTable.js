@@ -14,10 +14,9 @@ import {InputLine} from "./InputLine"
 import { makePlainObj, mapRSet, lengthRSet, makePlainObjByIdx, changeNullValueToEmptyStr } from "../lib/record"
 import { Party } from "../data/party"
 import { PartyMoney } from "../lib/money"
-//mport { TypeEventParty } from "../data/typeEventParty"
 import { InputComment } from "./InputComment"
 import { EditButton } from "./EditButton"
-const R = require('ramda');
+import * as R from "ramda"
 
 
 

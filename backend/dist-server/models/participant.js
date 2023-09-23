@@ -73,7 +73,8 @@ function makeParticipant() {
           //console.log( `id=${id}`)
           list({
             filter: {
-              ids: [id]
+              ids: [id],
+              fkParty: initRec.fkParty
             },
             ord: null,
             nav: null

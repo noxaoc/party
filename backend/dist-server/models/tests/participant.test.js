@@ -2,10 +2,12 @@
 
 var _participant = require("../participant.js");
 var R = _interopRequireWildcard(require("ramda"));
+var _dbschema = require("../sqlite/dbschema.js");
 var _record = require("../../lib/record.js");
 var _partyday = require("../../lib/partyday.js");
 var _errors = require("../lib/errors.js");
 var _testhdl = require("./lib/testhdl.js");
+var _testdata = require("./testdata.js");
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
@@ -15,6 +17,10 @@ function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key i
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
 function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 describe("Participant.update", function () {
+  beforeEach(function (done) {
+    _dbschema.DBTest.reInitDatabase(done);
+  });
+
   // оптимистичное обновление
   test("Participant.update(rec)", function (done) {
     var rec = {
@@ -83,6 +89,10 @@ describe("Participant.update", function () {
   });
 });
 describe("Participant.remove", function () {
+  beforeEach(function (done) {
+    _dbschema.DBTest.reInitDatabase(done);
+  });
+
   // Оптимистичный сценарий удаления существующей записи
   test("Participant.remove({ids:[1],fkParty:1})", function (done) {
     var rec = {
@@ -145,6 +155,10 @@ describe("Participant.remove", function () {
   });
 });
 describe("Participnat.insert", function () {
+  beforeEach(function (done) {
+    _dbschema.DBTest.reInitDatabase(done);
+  });
+
   // Оптимистичная вставка участника    
   test("Participant.insert(rec)", function (done) {
     var rec = {
@@ -188,6 +202,10 @@ describe("Participnat.insert", function () {
   });
 });
 describe("Participant.init", function () {
+  beforeEach(function (done) {
+    _dbschema.DBTest.reInitDatabase(done);
+  });
+
   // оптимистичная инициализация    
   test("Participant.init({initRec: initRec, method:list, insImmediatly: false })", function (done) {
     var initRec = {
@@ -203,7 +221,7 @@ describe("Participant.init", function () {
       expect(rec.name).toEqual("Беларусь");
       expect(rec.fkParty).toEqual(1);
       expect(rec.pkID).toBeUndefined();
-      expect(rec.num).toEqual(23);
+      expect(rec.num).toEqual((0, _testdata.getMaxNum)() + 1);
     };
     _participant.Participant.init(initRec, (0, _testhdl.makeHdl)(done, checkF));
   });
@@ -230,8 +248,39 @@ describe("Participant.init", function () {
     };
     _participant.Participant.init(initRec, (0, _testhdl.makeHdl)(done, _testhdl.notNullValueHdl));
   });
+
+  // Инициализация со вставкой 
+  test("Participant.init({initRec: initRec, method:list, insImmediatly: true })", function (done) {
+    var initRec = {
+      initRec: {
+        name: "Женева",
+        fkParty: 1
+      },
+      method: "Participant.list",
+      insImmediatly: true
+    };
+    var checkF = function checkF(rSet) {
+      //console.log(rSet)
+      expect(R.isNotNil(rSet)).toBeTruthy();
+      expect(R.length(rSet)).toEqual(2);
+      if (R.length(rSet) > 1) {
+        var rec = (0, _record.makePlainObjByIdx)(rSet, 0);
+        expect(rec.name).toEqual("Женева");
+        expect(rec.fkParty).toEqual(1);
+        //console.log(rec)
+        expect(rec.pkID).not.toBeUndefined();
+      }
+      //expect( rec.num).toEqual(23)
+    };
+
+    _participant.Participant.init(initRec, (0, _testhdl.makeHdl)(done, checkF));
+  });
 });
 describe("Participant.list", function () {
+  beforeEach(function (done) {
+    _dbschema.DBTest.reInitDatabase(done);
+  });
+
   // оптимистичный  список
   test("Participant.list({ids:[],fkParty:1})", function (done) {
     var filter = {
@@ -240,8 +289,9 @@ describe("Participant.list", function () {
         fkParty: 1
       }
     };
+    var cntParticipants = (0, _testdata.countParticipants)(filter.filter.fkParty);
     _participant.Participant.list(filter, (0, _testhdl.makeHdl)(done, function (rSet) {
-      return expect(R.length(rSet)).toEqual(7);
+      return expect(R.length(rSet)).toEqual(cntParticipants + 1);
     }));
   });
   test("Participant.list({ids:[]})", function (done) {
@@ -313,6 +363,10 @@ describe("Participant.list", function () {
   });
 });
 describe("Participant.read", function () {
+  beforeEach(function (done) {
+    _dbschema.DBTest.reInitDatabase(done);
+  });
+
   // оптимистичное чтение
   test("Participant.read({pkID:3,fkParty:1})", function (done) {
     var checkF = function checkF(rSet) {

@@ -108,7 +108,7 @@ const NumAndRegistration =( props )=>{
 * showWindowSelectHook - хук показа и закрытия окна
 */ 
 const SelectEvent = ( props ) => {
-  const { filter, setSelectData, showWindowSelectHook, onPressSelectHdl } = props
+  const { filter, showWindowSelectHook, onPressSelectHdl } = props
   const [, setShowWindowSelectEvents] = showWindowSelectHook
   const [ events, setEvents ]   = useState([])
   // список идентифкаторв выбранных событий
@@ -315,8 +315,24 @@ const ListEventOfParticipant = ( props ) => {
   *  при выборе события мы добавляем те которые ранее не были добавлены
   */
   const onPressSelectHdl =  ids  => {
-    ParticipantEvent.insertSelected( { ids, fkParty: editRec.fkParty, fkParticipant: editRec.pkID} ,
-                                     () => setChanged(!changed), err => alert(err.message) )
+    // если участник еще не добавлен, его надо добавить
+    /*
+    const onInsertHdl = pkID =>{
+      
+        Participant.list( {ids:[pkID], fkParty: editRec.fkParty }, null, null, 
+                       result =>setShowDlg( {showDlg:true, 
+                                             editRec:changeNullValueToEmptyStr(makePlainObjByIdx(result)) } ) )
+      }
+        // надо запись диалога проинициализировать
+        // потом вызвать insertSelected
+    }
+    if( R.isNil(editRec.pkID) ){
+      Participant.insert( editRec, onInsertHdl , err =>alert(err.message) )
+    }
+    else
+    */
+      ParticipantEvent.insertSelected( { ids, fkParty: editRec.fkParty, fkParticipant: editRec.pkID} ,
+                                     () => setChanged(!changed), err =>alert(err.message) )
 
   }
 
@@ -401,8 +417,7 @@ export const ParticipantDlg = ( { hookShowDlg, hookChgParticipants } )=>{
   // перевод в режим редактирования диалога просмотра события
   // false - режим просмотра, без изменения данных
   // true - режим редактирования данных, в этом режиме при нажатии кнопки сохранить данные меняются
-  const initEditMode = R.isNil(showDlg.editRec.pkID)? true : false
-  const [editMode, setEditMode] = useState(initEditMode)
+  const [editMode, setEditMode] = useState(showDlg.editMode)
   const [changed, setChanged] = hookChgParticipants
   // состояние для установки текущей активной вкладки
   const [key, setKey] = useState('participant')
@@ -479,7 +494,7 @@ price - сумма оплаты, paid - оплачено
 */
 export const ParticipantTable = ( props ) => {
   const { partyID } = useParams()
-  console.log("перерисовываю participantы table partyID=" + partyID)
+  console.log("перерисовываю participant-ов  partyID=" + partyID)
 
   // changed = true если данные участников поменялись
   const [ changed, setChanged ] = useState(false)
@@ -501,7 +516,7 @@ export const ParticipantTable = ( props ) => {
   },[props.searchStr, changed, partyID  ])
   
   // создать обработчик на редактирование записи
-  const makeOnEditHdl = ( id )=>{
+  const makeOnEditHdl = id =>{
     return () => {
       Participant.list( {ids:[id], fkParty: partyID }, null, null, 
                      result =>setShowDlg( {showDlg:true, 
@@ -564,7 +579,7 @@ export const ParticipantTable = ( props ) => {
             {role}
           </span>
         </td>
-        <td className="p-1">
+        <td className="p-1 text-center">
           <Container className="d-flex flex-column px-0">
           <span className="fw-normal">
             {dt_arr[0]}
@@ -627,12 +642,20 @@ export const ParticipantTable = ( props ) => {
                                           hookChgParticipants={[changed, setChanged]} /> }
       <Card.Body className="pt-0 pb-1 px-2">
         <Table hover className="user-table align-items-center">
-            <thead>
+          <colgroup>
+            <col width="5%"/>
+            <col width="55%" overflow="hidden"/>
+            <col width="15%"/>
+            <col width="5%"/>
+            <col width="10%"/>
+            <col width="10%"/>
+          </colgroup>
+          <thead>
             <tr>
               <th className="border-bottom px-1">Номер</th>
-              <th className="border-bottom text-center">ФИО<br/>Kлуб</th>
-              <th className="border-bottom text-center">Телефон<br/>email</th>
-              <th className="border-bottom px-1">Роль<br/>в паре</th>
+              <th className="border-bottom px-1">ФИО<br/>Kлуб</th>
+              <th className="border-bottom text-center px-1">Телефон<br/>email</th>
+              <th className="border-bottom text-center px-1">Роль<br/>в паре</th>
               <th className="border-bottom text-center px-1">Дата<br/>регистрации</th>
              {/* <th className="border-bottom px-1">К оплате<br/>Оплачено, руб</th>*/}
               <th className="border-bottom px-1">К оплате<br/>Оплачено, руб</th>

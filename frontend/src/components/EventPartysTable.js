@@ -6,7 +6,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import {  Col, Row, Card,  Button, Table, Dropdown, 
           Modal, ButtonGroup, Container, Form } from '@themesberg/react-bootstrap'
+import { useParams, generatePath, Link } from "react-router-dom"
 
+import { Routes } from "../routes";
 import {InputLine} from "./InputLine"
 import { makePlainObj, mapRSet, lengthRSet, makePlainObjByIdx } from "../lib/record"
 import { EventParty } from "../data/eventParty"
@@ -16,6 +18,7 @@ import { EditButton } from "./EditButton"
 import { getPartyID } from "../lib/partypath"
 const R = require('ramda');
 
+/*
 // создать пустое событие для текущего gid
 export function createEventParty(){
   const e = Event.createNull( {gid:getPartyID() })
@@ -29,7 +32,7 @@ export const readEventParty=( id )=>{
     return createEventParty()
   return events[0]
 }
-
+*/
 /*
 Поле для редактирования типа события междусобойчика
 принимает на вход запись формата Participant.GetSchema
@@ -141,6 +144,7 @@ export const EventPartyDlg = ( { hookShowDlg,  typeEvents, hookChgEvents } )=>{
                 <Field as={InputLine} editMode={editMode} name="dtStart" placeholder="Дата начала" ctrlId="eForm.dtStart" label="Дата начала" />
                 {!editMode && <Field as={InputLine} editMode={editMode} name="evTypeName" ctrlId="eForm.evTypeName" label="Вид" />}
                 {editMode && <Field as={InputEventTypeParty} editMode={editMode} name="fkTypeEvent" typeEvents={typeEvents} />}
+                <Field as={InputLine} editMode={editMode} name="price" placeholder="Стоимость" ctrlId="eForm.price" label="Стоимость" />
                 <Field as={InputComment} editMode={editMode} name="description" />
             </Modal.Body>
           </Modal>
@@ -175,6 +179,9 @@ startDate - дата и время начала события
 comment - к событию    
 */
 export const EventsPartyTable = ( props ) => {
+  // текущий идентификатор между собойчика
+  const { partyID } = useParams()
+
   // changed = true если данные событий поменялись
   const [ changed, setChanged ] = useState(false)
   // показывать или нет диалог просмотра участника
@@ -197,10 +204,10 @@ export const EventsPartyTable = ( props ) => {
 
   useEffect(() => {
     // получить список событий в соответствии с фильтрацией
-    const filter = { searchStr : props.searchStr, pid: getPartyID() }
+    const filter = { searchStr : props.searchStr, pid: partyID }
     EventParty.list( filter, null, null,  result=>setEvents(result) )
     return ()=>{}
-  },[props.searchStr, changed])
+  },[props.searchStr, changed, partyID])
   
   // создать обработчик на редактирование записи
   const makeOnEditHdl = ( id )=>{
@@ -228,7 +235,7 @@ export const EventsPartyTable = ( props ) => {
   const makeSpace = str => R.isEmpty(str) ? <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</pre> : (str +"...")
 
   const TableRow = (props) => {
-    const { pkID, name, evTypeName, description, dtStart } = props;
+    const { pkID, name, evTypeName, description, dtStart, price } = props;
     let dt_arr = R.split(' ', dtStart )
     return (
       <tr>
@@ -242,7 +249,7 @@ export const EventsPartyTable = ( props ) => {
               { evTypeName }
             </span>
         </td>
-        <td className="p-1">
+        <td className="p-1 text-center">
           <Container className="d-flex flex-column px-0">
             <span className="fw-normal">
                 {dt_arr[0]}
@@ -251,6 +258,11 @@ export const EventsPartyTable = ( props ) => {
                 {dt_arr[1]}
             </span>
           </Container>
+        </td>
+        <td className="p-1">
+            <span className="fw-normal">
+              { parseFloat(price).toFixed(2)}
+            </span>
         </td>
         <td className="p-1">
           {/**выпадающий список */}
@@ -266,7 +278,9 @@ export const EventsPartyTable = ( props ) => {
               <Dropdown.Item onClick={ makeOnEditHdl(pkID) }>
                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Редактировать
               </Dropdown.Item>
-
+              <Dropdown.Item as={Link} to={ generatePath(Routes.Partys.path,{ partyID: partyID, eventID: pkID}) }>
+                <FontAwesomeIcon icon={faEdit} className="me-2" /> Перейти к событию
+              </Dropdown.Item>
               <Dropdown.Item className="text-danger" onClick={doRemoveEvent(pkID)}>
                 <FontAwesomeIcon icon={faTrashAlt} className="me-2"  /> Удалить
               </Dropdown.Item>
@@ -284,12 +298,20 @@ export const EventsPartyTable = ( props ) => {
                                           hookChgEvents={[changed, setChanged]}
                                           typeEvents={typeEvents} /> } 
       <Card.Body className="pt-0 pb-1 px-2">
-        <Table hover className="user-table align-items-center">
-            <thead>
+        <Table hover className="user-table align-items-center" width="100%" table-layout="fixed">
+          <colgroup>
+            <col width="30%"/>
+            <col width="10%"/>
+            <col width="10%"/>
+            <col width="10%"/>
+            <col width="40%" overflow="hidden"/>
+          </colgroup>
+          <thead>
             <tr>
               <th className="border-bottom px-1">Название</th>
-              <th className="border-bottom text-center">Вид</th>
-              <th className="border-bottom text-center">Дата начала</th>
+              <th className="border-bottom text-center px-1">Вид</th>
+              <th className="border-bottom text-center px-1">Дата<br/>начала</th>
+              <th className="border-bottom text-center px-1">Стоимость,<br/> руб</th>
               <th className="border-bottom px-1">Описание</th>
             </tr>
           </thead>

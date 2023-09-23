@@ -1,6 +1,7 @@
 import * as R from 'ramda'
 import {DBEventParty} from './sqlite/dbschema.js'
 import { addRecord, makeRecordSet } from '../lib/record.js'
+import { PartyDate } from '../lib/partyday.js'
 
 function makeEventParty(){  
 /**
@@ -20,7 +21,7 @@ function list( rec, respHdl ){
     if( R.isNil(rec.filter.pid ) )
         throw Error('Работа невозможна, так как не удалось определить идентификатор междусобойчика!')
     let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'], ['evTypeName','s'], ['dtStart','t'], 
-                              ['fkTypeEvent','n'], ['fkParty','n'] ] )  
+                              ['fkTypeEvent','n'], ['fkParty','n'], ['price', 'n'] ] )  
     DBEventParty.list( rs, rec.filter, rec.ord, rec.nav, respHdl )
 }
 
@@ -47,8 +48,9 @@ function  init( { initRec, method, insImmediatly }, respHdl ){
         insert( initRec, respIns ) 
     } else {
         let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'], ['evTypeName','s'], 
-        ['dtStart','t'], ['fkTypeEvent','n'], ['fkParty','n'] ] )  
-        const rec = {name:"", description:"", evTypeName:"", dtStart: 0, fkTypeEvent: 1, ...initRec }
+        ['dtStart','t'], ['fkTypeEvent','n'], ['fkParty','n'], ['price','n'] ] )  
+    const rec = { name:"", description:"", evTypeName:"", dtStart: PartyDate.getCurrDate(), 
+                  fkTypeEvent: 1, price: 0, ...initRec }
         addRecord( rs, rec )
         respHdl(null, rs)
     }
@@ -68,7 +70,7 @@ function read( rec, respHdl) {
     if( R.isNil(rec.filter.pkID) )
         respHdl(null,null)
     let rs = makeRecordSet( [ ['pkID','n'], ['name','s'], ['description','s'], ['evTypeName','s'], 
-                              ['dtStart','t'], ['fkParty','n'] ] )  
+                              ['dtStart','t'], ['fkParty','n'], ['price','n'] ] )  
     DBEventParty.read( rs, rec.filter, respHdl )
 }
 

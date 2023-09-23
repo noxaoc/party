@@ -1,7 +1,7 @@
 import { ParticipantEvent } from '../participant_event.js'
 import * as R from "ramda"
 import { DBTest } from '../sqlite/dbschema.js'
-import { makePlainObjByIdx, makeRecordSet } from '../../lib/record.js'
+import { makePlainObjByIdx } from '../../lib/record.js'
 import { NotUndefinedValueErr, NotEmptyValueErr, NotNullValueErr } from '../lib/errors.js'
 import { makeHdl, recordDoesNotExistHdl, notNullValueHdl, notUndefinedValueHdl, makeCheckReadHdl } from './lib/testhdl.js'
 
@@ -269,6 +269,7 @@ describe("ParticipantEvent.insertSelected", ()=>{
     test("ParticipantEvent.insertSelected({ids:[2],fkParty:1, fkParticipant: 1})", done => {
         const rec = { ids:[3,4],fkParty:1, fkParticipant: 1 } 
         ParticipantEvent.insertSelected( rec, makeHdl( done, res => expect(res).toBeTruthy() ) )
+        // надо проверит что правильная сумма подставляется
     })
 
      // Оптимистичный сценарий вставки выбранных записей которые уже есть,

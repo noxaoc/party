@@ -1,11 +1,17 @@
 import { Participant } from '../participant.js'
 import * as R from "ramda"
-import { makePlainObjByIdx, makeRecordSet } from '../../lib/record.js'
+import { DBTest } from '../sqlite/dbschema.js'
+import { makePlainObjByIdx } from '../../lib/record.js'
 import { PartyDate } from '../../lib/partyday.js'
 import { NotUndefinedValueErr, NotEmptyValueErr, NotNullValueErr } from '../lib/errors.js'
 import { makeHdl, recordDoesNotExistHdl, notNullValueHdl, notUndefinedValueHdl, makeCheckReadHdl } from './lib/testhdl.js'
+import { getMaxNum, getParticipants, countParticipants } from './testdata.js'
 
 describe("Participant.update", ()=>{
+
+beforeEach( done  => {
+    DBTest.reInitDatabase(done)
+})
 
 // оптимистичное обновление
 test("Participant.update(rec)", done => {
@@ -61,6 +67,10 @@ test("Participant.update({fkParty:1})", done => {
 
 describe("Participant.remove", ()=>{
 
+beforeEach( done  => {
+    DBTest.reInitDatabase(done)
+})
+
 // Оптимистичный сценарий удаления существующей записи
 test("Participant.remove({ids:[1],fkParty:1})", done => {
     const rec = { ids:[1],fkParty:1 } 
@@ -100,6 +110,10 @@ test("Participant.remove({ids:null,fkParty:1})", done => {
 
 describe("Participnat.insert", ()=> {
 
+beforeEach( done  => {
+    DBTest.reInitDatabase(done)
+})
+
 // Оптимистичная вставка участника    
 test("Participant.insert(rec)", done => {
     const rec = {   "fkParty": 1,
@@ -137,8 +151,14 @@ test("Participant.insert({ name: Вася })", done => {
 })
 
 describe("Participant.init", ()=>{
+
+beforeEach( done  => {
+    DBTest.reInitDatabase(done)
+})
+
 // оптимистичная инициализация    
 test("Participant.init({initRec: initRec, method:list, insImmediatly: false })", done => {
+
     const initRec = { initRec:{ name: "Беларусь", fkParty: 1}, method: "Participant.list" }
     const checkF = rSet =>{
         expect(R.length(rSet)).toEqual(2)
@@ -146,7 +166,7 @@ test("Participant.init({initRec: initRec, method:list, insImmediatly: false })",
         expect( rec.name ).toEqual("Беларусь")
         expect( rec.fkParty ).toEqual(1)
         expect( rec.pkID ).toBeUndefined()
-        expect( rec.num).toEqual(23)
+        expect( rec.num).toEqual(getMaxNum()+1)
     }
     Participant.init( initRec, makeHdl( done, checkF) )
 })
@@ -163,14 +183,38 @@ test("Participant.init({initRec: initRec, method:list, insImmediatly: false })",
     Participant.init( initRec, makeHdl( done, notNullValueHdl) )
 })
 
+// Инициализация со вставкой 
+test("Participant.init({initRec: initRec, method:list, insImmediatly: true })", done => {
+    const initRec = { initRec:{ name: "Женева", fkParty: 1}, method: "Participant.list",  insImmediatly: true  }
+    const checkF = rSet =>{
+        //console.log(rSet)
+        expect(R.isNotNil(rSet)).toBeTruthy()
+        expect(R.length(rSet)).toEqual(2)
+        if( R.length(rSet) > 1 ){
+            const rec = makePlainObjByIdx(rSet,0)
+            expect( rec.name ).toEqual("Женева")
+            expect( rec.fkParty ).toEqual(1)
+            //console.log(rec)
+            expect( rec.pkID ).not.toBeUndefined()
+        }
+        //expect( rec.num).toEqual(23)
+    }
+    Participant.init( initRec, makeHdl( done, checkF) )
+})
+
 })
 
 describe("Participant.list", () => {
 
+beforeEach( done  => {
+    DBTest.reInitDatabase(done)
+})
+
 // оптимистичный  список
 test("Participant.list({ids:[],fkParty:1})", done => {
     const filter = { filter:{ ids:[], fkParty:1 } }
-    Participant.list( filter, makeHdl( done, rSet => expect(R.length(rSet)).toEqual(7) ) )
+    const cntParticipants = countParticipants(filter.filter.fkParty)
+    Participant.list( filter, makeHdl( done, rSet => expect(R.length(rSet)).toEqual(cntParticipants + 1) ) )
 })
 
 test("Participant.list({ids:[]})", done => {
@@ -222,6 +266,11 @@ test("Participant.list({searchStr, fkParty:1})", done => {
 
 
 describe( "Participant.read",() => {
+
+beforeEach( done  => {
+    DBTest.reInitDatabase(done)
+})
+
 // оптимистичное чтение
 test("Participant.read({pkID:3,fkParty:1})", done => {
     const checkF =  rSet =>{

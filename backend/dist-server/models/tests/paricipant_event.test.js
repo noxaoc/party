@@ -385,6 +385,7 @@ describe("ParticipantEvent.insertSelected", function () {
     _participant_event.ParticipantEvent.insertSelected(rec, (0, _testhdl.makeHdl)(done, function (res) {
       return expect(res).toBeTruthy();
     }));
+    // надо проверит что правильная сумма подставляется
   });
 
   // Оптимистичный сценарий вставки выбранных записей которые уже есть,

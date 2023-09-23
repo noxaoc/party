@@ -2,7 +2,9 @@
 * тестовые данные
 */
 
+import e from "cors"
 import { PartyDate } from "../../lib/partyday" 
+import * as R from "ramda"
 
 // Участники междусобойчика
 let participants = [
@@ -158,6 +160,7 @@ let participants = [
     }
 ]
 
+
 /*
 * События в которых заинтересован участник
 */
@@ -197,4 +200,19 @@ export function getParticipants(){
 
 export function getParticipantEvents(){
     return participantEvents
+}
+
+/**
+ * Получит максимальный номер участника 
+ */
+export  function getMaxNum(){
+    const maxNum = ( acc, elem ) => R.max(acc,elem.num)
+    return R.reduce(maxNum, 0, getParticipants())
+
+}
+
+export  function countParticipants( fkParty ){
+    const cnt = ( acc, elem ) =>  elem.fkParty === fkParty ? acc + 1 : acc
+    return R.reduce(cnt, 0, getParticipants())
+
 }

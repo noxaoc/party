@@ -126,31 +126,31 @@ values ( ${ PartyDate.toTS('13.06.23 11:00:00')}, 10, (select pkID from party wh
        ( ${ PartyDate.toTS('13.06.23 11:00:00')}, 15, (select pkID from party where name = 'Swingtown Little Cup 2023' ) )`
 
 const initEventTable =
-`insert into event_party( 'name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty' ) 
+`insert into event_party( 'name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty', 'price' ) 
         values ( 'Mix&Match Kinders', 'Темп 32-38 bpm', 
-                 ${ PartyDate.toTS('13.06.23 11:00:00') }, 
+                 ${ PartyDate.toTS('13.06.23 11:00:00')}, 
                  (select pkID from type_event where id = 'competition'), 
-                 (select pkID from party where name = 'Искры джаза' )),
+                 (select pkID from party where name = 'Искры джаза' ), 1000),
                ( 'Strictly Kinders', 'Темп 40-42 bpm', 
                 ${ PartyDate.toTS('13.06.23 13:00:00') }, 
                 (select pkID from type_event where id = 'competition'),
-                (select pkID from party where name = 'Искры джаза' )),
+                (select pkID from party where name = 'Искры джаза' ), 1000),
                 ( 'Strictly Kids', 'Темп 40-42 bpm', 
                 ${ PartyDate.toTS('13.06.22 15:00:00') }, 
                 (select pkID from type_event where id = 'competition'),
-                (select pkID from party where name = 'Swingtown Little Cup 2023' )),
+                (select pkID from party where name = 'Swingtown Little Cup 2023' ), 1700),
                 ( 'Big Little', 'Темп 40-42 bpm', 
                 ${ PartyDate.toTS('14.06.22 16:00:00') }, 
                 (select pkID from type_event where id = 'competition'),
-                (select pkID from party where name = 'Swingtown Little Cup 2023' )),
+                (select pkID from party where name = 'Swingtown Little Cup 2023' ), 2500),
                 ( 'Mix&Match Kids', 'Темп 40-42 bpm', 
                 ${ PartyDate.toTS('13.06.22 17:00:00') }, 
                 (select pkID from type_event where id = 'competition'),
-                (select pkID from party where name = 'Swingtown Little Cup 2023' )),
+                (select pkID from party where name = 'Swingtown Little Cup 2023' ), 1600),
                 ( 'Mix&Match Junior', 'Темп 40-42 bpm', 
                 ${ PartyDate.toTS('13.06.22 18:00:00') }, 
                 (select pkID from type_event where id = 'competition'),
-                (select pkID from party where name = 'Swingtown Little Cup 2023' ))`
+                (select pkID from party where name = 'Swingtown Little Cup 2023' ), 1300)`
 
 const initParticipantEventTable =
 `insert into participant_event( 'fkParticipant', 'fkEvent', 'comment', 'role', 'price', 'fkParty' ) 
@@ -310,7 +310,8 @@ function makeEventParty(){
                     type_event.name as evTypeName, 
                     event_party.dtStart  as dtStart,
                     event_party.fkTypeEvent as fkTypeEvent,
-                    event_party.fkParty as fkParty
+                    event_party.fkParty as fkParty,
+                    event_party.price as price
                 from event_party 
                      join type_event 
                      on type_event.pkID = event_party.fkTypeEvent
@@ -346,7 +347,8 @@ function read( rs, filter, respHdl ){
                            event_party.description as description, 
                            type_event.name as evTypeName, 
                            event_party.dtStart  as dtStart,
-                           event_party.fkParty as fkParty
+                           event_party.fkParty as fkParty,
+                           event_party.price as price
                     from event_party 
                         left join type_event 
                         on type_event.pkID = event_party.fkTypeEvent
@@ -378,7 +380,7 @@ function remove( {fkParty, ids}, respHdl ){
 * @param {*} respHdl (err, res) в res будет id добавленной записи
 */
 function insert( rec, respHdl ) { 
-    const header = ['name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty']
+    const header = ['name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty', 'price']
     const flds =  R.filter( fld => fld in rec, header )
     const placeholders = R.map( fld=>'$'+fld, flds )
     const arg = {}
@@ -402,7 +404,7 @@ function update(rec,respHdl){
         respHdl( new Error("Невозможно выполнить обновление записи, так как не задано поле 'pkID'!"))
         return
     }
-    const header = ['name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty']
+    const header = ['name', 'description', 'dtStart', 'fkTypeEvent', 'fkParty', 'price']
     const flds =  R.filter( fld => fld in rec, header )
     const placeholders = R.map( fld=>fld+'=$'+fld, flds )
     const arg = {}
@@ -906,8 +908,10 @@ function insertSelected( { ids, fkParty, fkParticipant }, respHdl ){
     const startStr = 'with T(fkParty, fkParticipant, fkEvent, price ) as ( values '
     const endStr = `)  insert into participant_event( fkParty, fkParticipant, fkEvent, price )
                     select 
-                        fkParty, fkParticipant, fkEvent, price
-                    from T
+                        T.fkParty, T.fkParticipant, T.fkEvent, event_party.price
+                    from T 
+                    join event_party 
+                    on event_party.pkID = T.fkEvent
                     where T.fkEvent not in ( select fkEvent 
                                              from participant_event 
                                              where fkParty=${fkParty} and fkParticipant=${fkParticipant})`
@@ -917,7 +921,6 @@ function insertSelected( { ids, fkParty, fkParticipant }, respHdl ){
         return q +  comma + `( ${fkParty}, ${fkParticipant}, ${id},  0 )`
     }
     const query = R.reduce( createQuery, startStr, ids ) + endStr
-    console.log(query)
     function onSuccess (err){
         respHdl(err, err ? null : true  )
     }

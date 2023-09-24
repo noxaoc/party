@@ -278,7 +278,7 @@ export const EventsPartyTable = ( props ) => {
               <Dropdown.Item onClick={ makeOnEditHdl(pkID) }>
                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Редактировать
               </Dropdown.Item>
-              <Dropdown.Item as={Link} to={ generatePath(Routes.Partys.path,{ partyID: partyID, eventID: pkID}) }>
+              <Dropdown.Item as={Link} to={ generatePath(Routes.ConcreteEventParty.path,{ partyID: partyID, eventID: pkID}) }>
                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Перейти к событию
               </Dropdown.Item>
               <Dropdown.Item className="text-danger" onClick={doRemoveEvent(pkID)}>

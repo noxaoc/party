@@ -12,6 +12,9 @@ export const Routes = {
     //EventsControl: { path: "/ctrl/events" },
     // Список событий междусобойчика
     EventsParty: { path: "/:partyID/ctrl/events" },
+    // Страница события между собойчика
+    ConcreteEventParty: { path: "/:partyID/event/:eventID" },
+
     // список участников
     Participants: { path: "/:partyID/participants" },
 

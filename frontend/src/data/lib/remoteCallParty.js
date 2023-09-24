@@ -2,6 +2,7 @@
 * Утилиты для вызова backend "Междусобойчика"
 */
 import * as R from  "ramda"
+import { CallMockWebFunc } from "../mock/webFuncs"
 
 function  makePartyService(){
 
@@ -27,6 +28,8 @@ function  makePartyService(){
             }else
                 setRes(r)
         } 
+        if( CallMockWebFunc(method, rec, getResult) )
+            return
         fetch( partyURL() + method, 
         {
             method: 'POST',

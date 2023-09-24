@@ -6,7 +6,9 @@ import { Routes } from "../routes";
 import Presentation from "./Presentation";
 import Upgrade from "./Upgrade";
 //import DashboardOverview from "./dashboard/DashboardOverview";
-import EventsParty from "./EventsParty";
+import EventsParty from "./EventsParty"
+import ConcreteEventParty from "./ConcreteEventParty"
+
 import Participants from "./Participants";
 import Partys from "./Partys"
 
@@ -121,6 +123,8 @@ export default () =>{
     <RouteWithSidebar exact path={Routes.Partys.path} component={Partys} />
     {/**События междусобойчика */}
     <RouteWithSidebar exact path={Routes.EventsParty.path} component={EventsParty} />
+    {/** Конкретное событие междусобойчика */}
+    <RouteWithSidebar exact path={Routes.ConcreteEventParty.path} component={ConcreteEventParty} />
     {/**Участники междусобойчика */}
     <RouteWithSidebar exact path={Routes.Participants.path} component={Participants} />
 

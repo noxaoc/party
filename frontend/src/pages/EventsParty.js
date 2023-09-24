@@ -11,17 +11,17 @@ import { Button, ButtonGroup, Dropdown } from '@themesberg/react-bootstrap'
 import {  EventsPartyTable } from "../components/EventPartysTable"
 import { EventParty } from "../data/eventParty"
 import { makePlainObjByIdx } from "../lib/record"
-import { getPartyID } from "../lib/partypath"
-
-
+import { useParams } from "react-router-dom";
 
 export default ( props ) => {
+    const { partyID } = useParams()
+
     // showDlg - показать диалог создания события, currEventID - id редактируемого события, он при создании всегда null
     const [showDlg, setShowDlg] = useState({showDlg:false,editRec:{}});
     //диалог создания всегда в режиме редактирования
     //const [editMode, setEditMode] = useState(true)
     const onClickCreateEvent= ()=>{
-        EventParty.init( { initRec:{ fkParty: getPartyID()}, method: "EventParty.list" }, 
+        EventParty.init( { initRec:{ fkParty: partyID }, method: "EventParty.list" }, 
                        result =>setShowDlg( {showDlg:true, editRec:makePlainObjByIdx(result) } ) )
     }
     return (

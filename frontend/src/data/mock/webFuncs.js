@@ -2,12 +2,16 @@
 * Mock - webfunc
 */
 import { MockStageEventParty } from "./stageEventParty"
+import { MockTotalsTask } from "./cardJudge"
+import { MockTasksStageEvent } from "./taskStage"
 
 const onMock = true
 
 
 let webFuncs = {
-    "/stageeventparty/list":MockStageEventParty.list,
+    "/stageeventparty/list": MockStageEventParty.list,
+    "/totaltaskstage/list": MockTotalsTask.list,
+    "/taskstageevent/list": MockTasksStageEvent.list,
 }
 /**
  * 

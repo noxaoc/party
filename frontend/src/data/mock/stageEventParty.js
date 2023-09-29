@@ -35,7 +35,7 @@ let  stagesEventParty =[
         type:"1_qualification",
         fkEvent:1, 
         fkParty:1,
-        judgment:"yes_no_maybe",
+        judgment:"yes_maybe",
         temp:192,
         countJudges:5,
         description:"",
@@ -50,7 +50,7 @@ let  stagesEventParty =[
         type:"2_qualification",
         fkEvent:1, 
         fkParty:1,
-        judgment:"yes_no_maybe",
+        judgment:"yes_maybe",
         temp:192,
         countJudges:5,
         description:"",
@@ -103,7 +103,7 @@ let  stagesEventParty =[
 export class MockStageEventParty{
 
     static list(rec,hdl){
-        const frmt = [ ['pkID','n'], ['name','s'], ['description','s'], ['fkEvent','s'], 
+        const frmt = [ ['pkID','n'], ['name','s'], ['description','s'], ['fkEvent','n'], 
                        ['dtStart','t'], ['fkParty','n'], ['type','s'], ['judgment','s'],  
                        ['temp','n'],['countJudges','n'],['toNextStage','n'],['countParticipant','n']
                     ] 

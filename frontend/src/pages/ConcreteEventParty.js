@@ -39,9 +39,12 @@ import { InputLine } from "../components/InputLine";
                 )}     
                 </Formik>
                 */
+/*
+* Сконструировать заголовки номеров судей
+*/
 const makeJudges = ( countJudges ) =>{
     const judges = R.range(1, countJudges + 1) 
-    return R.map( num => <th className="border-bottom px-1">Судья №{num}</th>, judges )
+    return R.map( num => <th className="border-bottom text-center px-1" key={`judgenumber-${num}`}>Судья №{num}</th>, judges )
 }
 
 const StageEventPartyComponent = ( props ) => {
@@ -130,9 +133,11 @@ const ParticipansOfStageEventParty = ( props ) => {
   )
 }
 
-
+/*
+* Итого по карточке каждого судьи
+*/
 const makeTotalJudges = ( cards ) =>{
-    return R.map( card => <td className="p-1"> <span className="fw-normal">{card.total}</span></td>, cards )
+    return R.map( card => <td className="p-1 text-center" key={`totaljudges-${card.fkCard}`}> <span className="fw-normal">{card.total}</span></td>, cards )
 }
 
 /*
@@ -157,7 +162,7 @@ const TotalTaskStageEventParty = ( props ) => {
     const recHdl = ( rec, frmt  ) => {
         const obj = makePlainObj(rec,frmt)
         return (
-            <tr>
+            <tr key={`totals-${obj.pkID}`}>
                  <td className="p-1">
                     <span className="fw-normal">
                     { obj.num  }
@@ -174,7 +179,7 @@ const TotalTaskStageEventParty = ( props ) => {
                     </Container>
                 </td>
                 {makeTotalJudges(obj.cards)}
-                <td className="p-1">
+                <td className="p-1 text-center">
                     <span className="fw-normal">
                     { obj.total  }
                     </span>
@@ -198,9 +203,9 @@ const TotalTaskStageEventParty = ( props ) => {
                     <thead>
                         <tr>
                             <th className="border-bottom px-1">Номер</th>
-                            <th className="border-bottom px-1">ФИО<br/>Kлуб</th>
+                            <th className="border-bottom text-center px-1">ФИО<br/>Kлуб</th>
                             {makeJudges(rc.countJudges)}
-                            <th className="border-bottom px-1">Результат</th>
+                            <th className="border-bottom text-center px-1">Результат</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -223,7 +228,7 @@ const TasksStageEventParty = ( props ) => {
     // задания этапа
     const [ tasksStage, setTasksStage ] = useState([])
     // состояние для установки текущей активной задачи этапа
-    const [currentTask, setCurrentTask] = useState(null)
+    const [currentTask, setCurrentTask] = useState("totalsstageevent")
 
     //const rc = {dtStart:"23.01.02 23:50", temp: 192, judgment:"skating", countJudges:5, countParticipants:100 } 
 
@@ -251,6 +256,9 @@ const TasksStageEventParty = ( props ) => {
         activeKey={currentTask}
         onSelect={ newCurrentTask => setCurrentTask(newCurrentTask) } 
         className="mb-1 justify-content-start">
+        <Tab key="totalsstageevent" eventKey="totalsstageevent" tabClassName="py-1" title="Результаты">
+            Здесь будут итоги по этапу
+        </Tab>
         {mapRSet( recHdl, tasksStage )}
     </Tabs>
   )

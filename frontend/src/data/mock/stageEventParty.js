@@ -23,7 +23,6 @@ judgment -  система судейства
 temp - bpm ( beat per minute)
 
 stageNum - порядок этапов от 0 и выше
-
 */
 
 let  stagesEventParty =[

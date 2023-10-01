@@ -6,21 +6,6 @@ import * as R from "ramda"
 import { getChgFldsRec } from "../lib/record"
 
 function  makeStageEventParty(){
-  
-/*
-    getSchema(){
-        // required - true обязательное поле, not null. Если отсутствует null допустим
-        // type - тип (number, string, boolean, bigint)
-        return { headers: [
-             {name:"id", required: true, unique:true, type: "number"},
-             {name:"name", required: false, type: "string"},
-             {name:"evTypeName",required: true,  type: "number"},
-             {name:"dtStart", required: true, type: "object"},
-             {name:"description",required: false,  type: "string"},
-            ]
-        }
-    }
-*/
 
 /*
 * Список событий междусобойчика

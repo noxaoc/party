@@ -30,6 +30,7 @@ let  stagesEventParty =[
         pkID: 1,
         stageNum: 0,
         dtStart: PartyDate.toTS("01.05.23 10:00:00"),
+        dtEnd: PartyDate.toTS("01.05.23 11:00:00"),
         name:"Отборы",
         type:"1_qualification",
         fkEvent:1, 
@@ -45,6 +46,7 @@ let  stagesEventParty =[
         pkID: 2,
         stageNum: 1,
         dtStart: PartyDate.toTS("01.05.23 12:00:00"),
+        dtEnd: PartyDate.toTS("01.05.23 13:00:00"),
         name:"Тур надежды",
         type:"2_qualification",
         fkEvent:1, 
@@ -59,6 +61,7 @@ let  stagesEventParty =[
         pkID: 3,
         stageNum: 2,
         dtStart: PartyDate.toTS("01.05.23 14:00:00"),
+        dtEnd: PartyDate.toTS("01.05.23 15:00:00"),
         name:"1/4 Финала",
         type:"1/4_final",
         fkEvent:1, 
@@ -73,6 +76,7 @@ let  stagesEventParty =[
         pkID: 4,
         stageNum: 3,
         dtStart: PartyDate.toTS("01.05.23 16:00:00"),
+        dtEnd: PartyDate.toTS("01.05.23 17:00:00"),
         name:"1/2 Финала",
         type:"1/2_final",
         fkEvent:1, 
@@ -87,6 +91,7 @@ let  stagesEventParty =[
         pkID: 5,
         stageNum: 4,
         dtStart: PartyDate.toTS("01.05.23 18:00:00"),
+        dtEnd: PartyDate.toTS("01.05.23 19:00:00"),
         name:"Финал",
         type:"final",
         fkEvent:1, 
@@ -103,12 +108,25 @@ export class MockStageEventParty{
 
     static list(rec,hdl){
         const frmt = [ ['pkID','n'], ['name','s'], ['description','s'], ['fkEvent','n'], 
-                       ['dtStart','t'], ['fkParty','n'], ['type','s'], ['judgment','s'],  
+                       ['dtStart','t'], ['dtEnd','t'],['fkParty','n'], ['type','s'], ['judgment','s'],  
                        ['temp','n'],['countJudges','n'],['toNextStage','n'],['countParticipant','n']
                     ] 
         
         let rs = makeRecordSet(frmt)
         R.forEach( rc => addRecord(rs,rc), stagesEventParty)
+        hdl({r:rs, e:null})
+    }
+
+    static init(rec,hdl){
+        const frmt = [ ['name','s'], ['description','s'], ['fkEvent','n'], 
+                       ['dtStart','t'], ['dtEnd','t'], ['fkParty','n'], ['type','s'], ['judgment','s'],  
+                       ['temp','n'],['countJudges','n'],['toNextStage','n'],['countParticipant','n']
+                    ] 
+        
+        let rs = makeRecordSet(frmt)
+        addRecord(rs, { name:"Отборы", description:"", fkEvent: 3, dtStart: PartyDate.toTS("01.05.23 18:00:00") ,
+                        dtEnd: PartyDate.toTS("01.05.23 19:00:00"),
+                        fkParty: 1, type: "", judgment: "yes_maybe", temp: 44, countJudges: 5 } )
         hdl({r:rs, e:null})
     }
 }

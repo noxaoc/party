@@ -37,7 +37,7 @@ PartyService.post( "/eventparty/list",{ "filter": filter, "ord":ord,"nav":nav}, 
 }
 
 /*
-*
+* { fkParty, pkID}
 */
 function read( filter, setResult, setError ){
     PartyService.post( "/eventparty/read",{ "filter": filter}, setResult, setError)

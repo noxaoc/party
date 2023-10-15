@@ -72,8 +72,8 @@ function update( rec, setResult, setError ){
 }
 
 function getChgFlds( rec ){
-    const frmt = [ ['pkID','n'], ['name','s'], ['description','s'], ['fkEvent','s'], ['dtStart','t'], ['fkParty','n'],
-                   ['judgement','s'], ['countParticipants','n'] ] 
+    const frmt = [ ['pkID','n'], ['name','s'], ['description','s'], ['fkEvent','s'], ['dtStart','t'], ['dtEnd','t'], 
+                   ['fkParty','n'], ['judgement','s'], ['countParticipants','n'] ] 
     return getChgFldsRec( frmt, rec )
 }
 

@@ -27,6 +27,10 @@ function  list( filter, ord, nav, setResult, setError  ){
 PartyService.post( "/totaltaskstage/list",{ "filter": filter, "ord":ord,"nav":nav}, setResult, setError)
 }
 
+function  totals( filter, ord, nav, setResult, setError  ){     
+    PartyService.post( "/totaltaskstage/totals",{ "filter": filter, "ord":ord,"nav":nav}, setResult, setError)
+}
+
 /*
 *
 */
@@ -93,6 +97,7 @@ function upsert( rec,  setResult, setError )
 
 return Object.freeze({
     list,
+    totals,
     read,
     remove,
     insert,

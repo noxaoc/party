@@ -189,6 +189,117 @@ let totalsTask = [
 ]
 
 /*
+*
+*/
+let allTotalsTask = [
+    { 
+        pkID: 1,
+        name: "Терентьев-Башарина",
+        num:1,
+        fkTask:1, 
+        fkParty:1,
+        cards:[
+            { numJudge:1, total:12 }, { numJudge:2, total:10 },
+            { numJudge:3, total:13 }, { numJudge:4, total:12 },
+            { numJudge:5, total:11 },
+        ],
+        total:13,
+        place: 1,
+        description:"",
+    },
+    { 
+        pkID: 2,
+        name: "Матвеев-Громова",
+        num:2,
+        fkTask:1, 
+        fkParty:1,
+        cards:[
+            { numJudge:1, total:10  }, { numJudge:2, total:9  },
+            { numJudge:3, total:12,  }, { numJudge:4, total:11,  },
+            { numJudge:5, total:11,  },
+        ],
+        total:13,
+        place: 12,
+        description:"",
+    },
+    { 
+        pkID: 3,
+        name: "Чабанец-Еременка",
+        num:3,
+        fkTask:1, 
+        fkParty:1,
+        cards:[
+            { numJudge:1, total:11,  }, { numJudge:2, total:11 },
+            { numJudge:3, total:13,  }, { numJudge:4, total:9, },
+            { numJudge:5, total:10,  },
+        ],
+        total:13,
+        place: 12,
+        description:"",
+    },
+    { 
+        pkID: 4,
+        name: "Гаврилов-Гаврилова",
+        num:4,
+        fkTask:1, 
+        fkParty:1,
+        cards:[
+            { numJudge:1, total:13,  }, { numJudge:2, total:11,  },
+            { numJudge:3, total:13,  }, { numJudge:4, total:10,  },
+            { numJudge:5, total:14, },
+        ],
+        total:14,
+        place: 12,
+        description:"",
+    },
+    { 
+        pkID: 5,
+        name: "Тухтаев-Литвинова",
+        num:5,
+        fkTask:1, 
+        fkParty:1,
+        cards:[
+            { numJudge:1, total:13,  }, { numJudge:2, total:11,  },
+            { numJudge:3, total:13, }, { numJudge:4, total:10,  },
+            { numJudge:5, total:14,  },
+        ],
+        total:14,
+        place: 12,
+        description:"",
+    },
+    { 
+        pkID: 6,
+        name: "Герасимов-Гольц",
+        num:6,
+        fkTask:1, 
+        fkParty:1,
+        cards:[
+            { numJudge:1, total:13, }, { numJudge:2, total:11,  },
+            { numJudge:3, total:13, }, { numJudge:4, total:10,  },
+            { numJudge:5, total:14, },
+        ],
+        total:14,
+        place: 12,
+        description:"",
+    },
+    { 
+        pkID: 7,
+        name: "Герасимов-Гольц",
+        num:7,
+        fkTask:1, 
+        fkParty:1,
+        cards:[
+            { numJudge:1, total:13,  }, { numJudge:2, total:11,  },
+            { numJudge:3, total:13,  }, { numJudge:4, total:10,  },
+            { numJudge:5, total:14,  },
+        ],
+        total:14,
+        place: 12,
+        description:"",
+    },
+]
+
+/*
 * Cуммарные результаты по заданию этапа по участникам
 * 
 * name - название участника, пары, группы
@@ -211,7 +322,19 @@ export class MockTotalsTask{
         R.forEach( rc => addRecord(rs,rc), totalsTask )
         hdl({r:rs, e:null})
     }
+
+    static totals(rec,hdl){
+        const frmt = [ ['pkID','n'], ['name','s'], ['num', 'n'], ['fkTask','n'], 
+                        ['fkParty','n'], ['cards','r',[ ['numJudge','n'],['total','n'] ] ],
+                        ['total', 'n'], ['place', 'n'], ['description','s'],
+                        ] 
+        
+        let rs = makeRecordSet(frmt)
+        R.forEach( rc => addRecord(rs,rc), totalsTask )
+        hdl({r:rs, e:null})
+    }
 }
+
 
 
 

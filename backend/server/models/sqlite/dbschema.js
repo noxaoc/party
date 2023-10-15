@@ -338,9 +338,9 @@ function makeEventParty(){
 }
 
 function read( rs, filter, respHdl ){ 
-    const getRow = (err, row )=>{
+    const getRow = ( err, row )=>{
         addRecord(rs, row)
-        respHdl(rs)
+        respHdl(err,rs)
     }
     const query  = `select event_party.pkID as pkID, 
                            event_party.name as name, 

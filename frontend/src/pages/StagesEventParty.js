@@ -5,16 +5,20 @@
 
 import React, {useState,useEffect} from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faCog, faEdit, faTrashAlt  } from '@fortawesome/free-solid-svg-icons'
-import { Button, ButtonGroup, Dropdown, Tab, Tabs, Card, Table, Container,
+import { faCheck, faCog, faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
+import { Button, ButtonGroup, Dropdown, Tab, Tabs, Card, Table, Container, Breadcrumb,
          Row, Col, Form } from '@themesberg/react-bootstrap'
-import { useParams } from "react-router-dom";
+
+import { useParams, generatePath, Link } from "react-router-dom"
+import { Routes } from "../routes";
 import { Formik, Field, Form as FormikForm} from "formik";
 import * as R from 'ramda'
 
+import { EventStageTaskTemplate } from "../components/EventStageTaskTemplate";
 import { StageEventParty } from "../data/stageEventParty"
 import { TotalTaskStage } from "../data/totalTaskStage"
 import { TaskStageEvent } from "../data/taskStageEvent"
+import { EventParty } from "../data/eventParty";
 import { makePlainObjByIdx, mapRSet, makePlainObj } from "../lib/record"
 import { InputLine } from "../components/InputLine";
 
@@ -184,6 +188,11 @@ const TotalTaskStageEventParty = ( props ) => {
                     { obj.total  }
                     </span>
                 </td>
+                <td className="p-1 text-center">
+                    <span className="fw-normal">
+                    { obj.place  }
+                    </span>
+                </td>
             </tr>
         )           
     }
@@ -206,6 +215,7 @@ const TotalTaskStageEventParty = ( props ) => {
                             <th className="border-bottom text-center px-1">ФИО<br/>Kлуб</th>
                             {makeJudges(rc.countJudges)}
                             <th className="border-bottom text-center px-1">Результат</th>
+                            <th className="border-bottom text-center px-1">Место</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -217,6 +227,91 @@ const TotalTaskStageEventParty = ( props ) => {
         </Card>
   )
 }
+
+/*
+* Итоговые результаты этапа междусобойчика
+*/
+const AllTotalStageEventParty = ( props ) => {
+    const { currentStageID, partyID } = props
+    const rc = {dtStart:"23.01.02 23:50", temp: 192, judgment:"skating", countJudges:5, countParticipants:100 } 
+    // результаты задачи
+    const [ totals, setTotals ] = useState([])
+
+    useEffect(() => {
+        // получить результаты задачи
+        const filter = { fkParty: partyID, fkStage: currentStageID }
+        const resultHdl = result => {
+            setTotals(result)
+        }
+        TotalTaskStage.totals( filter, null, null, resultHdl ) 
+        return ()=>{}
+      },[partyID,currentStageID])
+    
+    const recHdl = ( rec, frmt  ) => {
+        const obj = makePlainObj(rec,frmt)
+        return (
+            <tr key={`totals-${obj.pkID}`}>
+                 <td className="p-1">
+                    <span className="fw-normal">
+                    { obj.num  }
+                    </span>
+                </td>
+                <td className="p-1">
+                    <Container className="d-flex flex-column px-0">
+                        <span className="fw-normal">
+                        { obj.name  }
+                        </span>
+                        <span className="fw-normal text-muted">
+                        {"Надо указать"}
+                        </span>
+                    </Container>
+                </td>
+                {makeTotalJudges(obj.cards)}
+                <td className="p-1 text-center">
+                    <span className="fw-normal">
+                    { obj.total  }
+                    </span>
+                </td>
+                <td className="p-1 text-center">
+                    <span className="fw-normal">
+                    { obj.place  }
+                    </span>
+                </td>
+            </tr>
+        )           
+    }
+    return (
+        <Card border="light" className="table-wrapper table-responsive shadow-sm">
+            <Card.Header>
+                <small className="fw-bold">
+                    {`Время начала: ${rc.dtStart}, темп: ${rc.temp} bpm, кол-во судей: ${rc.countJudges}` }
+                </small>
+            </Card.Header>
+            <Card.Body className="pt-0 pb-1 px-2">
+                <Table hover className="user-table align-items-center">
+                    <colgroup>
+                        <col width="5%"/>
+                        <col width="15%" overflow="hidden"/>
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th className="border-bottom px-1">Номер</th>
+                            <th className="border-bottom text-center px-1">ФИО<br/>Kлуб</th>
+                            {makeJudges(rc.countJudges)}
+                            <th className="border-bottom text-center px-1">Результат</th>
+                            <th className="border-bottom text-center px-1">Место</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {mapRSet( recHdl, totals )}
+                        {/*Нет ни одного участника!*/}
+                    </tbody>
+                </Table>  
+            </Card.Body>
+        </Card>
+  )
+}
+
 
 
 /*
@@ -257,7 +352,7 @@ const TasksStageEventParty = ( props ) => {
         onSelect={ newCurrentTask => setCurrentTask(newCurrentTask) } 
         className="mb-1 justify-content-start">
         <Tab key="totalsstageevent" eventKey="totalsstageevent" tabClassName="py-1" title="Результаты">
-            Здесь будут итоги по этапу
+            <AllTotalStageEventParty currentStageID={currentStageID} partyID={partyID}/>
         </Tab>
         {mapRSet( recHdl, tasksStage )}
     </Tabs>
@@ -269,8 +364,9 @@ const TasksStageEventParty = ( props ) => {
 * Запись об этапе события
 */
 const StageEventPartyRec = ( props ) => {
+    const { partyID, eventID } = useParams()
     const [ focusRec, setFocusRec ] = props.focusRecHook
-    const { pkID, name, dtStart, judgment, countJudges, countParticipants } = props.stageRec
+    const { pkID, name, dtStart, dtEnd, judgment, countJudges, countParticipants } = props.stageRec
     // создать обработчик на редактирование записи
     const makeOnEditHdl = id =>{
         return () => {
@@ -300,12 +396,21 @@ const StageEventPartyRec = ( props ) => {
         <tr onClick={ () => setFocusRec(pkID)}>
             {  focusRec === pkID ? <td className="p-0 bg-danger"/> : <td className="p-0"/> }
             <td className="p-1">
-                <Container className="d-flex flex-column px-0">
                     <span className="fw-normal">
                     { name  }
                     </span>
+            </td>
+            <td className="p-1">
+                <Container className="d-flex flex-column px-0">
                     <span className="fw-normal text-muted">
                     {dtStart}
+                    </span>
+                </Container>
+            </td>
+            <td className="p-1">
+                <Container className="d-flex flex-column px-0">
+                    <span className="fw-normal text-muted">
+                    {dtEnd}
                     </span>
                 </Container>
             </td>
@@ -325,6 +430,9 @@ const StageEventPartyRec = ( props ) => {
                     <Dropdown.Item onClick={ makeOnEditHdl(pkID) }>
                         <FontAwesomeIcon icon={faEdit} className="me-2" /> Редактировать
                     </Dropdown.Item>
+                    <Dropdown.Item as={Link} to={ generatePath(Routes.TasksStageEventParty.path,{ partyID: partyID, eventID: eventID, stageID: pkID}) }>
+                        <FontAwesomeIcon icon={faEdit} className="me-2" /> Перейти к этапу
+                    </Dropdown.Item>
                     <Dropdown.Item className="text-danger" onClick={doRemoveByID(pkID)}>
                         <FontAwesomeIcon icon={faTrashAlt} className="me-2"  /> Удалить
                     </Dropdown.Item>
@@ -335,9 +443,89 @@ const StageEventPartyRec = ( props ) => {
   )
 }
 
-
-
 export default ( props ) => {
+    // showDlg - показать диалог создания события, currEventID - id редактируемого события, он при создании всегда null
+    const [showDlg, setShowDlg] = useState({showDlg:false,editRec:{}});
+    const { partyID, eventID } = useParams()
+    const [stagesEventParty, setStageEventParty] = useState([])
+    //установка фокуса на этап
+    const [ focusRec, setFocusRec ] = useState(null)
+
+     // состояние для установки текущей активной вкладки
+    //const [currentStage, setCurrentStage] = useState('1_qualification')
+
+    useEffect(() => {
+        // получить список этапов события
+        const filter = { fkParty: partyID, fkEvent: eventID }
+        const resultHdl = result => {
+            setStageEventParty(result)
+        }
+        StageEventParty.list( filter, null, null, resultHdl ) 
+        return ()=>{}
+      },[partyID,eventID])
+
+    const stageHdl = ( rec, frmt  ) => {
+        const obj = makePlainObj(rec,frmt)
+        return ( <StageEventPartyRec key={`stageeventparty-${obj.pkID}`} 
+                 focusRecHook={[focusRec,setFocusRec]} 
+
+                 stageRec={{...obj}}/> )           
+    }
+
+    //диалог создания всегда в режиме редактирования
+    //const [editMode, setEditMode] = useState(true)
+   
+    const onClickCreateStageEvent= ()=>{
+        StageEventParty.init( { initRec:{ fkParty: partyID, fkEvent: eventID}, 
+                                method: "StageEventParty.list" }, 
+                       result =>setShowDlg( {showDlg:true, editRec:makePlainObjByIdx(result) } ) )
+    }
+
+    return (
+      <>
+        <EventStageTaskTemplate  onClickCreateRec={onClickCreateStageEvent} 
+                        partyID={partyID} eventID={eventID} />
+                {/*список этапов*/}
+        <Card border="light" className="table-wrapper table-responsive shadow-sm">
+            {/*showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]}
+                                                hookChgParticipants={[changed, setChanged]} />*/ }
+            <Card.Body className="pt-0 pb-1 px-2">
+                <Table hover className="user-table align-items-center" width="100%">
+                    <colgroup>
+                        <col width="1%"/>
+                        <col width="49%" overflow="hidden"/>
+                        <col width="17%" overflow="hidden"/>
+                        <col width="17%" overflow="hidden"/>
+                        <col width="16%" overflow="hidden"/>
+
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th className="border-bottom px-1">#</th>
+                            <th className="border-bottom px-1">Название</th>
+                            <th className="border-bottom px-1">Начало этапа</th>
+                            <th className="border-bottom px-1">Окончание этапа</th>
+                            <th className="border-bottom px-1">Судейство</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {mapRSet( stageHdl, stagesEventParty )}
+                    </tbody>
+                </Table>
+                <Card.Footer className="px-1 py-2 border-0 d-flex justify-content-start">
+                    <small className="fw-bold">
+                        Всего этапов: <b>{stagesEventParty.length - 1}</b>
+                    </small>
+                </Card.Footer>
+            </Card.Body>
+        </Card>
+      </>
+    );
+  };
+
+
+/*
+  export default =v( props ) => {
     // showDlg - показать диалог создания события, currEventID - id редактируемого события, он при создании всегда null
     const [showDlg, setShowDlg] = useState({showDlg:false,editRec:{}});
     const { partyID, eventID } = useParams()
@@ -404,12 +592,12 @@ export default ( props ) => {
             </Dropdown>
           </div>
         </div>
-        {/*список этапов*/}
+        {/*список этапов*}
         <Row>
             <Col sm={3}>
                 <Card border="light" className="table-wrapper table-responsive shadow-sm">
                     {/*showDlg.showDlg && <ParticipantDlg hookShowDlg={[showDlg, setShowDlg]}
-                                                        hookChgParticipants={[changed, setChanged]} />*/ }
+                                                        hookChgParticipants={[changed, setChanged]} />* }
                     <Card.Body className="pt-0 pb-1 px-2">
                         <Table hover className="user-table align-items-center" width="100%">
                             <colgroup>
@@ -437,7 +625,7 @@ export default ( props ) => {
                 </Card>
             </Col>
             <Col sm={9}>
-                {/*<ParticipansOfStageEventParty currentStageID={1} partyID={partyID}/>*/}
+                {/*<ParticipansOfStageEventParty currentStageID={1} partyID={partyID}/>*}
                 <TasksStageEventParty currentStageID={1} partyID={partyID}/>
             </Col>                                    
         </Row>
@@ -445,6 +633,7 @@ export default ( props ) => {
       </>
     );
   };
+*/
   
 /*
 

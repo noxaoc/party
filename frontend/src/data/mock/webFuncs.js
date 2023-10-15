@@ -10,8 +10,10 @@ const onMock = true
 
 let webFuncs = {
     "/stageeventparty/list": MockStageEventParty.list,
+    "/stageeventparty/init": MockStageEventParty.init,
     "/totaltaskstage/list": MockTotalsTask.list,
     "/taskstageevent/list": MockTasksStageEvent.list,
+    "/totaltaskstage/totals": MockTotalsTask.totals
 }
 /**
  * 
